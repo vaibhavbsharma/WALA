@@ -1029,7 +1029,8 @@ public class SSABuilder extends AbstractIntStackMachine {
      * @return if we know that immediately after the given program counter, v_vn corresponds to some set of locals, then return an
      *         array of the local numbers. else return null.
      */
-    private int[] findLocalsForValueNumber(int pc, int vn) {
+    @Override
+    public int[] findLocalsForValueNumber(int pc, int vn) {
       if (vn < 0) {
         return null;
       }

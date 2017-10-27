@@ -261,7 +261,12 @@ public class SSAConversion extends AbstractSSAConversion {
   // SSA2LocalMap implementation for SSAConversion
   //
   private class SSAInformation implements com.ibm.wala.ssa.IR.SSA2LocalMap {
-    private final String[][] computedNames = new String[valueMap.length][]; 
+    private final String[][] computedNames = new String[valueMap.length][];
+
+    @Override
+    public int[] findLocalsForValueNumber(int index, int vn) {
+      return ((SSA2LocalMap)(this)).findLocalsForValueNumber(index,vn);
+    }
     
     @Override
     public String[] getLocalNames(int pc, int vn) {

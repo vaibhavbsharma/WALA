@@ -1383,6 +1383,7 @@ public class DexSSABuilder extends AbstractIntRegisterMachine {
      */
     private static class SSA2LocalMap implements com.ibm.wala.ssa.IR.SSA2LocalMap {
 
+
         private final DexCFG dexCFG;
 
         /**
@@ -1473,7 +1474,8 @@ public class DexSSABuilder extends AbstractIntRegisterMachine {
          * @return if we know that immediately after the given program counter, v_vn corresponds to some set of locals, then return an
          *         array of the local numbers. else return null.
          */
-        private int[] findLocalsForValueNumber(int pc, int vn) {
+        @Override
+        public int[] findLocalsForValueNumber(int pc, int vn) {
 
             IBasicBlock<Instruction> bb = dexCFG.getBlockForInstruction(pc);
             int firstInstruction = bb.getFirstInstructionIndex();

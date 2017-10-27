@@ -722,6 +722,21 @@ public abstract class IR implements IRView {
   }
 
   /**
+   * @param index an index into the IR instruction array
+   * @param vn a value number
+   * @return if we know that immediately after the given program counter, v_vn corresponds to one or more locals and local variable
+   *         names are available, the stack slot of the locals which v_vn represents. Otherwise, null.
+   */
+  public int[] findLocalsForValueNumber(int index, int vn) {
+    if (getLocalMap() == null) {
+      return new int[0];
+    } else {
+      return getLocalMap().findLocalsForValueNumber(index, vn);
+    }
+  }
+
+
+  /**
    * A Map that gives the names of the local variables corresponding to SSA value numbers at particular IR instruction indices, if
    * such information is available from source code mapping.
    */
@@ -733,6 +748,7 @@ public abstract class IR implements IRView {
      *         variable names are available, the name of the locals which v_vn represents. Otherwise, null.
      */
     String[] getLocalNames(int index, int vn);
+    int[] findLocalsForValueNumber(int pc, int vn);
   }
 
   /**

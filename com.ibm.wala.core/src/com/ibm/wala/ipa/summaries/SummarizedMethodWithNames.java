@@ -104,6 +104,11 @@ public class SummarizedMethodWithNames extends SummarizedMethod {
                 this.localNames = localNames;
             }
 
+            @Override
+            public int[] findLocalsForValueNumber(int index, int vn) {
+                return ((SSA2LocalMap)(this)).findLocalsForValueNumber(index,vn);
+            }
+
             /**
              *  Does not respect index.
              */
@@ -116,6 +121,7 @@ public class SummarizedMethodWithNames extends SummarizedMethod {
                     return null;
                 }
             }
+
         }
 
         public SyntheticIRWithNames(IMethod method, Context context, AbstractCFG cfg, SSAInstruction[] instructions, 
@@ -127,6 +133,21 @@ public class SummarizedMethodWithNames extends SummarizedMethod {
         @Override
         public SSA2LocalMap getLocalMap() {
             return this.localMap;
+        }
+
+        /**
+         * @param index an index into the IR instruction array
+         * @param vn a value number
+         * @return if we know that immediately after the given program counter, v_vn corresponds to one or more locals and local variable
+         *         names are available, the stack slot of the locals which v_vn represents. Otherwise, null.
+         */
+        @Override
+        public int[] findLocalsForValueNumber(int index, int vn) {
+            if (getLocalMap() == null) {
+                return new int[0];
+            } else {
+                return getLocalMap().findLocalsForValueNumber(index, vn);
+            }
         }
     }
 
