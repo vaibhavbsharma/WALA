@@ -37,6 +37,11 @@ import com.ibm.wala.util.collections.MapIterator;
 import com.ibm.wala.util.debug.Assertions;
 import com.ibm.wala.util.debug.UnimplementedError;
 import com.ibm.wala.util.functions.Function;
+import com.ibm.wala.util.graph.Graph;
+import com.ibm.wala.util.graph.NumberedGraph;
+import com.ibm.wala.util.graph.dominators.Dominators;
+import com.ibm.wala.util.graph.dominators.NumberedDominators;
+import com.ibm.wala.util.graph.impl.GraphInverter;
 import com.ibm.wala.util.graph.impl.NumberedNodeIterator;
 import com.ibm.wala.util.intset.BitVector;
 import com.ibm.wala.util.intset.IntSet;
@@ -86,6 +91,11 @@ public class SSACFG implements ControlFlowGraph<SSAInstruction, ISSABasicBlock>,
    * cache a ref to the exit block for efficient access
    */
   private BasicBlock exit;
+
+  /*
+  * contains a post-dominator tree
+   */
+  Graph<ISSABasicBlock> postDomTree;
 
   /**
    * @throws IllegalArgumentException if method is null
@@ -1009,12 +1019,35 @@ public class SSACFG implements ControlFlowGraph<SSAInstruction, ISSABasicBlock>,
     return method;
   }
 
-  public void removeExceptionalEdges(int index) {
+  /*
+  * Removes all exceptional edges going in to node numbered 'index'
+   */
+  public void removeExceptionalEdgesToNode(int index) {
     IBasicBlock<IInstruction> n = delegate.getNode(index);
     Collection<IBasicBlock<IInstruction>> c = delegate.getExceptionalPredecessors(n);
     for (IBasicBlock<IInstruction> iInstructions : c) {
       delegate.removeEdge(iInstructions, n);
     }
+  }
+
+  /*
+  * return the immediate post-dominator of node
+   */
+  public ISSABasicBlock getIPdom(int index) {
+    ISSABasicBlock bb = getNode(index);
+    if(postDomTree == null) {
+      removeExceptionalEdgesToNode(exit().getNumber());
+      NumberedGraph<ISSABasicBlock> invertedCFG = GraphInverter.invert(this);
+      NumberedDominators<ISSABasicBlock> dom = (NumberedDominators<ISSABasicBlock>)
+              Dominators.make(invertedCFG, exit());
+      postDomTree = dom.dominatorTree();
+    }
+    if((postDomTree.getPredNodeCount(bb) == 0 &&
+            postDomTree.getSuccNodeCount(bb) == 0) ||
+            (exit().getNumber() == index))
+      return null;
+    assert(postDomTree.getPredNodeCount(bb)==1);
+    return postDomTree.getPredNodes(bb).next();
   }
 
   /*
