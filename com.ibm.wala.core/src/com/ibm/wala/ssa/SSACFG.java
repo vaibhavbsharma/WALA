@@ -450,6 +450,8 @@ public class SSACFG implements ControlFlowGraph<SSAInstruction, ISSABasicBlock>,
       }
     }
 
+
+
     public SSAPiInstruction getPiForRefAndPath(int n, Object path) {
       return piInstructions.get(new RefPathKey(n, this, path));
     }
@@ -1005,6 +1007,14 @@ public class SSACFG implements ControlFlowGraph<SSAInstruction, ISSABasicBlock>,
   @Override
   public IMethod getMethod() {
     return method;
+  }
+
+  public void removeExceptionalEdges(int index) {
+    IBasicBlock<IInstruction> n = delegate.getNode(index);
+    Collection<IBasicBlock<IInstruction>> c = delegate.getExceptionalPredecessors(n);
+    for (IBasicBlock<IInstruction> iInstructions : c) {
+      delegate.removeEdge(iInstructions, n);
+    }
   }
 
   /*
