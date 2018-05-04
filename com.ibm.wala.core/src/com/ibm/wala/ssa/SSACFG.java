@@ -18,18 +18,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.ibm.wala.cfg.AbstractCFG;
-import com.ibm.wala.cfg.BytecodeCFG;
-import com.ibm.wala.cfg.ControlFlowGraph;
-import com.ibm.wala.cfg.IBasicBlock;
-import com.ibm.wala.cfg.InducedCFG;
-import com.ibm.wala.cfg.MinimalCFG;
+import com.ibm.wala.cfg.*;
 import com.ibm.wala.classLoader.IClass;
 import com.ibm.wala.classLoader.IClassLoader;
 import com.ibm.wala.classLoader.IMethod;
+import com.ibm.wala.ipa.cha.ClassHierarchy;
 import com.ibm.wala.shrikeBT.ExceptionHandler;
 import com.ibm.wala.shrikeBT.IInstruction;
 import com.ibm.wala.types.TypeReference;
+import com.ibm.wala.util.WalaException;
 import com.ibm.wala.util.collections.EmptyIterator;
 import com.ibm.wala.util.collections.HashMapFactory;
 import com.ibm.wala.util.collections.Iterator2Collection;
@@ -1022,21 +1019,27 @@ public class SSACFG implements ControlFlowGraph<SSAInstruction, ISSABasicBlock>,
   /*
   * Removes all exceptional edges going in to node numbered 'index'
    */
-  public void removeExceptionalEdgesToNode(int index) {
-    IBasicBlock<IInstruction> n = delegate.getNode(index);
-    Collection<IBasicBlock<IInstruction>> c = delegate.getExceptionalPredecessors(n);
-    for (IBasicBlock<IInstruction> iInstructions : c) {
-      delegate.removeEdge(iInstructions, n);
+  public void removePEIEdgesToExit(IR ir, ClassHierarchy cha) throws WalaException {
+    ISSABasicBlock exitNode = this.exit();
+    Iterator<ISSABasicBlock> c = this.getPredNodes(exitNode);
+    while(c.hasNext()) {
+      ISSABasicBlock b = c.next();
+      if (CFGSanitizer.isPEIEdge(b, ir, cha)) {
+        IBasicBlock<IInstruction> bIBB = delegate.getNode(b.getNumber());
+        IBasicBlock<IInstruction> exitIBB = delegate.getNode(exit().getNumber());
+        delegate.removeEdge(bIBB, exitIBB);
+      }
     }
   }
 
   /*
   * return the immediate post-dominator of node
    */
-  public ISSABasicBlock getIPdom(int index) {
+  public ISSABasicBlock getIPdom(int index, boolean removePEIEdgesToExit, IR ir, ClassHierarchy cha) throws WalaException {
     ISSABasicBlock bb = getNode(index);
     if(postDomTree == null) {
-      removeExceptionalEdgesToNode(exit().getNumber());
+      if(removePEIEdgesToExit)
+        removePEIEdgesToExit(ir, cha);
       NumberedGraph<ISSABasicBlock> invertedCFG = GraphInverter.invert(this);
       NumberedDominators<ISSABasicBlock> dom = (NumberedDominators<ISSABasicBlock>)
               Dominators.make(invertedCFG, exit());
