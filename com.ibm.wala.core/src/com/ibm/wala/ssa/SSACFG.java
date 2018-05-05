@@ -1032,14 +1032,25 @@ public class SSACFG implements ControlFlowGraph<SSAInstruction, ISSABasicBlock>,
     }
   }
 
+  public void removeExceptionalEdges(int index) {
+    IBasicBlock<IInstruction> n = delegate.getNode(index);
+    Collection<IBasicBlock<IInstruction>> c = delegate.getExceptionalPredecessors(n);
+    for (IBasicBlock<IInstruction> iInstructions : c) {
+      delegate.removeEdge(iInstructions, n);
+    }
+  }
+
   /*
   * return the immediate post-dominator of node
    */
-  public ISSABasicBlock getIPdom(int index, boolean removePEIEdgesToExit, IR ir, ClassHierarchy cha) throws WalaException {
+  public ISSABasicBlock getIPdom(int index, boolean removePEIEdgesToExit, boolean removeExceptionalEdgesToExitNode,
+                                 IR ir, ClassHierarchy cha) throws WalaException {
     ISSABasicBlock bb = getNode(index);
     if(postDomTree == null) {
       if(removePEIEdgesToExit)
         removePEIEdgesToExit(ir, cha);
+      if (removeExceptionalEdgesToExitNode)
+        removeExceptionalEdges(exit().getNumber());
       NumberedGraph<ISSABasicBlock> invertedCFG = GraphInverter.invert(this);
       NumberedDominators<ISSABasicBlock> dom = (NumberedDominators<ISSABasicBlock>)
               Dominators.make(invertedCFG, exit());
