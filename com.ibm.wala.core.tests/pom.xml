@@ -29,6 +29,14 @@
           </execution>
         </executions>
       </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <configuration>
+          <source>1.7</source>
+          <target>1.7</target>
+        </configuration>
+      </plugin>
     </plugins>
   </build>
   <dependencies>
@@ -38,5 +46,10 @@
       <version>4.11</version>
       <scope>test</scope>
     </dependency>
+      <dependency>
+          <groupId>com.ibm.wala</groupId>
+          <artifactId>com.ibm.wala.core</artifactId>
+          <version>1.4.4-SNAPSHOT</version>
+      </dependency>
   </dependencies> 
 </project>
