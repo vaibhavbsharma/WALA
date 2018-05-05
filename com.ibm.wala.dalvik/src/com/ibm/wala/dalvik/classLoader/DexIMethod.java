@@ -67,6 +67,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.ibm.wala.shrikeBT.IInstruction;
 import org.jf.dexlib2.Opcode;
 import org.jf.dexlib2.analysis.ClassPath;
 import org.jf.dexlib2.analysis.ClassPathResolver;
@@ -3339,5 +3340,10 @@ public class DexIMethod implements IBytecodeMethod<Instruction> {
 		return result;
 	}
 
-	
+	@Override
+	public IInstruction[] getInstructions(IInstruction[] instructions) {
+		return null;
+	}
+
+
 }

@@ -16,6 +16,7 @@ import java.util.Collection;
 import com.ibm.wala.classLoader.ShrikeClass.GetReader;
 import com.ibm.wala.ipa.cha.IClassHierarchy;
 import com.ibm.wala.shrikeBT.Decoder;
+import com.ibm.wala.shrikeBT.IInstruction;
 import com.ibm.wala.shrikeBT.IndirectionData;
 import com.ibm.wala.shrikeBT.shrikeCT.CTDecoder;
 import com.ibm.wala.shrikeCT.AnnotationsReader;
@@ -56,6 +57,7 @@ public final class ShrikeCTMethod extends ShrikeBTMethod implements IBytecodeMet
   private int modifiers = -1;
 
   private final IClassHierarchy cha;
+  private IInstruction[] instructions;
 
   public ShrikeCTMethod(IClass klass, int index) {
 
@@ -150,7 +152,37 @@ public final class ShrikeCTMethod extends ShrikeBTMethod implements IBytecodeMet
       return reader.getClasses();
     }
   }
-/** BEGIN Custom change: precise positions */
+
+  public void replaceInstruction(IInstruction instr, IInstruction replacement) {
+    IInstruction[] instructions = null;
+    try {
+      instructions = this.getInstructions();
+    } catch (InvalidClassFileException e) {
+      e.printStackTrace();
+    }
+    for (int i=0; i < instructions.length; i++)
+      if (instructions[i] == instr)
+        instructions[i] = replacement;
+    this.setInstructions(instructions);
+  }
+
+  private void setInstructions(IInstruction[] instructions) {
+    this.instructions = instructions;
+  }
+
+  @Override
+  public IInstruction[] getInstructions(IInstruction[] instructions) {
+    if (this.instructions == null) {
+      try {
+        return this.getInstructions();
+      } catch (InvalidClassFileException e) {
+        e.printStackTrace();
+      }
+    }
+    return this.instructions;
+  }
+
+  /** BEGIN Custom change: precise positions */
   
   private static final class SPos implements SourcePosition {
     String fileName;

@@ -13,6 +13,7 @@ package com.ibm.wala.classLoader;
 import java.util.Collection;
 
 import com.ibm.wala.shrikeBT.ExceptionHandler;
+import com.ibm.wala.shrikeBT.IInstruction;
 import com.ibm.wala.shrikeBT.IndirectionData;
 import com.ibm.wala.shrikeCT.InvalidClassFileException;
 import com.ibm.wala.types.annotations.Annotation;
@@ -53,6 +54,8 @@ public interface IBytecodeMethod<I>extends IMethod {
   IndirectionData getIndirectionData();
   
   Collection<Annotation>[] getParameterAnnotations();
+
+  IInstruction[] getInstructions(IInstruction[] instructions);
 
   Collection<Annotation> getAnnotations(boolean runtimeVisible) throws InvalidClassFileException;
 
