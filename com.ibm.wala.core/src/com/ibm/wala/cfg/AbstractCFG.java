@@ -435,7 +435,7 @@ public abstract class AbstractCFG<I, T extends IBasicBlock<I>> implements Contro
 
   @Override
   public void removeEdge(T src, T dst)  {
-    if(exceptionalToExit.get(src.getNumber()))
+    if(exceptionalToExit.get(src.getNumber()) && dst.isExitBlock())
       exceptionalToExit.clear(src.getNumber());
     else if(exceptionalEdgeManager.hasEdge(src, dst))
       exceptionalEdgeManager.removeEdge(src, dst);

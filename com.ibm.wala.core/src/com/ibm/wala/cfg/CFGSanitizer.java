@@ -155,7 +155,11 @@ public class CFGSanitizer {
     return g;
   }
 
-  public static boolean isPEIEdge(ISSABasicBlock src, IR ir, ClassHierarchy cha) throws IllegalArgumentException, WalaException {
+  /*
+  Added so that we can override this method in VeriCFGSanitizer and control which edges are SPFCase edges without
+  changing WALA every time. This method is more or less a clone of this.sanitize
+  */
+  public boolean isSPFCaseEdge(ISSABasicBlock src, ISSABasicBlock exit, IR ir, ClassHierarchy cha) throws IllegalArgumentException, WalaException {
 
     if (ir == null) {
       throw new IllegalArgumentException("ir cannot be null");
@@ -164,7 +168,7 @@ public class CFGSanitizer {
     ControlFlowGraph<SSAInstruction, ISSABasicBlock> cfg = ir.getControlFlowGraph();
 
     // now add edges to exit, ignoring undeclared exceptions
-    ISSABasicBlock exit = cfg.exit();
+    //ISSABasicBlock exit = cfg.exit();
 
     for (Iterator it = cfg.getPredNodes(exit); it.hasNext();) {
       // for each predecessor of exit ...
