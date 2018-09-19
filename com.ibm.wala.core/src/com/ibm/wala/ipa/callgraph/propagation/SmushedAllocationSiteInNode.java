@@ -16,11 +16,9 @@ import com.ibm.wala.classLoader.IClass;
 import com.ibm.wala.classLoader.NewSiteReference;
 import com.ibm.wala.ipa.callgraph.CGNode;
 import com.ibm.wala.ipa.callgraph.CallGraph;
-import com.ibm.wala.util.Predicate;
 import com.ibm.wala.util.collections.FilterIterator;
 import com.ibm.wala.util.collections.MapIterator;
 import com.ibm.wala.util.collections.Pair;
-import com.ibm.wala.util.functions.Function;
 
 /**
  * An {@link InstanceKey} which represents the set of all allocation sites
@@ -56,19 +54,10 @@ public class SmushedAllocationSiteInNode extends AbstractTypeInNode {
 
   @Override
   public Iterator<Pair<CGNode, NewSiteReference>> getCreationSites(CallGraph CG) {
-    return new MapIterator<NewSiteReference,Pair<CGNode, NewSiteReference>>(
-        new FilterIterator<NewSiteReference>(
+    return new MapIterator<>(
+        new FilterIterator<>(
           getNode().iterateNewSites(),
-          new Predicate<NewSiteReference>() {
-            @Override public boolean test(NewSiteReference o) {
-              return o.getDeclaredType().equals(getConcreteType().getReference());
-            }
-        }),
-        new Function<NewSiteReference,Pair<CGNode, NewSiteReference>>() {
-          @Override
-          public Pair<CGNode, NewSiteReference> apply(NewSiteReference object) {
-            return Pair.make(getNode(), object);
-          }
-        });
+          o -> o.getDeclaredType().equals(getConcreteType().getReference())),
+        object -> Pair.make(getNode(), object));
   }
 }

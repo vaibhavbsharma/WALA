@@ -11,6 +11,7 @@
 package com.ibm.wala.util.graph;
 
 import java.util.Iterator;
+import java.util.function.Predicate;
 
 import com.ibm.wala.dataflow.graph.AbstractMeetOperator;
 import com.ibm.wala.dataflow.graph.BitVectorFramework;
@@ -24,7 +25,6 @@ import com.ibm.wala.fixpoint.BitVectorVariable;
 import com.ibm.wala.fixpoint.UnaryOperator;
 import com.ibm.wala.util.CancelException;
 import com.ibm.wala.util.MonitorUtil.IProgressMonitor;
-import com.ibm.wala.util.Predicate;
 import com.ibm.wala.util.collections.FilterIterator;
 import com.ibm.wala.util.collections.Iterator2Collection;
 import com.ibm.wala.util.debug.Assertions;
@@ -58,12 +58,12 @@ public class GraphReachability<T, S> {
    * @param filter "interesting" node definition
    * @throws IllegalArgumentException if g is null
    */
-  public GraphReachability(Graph<T> g, Predicate<?> filter) {
+  public GraphReachability(Graph<T> g, Predicate<? super T> filter) {
     if (g == null) {
       throw new IllegalArgumentException("g is null");
     }
     this.g = g;
-    Iterator<S> i = new FilterIterator<>(g.iterator(), filter);
+    Iterator<T> i = new FilterIterator<>(g.iterator(), filter);
     domain = new MutableMapping<>((Iterator2Collection.toSet(i)).toArray());
   }
 

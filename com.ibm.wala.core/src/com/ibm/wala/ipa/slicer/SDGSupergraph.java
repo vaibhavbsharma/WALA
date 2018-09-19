@@ -16,7 +16,6 @@ import com.ibm.wala.dataflow.IFDS.ISupergraph;
 import com.ibm.wala.ipa.callgraph.CGNode;
 import com.ibm.wala.ipa.callgraph.propagation.InstanceKey;
 import com.ibm.wala.ssa.SSAAbstractInvokeInstruction;
-import com.ibm.wala.util.Predicate;
 import com.ibm.wala.util.collections.EmptyIterator;
 import com.ibm.wala.util.collections.FilterIterator;
 import com.ibm.wala.util.debug.Assertions;
@@ -97,13 +96,7 @@ class SDGSupergraph implements ISupergraph<Statement, PDG<? extends InstanceKey>
   public Iterator<? extends Statement> getCalledNodes(Statement call) {
     switch (call.getKind()) {
     case NORMAL:
-      Predicate<?> f = new Predicate() {
-        @Override public boolean test(Object o) {
-          Statement s = (Statement) o;
-          return isEntry(s);
-        }
-      };
-      return new FilterIterator<Statement>(getSuccNodes(call), f);
+      return new FilterIterator<>(getSuccNodes(call), this::isEntry);
     case PARAM_CALLER:
     case HEAP_PARAM_CALLER:
       return getSuccNodes(call);

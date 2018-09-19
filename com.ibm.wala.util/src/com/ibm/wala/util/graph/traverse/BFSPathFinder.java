@@ -17,8 +17,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Predicate;
 
-import com.ibm.wala.util.Predicate;
 import com.ibm.wala.util.collections.HashMapFactory;
 import com.ibm.wala.util.collections.HashSetFactory;
 import com.ibm.wala.util.collections.NonNullSingletonIterator;
@@ -83,11 +83,7 @@ public class BFSPathFinder<T> {
     if (!G.containsNode(src)) {
       throw new IllegalArgumentException("src is not in graph " + src);
     }
-    this.filter = new Predicate<T>() {
-      @Override public boolean test(T o) {
-        return target.equals(o);
-      }
-    };
+    this.filter = target::equals;
   }
 
   /**
@@ -107,11 +103,7 @@ public class BFSPathFinder<T> {
     this.G = G;
     this.roots = new NonNullSingletonIterator<>(src);
 
-    this.filter = new Predicate<T>() {
-      @Override public boolean test(T o) {
-        return ts.contains(o);
-      }
-    };
+    this.filter = ts::contains;
   }
 
   /**
@@ -128,11 +120,7 @@ public class BFSPathFinder<T> {
     }
     this.G = G;
     this.roots = sources;
-    this.filter = new Predicate<T>() {
-      @Override public boolean test(T o) {
-        return target.equals(o);
-      }
-    };
+    this.filter = target::equals;
   }
 
   /**

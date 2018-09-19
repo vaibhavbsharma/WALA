@@ -11,9 +11,6 @@
 package com.ibm.wala.util.collections;
 
 import java.util.Iterator;
-
-import com.ibm.wala.util.Predicate;
-import com.ibm.wala.util.functions.Function;
 /**
  * utilities dealing with Iterators
  */
@@ -47,18 +44,6 @@ public class IteratorUtil {
   }
 
   public static <T, S extends T> Iterator<S> filter(Iterator<T> iterator, final Class<S> cls) {
-    return new MapIterator<>(
-        new FilterIterator<T>(iterator, new Predicate<T>() {
-          @Override public boolean test(T o) {
-            return cls.isInstance(o);
-          }
-        }), 
-        new Function<T,S>() {
-          @SuppressWarnings("unchecked")
-          @Override
-          public S apply(T object) {
-            return (S) object;
-          }
-        });
+    return new MapIterator<>(new FilterIterator<>(iterator, cls::isInstance), cls::cast);
   }
 }

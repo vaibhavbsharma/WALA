@@ -22,6 +22,7 @@
 package com.ibm.wala.dataflow.IFDS;
 
 import java.util.Iterator;
+import java.util.function.Predicate;
 
 import com.ibm.wala.cfg.ControlFlowGraph;
 import com.ibm.wala.ipa.callgraph.CGNode;
@@ -32,7 +33,6 @@ import com.ibm.wala.ipa.cha.IClassHierarchy;
 import com.ibm.wala.ssa.SSAAbstractInvokeInstruction;
 import com.ibm.wala.ssa.SSAInstruction;
 import com.ibm.wala.ssa.analysis.IExplodedBasicBlock;
-import com.ibm.wala.util.Predicate;
 import com.ibm.wala.util.collections.EmptyIterator;
 import com.ibm.wala.util.collections.FilterIterator;
 import com.ibm.wala.util.debug.Assertions;
@@ -95,12 +95,8 @@ public class ICFGSupergraph implements ISupergraph<BasicBlockInContext<IExploded
 
   @Override
   public Iterator<? extends BasicBlockInContext<IExplodedBasicBlock>> getCalledNodes(BasicBlockInContext<IExplodedBasicBlock> call) {
-    final Predicate<BasicBlockInContext<IExplodedBasicBlock>> isEntryFilter = new Predicate<BasicBlockInContext<IExplodedBasicBlock>>() {
-      @Override public boolean test(BasicBlockInContext<IExplodedBasicBlock> o) {
-        return o.isEntryBlock();
-      }
-    };
-    return new FilterIterator<BasicBlockInContext<IExplodedBasicBlock>>(getSuccNodes(call), isEntryFilter);
+    final Predicate<BasicBlockInContext<IExplodedBasicBlock>> isEntryFilter = BasicBlockInContext::isEntryBlock;
+    return new FilterIterator<>(getSuccNodes(call), isEntryFilter);
   }
 
   @Override
@@ -118,7 +114,7 @@ public class ICFGSupergraph implements ISupergraph<BasicBlockInContext<IExploded
   @Override
   public BasicBlockInContext<IExplodedBasicBlock> getLocalBlock(CGNode procedure, int i) {
     IExplodedBasicBlock b = icfg.getCFG(procedure).getNode(i);
-    return new BasicBlockInContext<IExplodedBasicBlock>(procedure, b);
+    return new BasicBlockInContext<>(procedure, b);
   }
 
   @Override

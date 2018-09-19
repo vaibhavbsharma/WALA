@@ -30,7 +30,7 @@ import com.ibm.wala.ipa.cha.IClassHierarchy;
 import com.ibm.wala.util.config.FileOfClasses;
 import com.ibm.wala.util.io.FileProvider;
 
-abstract public class EclipseProjectAnalysisEngine<P, I extends InstanceKey> extends AbstractAnalysisEngine<I> {
+abstract public class EclipseProjectAnalysisEngine<P, I extends InstanceKey> extends AbstractAnalysisEngine<I, CallGraphBuilder<I>, Void> {
 
   protected final P project;
   
@@ -39,7 +39,6 @@ abstract public class EclipseProjectAnalysisEngine<P, I extends InstanceKey> ext
   protected EclipseProjectPath<?,P> ePath;
 
   public EclipseProjectAnalysisEngine(P project) {
-    super();
     this.project = project;
     this.workspaceRootPath = ResourcesPlugin.getWorkspace().getRoot().getLocation();
     assert project != null;
@@ -49,7 +48,7 @@ abstract public class EclipseProjectAnalysisEngine<P, I extends InstanceKey> ext
   abstract protected EclipseProjectPath<?,P> createProjectPath(P project) throws IOException, CoreException;
 
   @Override
-  abstract protected CallGraphBuilder<I> getCallGraphBuilder(IClassHierarchy cha, AnalysisOptions options, IAnalysisCacheView cache);
+  abstract protected CallGraphBuilder<? super I> getCallGraphBuilder(IClassHierarchy cha, AnalysisOptions options, IAnalysisCacheView cache);
 
   abstract protected AnalysisScope makeAnalysisScope();
   

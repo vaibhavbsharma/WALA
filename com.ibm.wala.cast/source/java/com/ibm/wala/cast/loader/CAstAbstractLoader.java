@@ -17,7 +17,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 
 import com.ibm.wala.cast.tree.CAstSourcePositionMap.Position;
@@ -27,12 +26,10 @@ import com.ibm.wala.classLoader.IMethod;
 import com.ibm.wala.classLoader.ModuleEntry;
 import com.ibm.wala.ipa.cha.IClassHierarchy;
 import com.ibm.wala.types.TypeName;
-import com.ibm.wala.util.Predicate;
 import com.ibm.wala.util.collections.FilterIterator;
 import com.ibm.wala.util.collections.HashMapFactory;
 import com.ibm.wala.util.collections.HashSetFactory;
 import com.ibm.wala.util.collections.MapIterator;
-import com.ibm.wala.util.functions.Function;
 import com.ibm.wala.util.strings.Atom;
 import com.ibm.wala.util.warnings.Warning;
 
@@ -82,21 +79,14 @@ public abstract class CAstAbstractLoader implements IClassLoader {
   }
 
   private Iterator<ModuleEntry> getMessages(final byte severity) {
-    return new MapIterator<>(new FilterIterator<Map.Entry<ModuleEntry,Set<Warning>>>(errors.entrySet().iterator(), new Predicate<Map.Entry<ModuleEntry,Set<Warning>>>()  {
-      @Override public boolean test(Entry<ModuleEntry, Set<Warning>> o) {
-         for(Warning w : o.getValue()) {
-           if (w.getLevel() == severity) {
-             return true;
-           }
+    return new MapIterator<>(new FilterIterator<>(errors.entrySet().iterator(), o -> {
+       for(Warning w : o.getValue()) {
+         if (w.getLevel() == severity) {
+           return true;
          }
-         return false;
-      }
-    }), new Function<Map.Entry<ModuleEntry,Set<Warning>>, ModuleEntry>() {
-      @Override
-      public ModuleEntry apply(Entry<ModuleEntry, Set<Warning>> object) {
-        return object.getKey();
-      }      
-    });
+       }
+       return false;
+    }), Map.Entry::getKey);
   }
   
   public Iterator<ModuleEntry> getModulesWithParseErrors() {
@@ -196,8 +186,7 @@ public abstract class CAstAbstractLoader implements IClassLoader {
   public void removeAll(Collection<IClass> toRemove) {
     Set<TypeName> keys = HashSetFactory.make();
 
-    for (Iterator<Map.Entry<TypeName,IClass>> EE = types.entrySet().iterator(); EE.hasNext();) {
-      Map.Entry<TypeName,IClass> E =  EE.next();
+    for (Map.Entry<TypeName, IClass> E : types.entrySet()) {
       if (toRemove.contains(E.getValue())) {
         keys.add(E.getKey());
       }

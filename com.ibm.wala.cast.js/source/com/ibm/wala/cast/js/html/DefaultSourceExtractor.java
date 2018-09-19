@@ -19,20 +19,15 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.Stack;
+import java.util.function.Supplier;
 
 import com.ibm.wala.cast.tree.CAstSourcePositionMap.Position;
 import com.ibm.wala.util.collections.HashMapFactory;
 import com.ibm.wala.util.collections.Pair;
-import com.ibm.wala.util.functions.Function;
 
 public class DefaultSourceExtractor extends DomLessSourceExtractor{
 
-  public static Function<Void,JSSourceExtractor> factory = new Function<Void,JSSourceExtractor>() {
-    @Override
-    public JSSourceExtractor apply(Void object) {
-      return new DefaultSourceExtractor();
-    }
-  };
+  public static Supplier<JSSourceExtractor> factory = DefaultSourceExtractor::new;
   
   protected static class HtmlCallBack extends DomLessSourceExtractor.HtmlCallback{
 

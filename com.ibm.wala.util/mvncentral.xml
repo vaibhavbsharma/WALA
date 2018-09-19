@@ -5,7 +5,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.ibm.wala</groupId>
   <artifactId>com.ibm.wala.util</artifactId>
-  <version>1.4.4-SNAPSHOT</version>  
+  <version>1.5.1-SNAPSHOT</version>
   <packaging>jar</packaging>
   <name>WALA utilities</name>
   <description>Utility library included with the T. J. Watson
@@ -43,15 +43,6 @@
   </distributionManagement>
 
   <profiles>
-    <profile>
-      <id>jdk17</id>
-      <activation>
-        <jdk>1.7</jdk>
-      </activation>
-      <properties>
-        <javadoc.options></javadoc.options>
-      </properties>
-    </profile>
     <profile>
       <id>jdk18</id>
       <activation>

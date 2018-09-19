@@ -27,7 +27,6 @@ import com.ibm.wala.ssa.SSAInstruction;
 import com.ibm.wala.util.collections.HashSetFactory;
 import com.ibm.wala.util.collections.Iterator2Iterable;
 import com.ibm.wala.util.collections.Pair;
-import com.ibm.wala.util.functions.Function;
 import com.ibm.wala.util.intset.OrdinalSet;
 
 /**
@@ -56,13 +55,7 @@ public class LexicalModRef {
    */
   public Map<CGNode, OrdinalSet<Pair<CGNode, String>>> computeLexicalRef() {
     Map<CGNode, Collection<Pair<CGNode, String>>> scan = CallGraphTransitiveClosure.collectNodeResults(cg,
-        new Function<CGNode, Collection<Pair<CGNode, String>>>() {
-
-          @Override
-          public Collection<Pair<CGNode, String>> apply(CGNode n) {
-            return scanNodeForLexReads(n);
-          }
-        });
+        this::scanNodeForLexReads);
     return CallGraphTransitiveClosure.transitiveClosure(cg, scan);
   }
 
@@ -73,13 +66,7 @@ public class LexicalModRef {
    */
   public Map<CGNode, OrdinalSet<Pair<CGNode, String>>> computeLexicalMod() {
     Map<CGNode, Collection<Pair<CGNode, String>>> scan = CallGraphTransitiveClosure.collectNodeResults(cg,
-        new Function<CGNode, Collection<Pair<CGNode, String>>>() {
-
-          @Override
-          public Collection<Pair<CGNode, String>> apply(CGNode n) {
-            return scanNodeForLexWrites(n);
-          }
-        });
+        this::scanNodeForLexWrites);
     return CallGraphTransitiveClosure.transitiveClosure(cg, scan);
   }
 

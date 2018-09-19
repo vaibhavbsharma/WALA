@@ -23,6 +23,7 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.function.Supplier;
 import java.util.regex.Pattern;
 
 import org.apache.commons.io.ByteOrderMark;
@@ -32,7 +33,6 @@ import com.ibm.wala.cast.ir.translator.TranslatorToCAst.Error;
 import com.ibm.wala.cast.js.html.jericho.JerichoHtmlParser;
 import com.ibm.wala.cast.tree.CAstSourcePositionMap.Position;
 import com.ibm.wala.util.collections.Pair;
-import com.ibm.wala.util.functions.Function;
 
 /**
  * extracts JavaScript source code from HTML, with no model of the actual
@@ -42,12 +42,7 @@ public class DomLessSourceExtractor extends JSSourceExtractor {
   private static final Pattern LEGAL_JS_IDENTIFIER_REGEXP = Pattern.compile("^[a-zA-Z$_][a-zA-Z\\d$_]*$");
   private static final Pattern LEGAL_JS_KEYWORD_REGEXP = Pattern.compile("^((break)|(case)|(catch)|(continue)|(debugger)|(default)|(delete)|(do)|(else)|(finally)|(for)|(function)|(if)|(in)|(instanceof)|(new)|(return)|(switch)|(this)|(throw)|(try)|(typeof)|(var)|(void)|(while)|(with))$");
 
-  public static Function<Void,JSSourceExtractor> factory = new Function<Void,JSSourceExtractor>() {
-    @Override
-    public JSSourceExtractor apply(Void object) {
-      return new DomLessSourceExtractor();
-    }
-  };
+  public static Supplier<JSSourceExtractor> factory = DomLessSourceExtractor::new;
 
   protected interface IGeneratorCallback extends IHtmlCallback {
     void writeToFinalRegion(SourceRegion finalRegion);

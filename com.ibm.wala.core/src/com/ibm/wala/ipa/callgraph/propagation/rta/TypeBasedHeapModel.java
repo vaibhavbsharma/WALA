@@ -36,9 +36,7 @@ import com.ibm.wala.ipa.cha.IClassHierarchy;
 import com.ibm.wala.ssa.IR;
 import com.ibm.wala.ssa.SymbolTable;
 import com.ibm.wala.types.TypeReference;
-import com.ibm.wala.util.Predicate;
-import com.ibm.wala.util.collections.HashMapFactory;
-import com.ibm.wala.util.collections.HashSetFactory;
+import com.ibm.wala.util.collections.*;
 import com.ibm.wala.util.debug.Assertions;
 import com.ibm.wala.util.debug.UnimplementedError;
 
@@ -65,14 +63,14 @@ public class TypeBasedHeapModel implements HeapModel {
   private final Collection<CGNode> nodesHandled = HashSetFactory.make();
 
   /**
-   * Map: <PointerKey> -> thing, where thing is a FilteredPointerKey or an InstanceKey representing a constant.
+   * Map: &lt;PointerKey&gt; -&gt; thing, where thing is a FilteredPointerKey or an InstanceKey representing a constant.
    * 
    * computed lazily
    */
   private Map<PointerKey, Object> pKeys;
 
   /**
-   * @param klasses Collection<IClass>
+   * @param klasses Collection&lt;IClass&gt;
    * @throws IllegalArgumentException if cg is null
    */
   public TypeBasedHeapModel(AnalysisOptions options, Collection<IClass> klasses, CallGraph cg) {
@@ -88,12 +86,10 @@ public class TypeBasedHeapModel implements HeapModel {
     if (pKeys == null) {
       pKeys = HashMapFactory.make();
     }
-    for (Iterator<IClass> it = klasses.iterator(); it.hasNext();) {
-      IClass klass = it.next();
+    for (IClass klass : klasses) {
       pKeys.putAll(computePointerKeys(klass));
     }
-    for (Iterator it = cg.iterator(); it.hasNext();) {
-      CGNode node = (CGNode) it.next();
+    for (CGNode node : cg) {
       initPKeysForNode(node);
     }
   }
@@ -158,8 +154,7 @@ public class TypeBasedHeapModel implements HeapModel {
         result.put(p, p);
       }
     } else {
-      for (Iterator<IField> it = klass.getAllFields().iterator(); it.hasNext();) {
-        IField f = it.next();
+      for (IField f : klass.getAllFields()) {
         if (!f.getFieldTypeReference().isPrimitiveType()) {
           if (f.isStatic()) {
             PointerKey p = pointerKeys.getPointerKeyForStaticField(f);
@@ -175,15 +170,9 @@ public class TypeBasedHeapModel implements HeapModel {
   }
 
   @Override
-  @SuppressWarnings("unchecked")
   public Iterator<PointerKey> iteratePointerKeys() {
     initAllPKeys();
-    return Predicate.filter(pKeys.values().iterator(), new Predicate() {
-      @Override
-      public boolean test(Object o) {
-        return o instanceof PointerKey;
-      }
-    }).iterator();
+    return IteratorUtil.filter(pKeys.values().iterator(), PointerKey.class);
   }
 
   @Override

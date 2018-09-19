@@ -20,13 +20,11 @@ import com.ibm.wala.ipa.callgraph.CallGraph;
 import com.ibm.wala.ipa.cha.IClassHierarchy;
 import com.ibm.wala.ssa.SSAInstruction;
 import com.ibm.wala.types.TypeReference;
-import com.ibm.wala.util.Predicate;
 import com.ibm.wala.util.collections.ComposedIterator;
 import com.ibm.wala.util.collections.FilterIterator;
 import com.ibm.wala.util.collections.MapIterator;
 import com.ibm.wala.util.collections.Pair;
 import com.ibm.wala.util.debug.Assertions;
-import com.ibm.wala.util.functions.Function;
 
 /**
  * An instance key which represents a unique set for each concrete type.
@@ -86,15 +84,14 @@ public final class ConcreteTypeKey implements InstanceKey {
     if (pei == null) {
       throw new IllegalArgumentException("pei is null");
     }
-    Collection types = pei.getExceptionTypes();
+    Collection<TypeReference> types = pei.getExceptionTypes();
     // TODO: institute a cache?
     if (types == null) {
       return null;
     }
     InstanceKey[] result = new InstanceKey[types.size()];
     int i = 0;
-    for (Iterator it = types.iterator(); it.hasNext();) {
-      TypeReference type = (TypeReference) it.next();
+    for (TypeReference type : types) {
       assert type != null;
       IClass klass = cha.lookupClass(type);
       result[i++] = new ConcreteTypeKey(klass);
@@ -107,21 +104,12 @@ public final class ConcreteTypeKey implements InstanceKey {
     return new ComposedIterator<CGNode, Pair<CGNode, NewSiteReference>>(CG.iterator()) {
       @Override
       public Iterator<? extends Pair<CGNode, NewSiteReference>> makeInner(final CGNode outer) {
-        return new MapIterator<NewSiteReference, Pair<CGNode, NewSiteReference>>(
-            new FilterIterator<NewSiteReference>(
+        return new MapIterator<>(
+            new FilterIterator<>(
                 outer.iterateNewSites(),
-                new Predicate<NewSiteReference>() {
-                  @Override public boolean test(NewSiteReference o) {
-                    return o.getDeclaredType().equals(type.getReference());
-                  }
-                }
+                o -> o.getDeclaredType().equals(type.getReference())
             ),
-            new Function<NewSiteReference, Pair<CGNode, NewSiteReference>>() {
-              @Override
-              public Pair<CGNode, NewSiteReference> apply(NewSiteReference object) {
-                return Pair.make(outer, object);
-              }
-            });
+            object -> Pair.make(outer, object));
       }
     };
   }

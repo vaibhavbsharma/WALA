@@ -14,6 +14,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Properties;
+import java.util.function.Predicate;
 
 import com.ibm.wala.classLoader.IClass;
 import com.ibm.wala.core.tests.callGraph.CallGraphTestUtil;
@@ -24,7 +25,6 @@ import com.ibm.wala.ipa.cha.ClassHierarchyFactory;
 import com.ibm.wala.ipa.cha.IClassHierarchy;
 import com.ibm.wala.properties.WalaProperties;
 import com.ibm.wala.types.ClassLoaderReference;
-import com.ibm.wala.util.Predicate;
 import com.ibm.wala.util.WalaException;
 import com.ibm.wala.util.collections.CollectionFilter;
 import com.ibm.wala.util.config.AnalysisScopeReader;
@@ -103,11 +103,7 @@ public class PDFTypeHierarchy {
    * Restrict g to nodes from the Application loader
    */
   public static Graph<IClass> pruneForAppLoader(Graph<IClass> g) {
-    Predicate<IClass> f = new Predicate<IClass>() {
-      @Override public boolean test(IClass c) {
-        return (c.getClassLoader().getReference().equals(ClassLoaderReference.Application));
-      }
-    };
+    Predicate<IClass> f = c -> (c.getClassLoader().getReference().equals(ClassLoaderReference.Application));
     return pruneGraph(g, f);
   }
   

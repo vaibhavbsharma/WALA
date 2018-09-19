@@ -14,6 +14,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import java.util.function.Function;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
@@ -24,7 +25,6 @@ import org.eclipse.core.runtime.IPath;
 import com.ibm.wala.classLoader.ModuleEntry;
 import com.ibm.wala.ide.classloader.EclipseSourceFileModule;
 import com.ibm.wala.util.debug.Assertions;
-import com.ibm.wala.util.functions.Function;
 import com.ibm.wala.util.io.CommandLine;
 
 public class HeadlessUtil {
@@ -103,24 +103,21 @@ public class HeadlessUtil {
 
   for (final Map.Entry<IProject,Map<Unit,EclipseSourceFileModule>> proj : projectsFiles.entrySet()) {
     parser.setProject(proj.getKey());
-    parser.processASTs(proj.getValue(), new Function<Object[],Boolean>() {
-      @Override
-      public Boolean apply(Object[] problems) {
-        int length = problems.length;
-        if (length > 0) {
-          StringBuffer buffer = new StringBuffer();
-          for (int i = 0; i < length; i++) {
-            buffer.append(problems[i].toString());
-            buffer.append('\n');
-          }
-          if (length != 0) {
-            System.err.println(buffer.toString());
-            return true;
-          }
+    parser.processASTs(proj.getValue(), problems -> {
+      int length = problems.length;
+      if (length > 0) {
+        StringBuffer buffer = new StringBuffer();
+        for (int i = 0; i < length; i++) {
+          buffer.append(problems[i].toString());
+          buffer.append('\n');
         }
-        return false;
-     }    
-    });
+        if (length != 0) {
+          System.err.println(buffer.toString());
+          return true;
+        }
+      }
+      return false;
+   });
   }
   }
 }

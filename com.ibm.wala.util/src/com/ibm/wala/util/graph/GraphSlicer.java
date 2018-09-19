@@ -17,14 +17,14 @@ import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
+import java.util.function.Predicate;
 
-import com.ibm.wala.util.Predicate;
 import com.ibm.wala.util.collections.FilterIterator;
 import com.ibm.wala.util.collections.HashSetFactory;
 import com.ibm.wala.util.collections.Iterator2Collection;
 import com.ibm.wala.util.collections.IteratorUtil;
 import com.ibm.wala.util.debug.Assertions;
-import com.ibm.wala.util.functions.Function;
 import com.ibm.wala.util.graph.impl.GraphInverter;
 import com.ibm.wala.util.graph.traverse.DFS;
 
@@ -46,8 +46,7 @@ public class GraphSlicer {
       throw new IllegalArgumentException("g is null");
     }
     HashSet<T> roots = HashSetFactory.make();
-    for (Iterator<? extends T> it = g.iterator(); it.hasNext();) {
-      T o = it.next();
+    for (T o : g) {
       if (p.test(o)) {
         roots.add(o);
       }
@@ -70,7 +69,7 @@ public class GraphSlicer {
 
       @Override
       public Iterator<T> iterator() {
-        return Predicate.filter(g.iterator(), p).iterator();
+        return new FilterIterator<>(g.iterator(), p);
       }
 
       @Override
@@ -101,7 +100,7 @@ public class GraphSlicer {
 
       @Override
       public Iterator<T> getPredNodes(T n) {
-        return Predicate.filter(g.getPredNodes(n), p).iterator();
+        return new FilterIterator<>(g.getPredNodes(n), p);
       }
 
       @Override
@@ -111,7 +110,7 @@ public class GraphSlicer {
 
       @Override
       public Iterator<T> getSuccNodes(T n) {
-        return Predicate.filter(g.getSuccNodes(n), p).iterator();
+        return new FilterIterator<>(g.getSuccNodes(n), p);
       }
 
       @Override
@@ -234,21 +233,11 @@ public class GraphSlicer {
       }
 
       private void setPredNodes(E N) {
-        preds.put(N, getConnected(N, new Function<E, Iterator<? extends E>>() {
-          @Override
-          public Iterator<? extends E> apply(E object) {
-            return G.getPredNodes(object);
-          }
-        }));
+        preds.put(N, getConnected(N, G::getPredNodes));
       }
 
       private void setSuccNodes(E N) {
-        succs.put(N, getConnected(N, new Function<E, Iterator<? extends E>>() {
-          @Override
-          public Iterator<? extends E> apply(E object) {
-            return G.getSuccNodes(object);
-          }
-        }));
+        succs.put(N, getConnected(N, G::getSuccNodes));
       }
 
       @Override

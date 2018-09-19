@@ -15,13 +15,15 @@ import java.net.URL;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.Set;
-
+import java.util.function.Function;
+import java.util.function.Predicate;
 import org.junit.Assert;
 import org.junit.Test;
 
 import com.ibm.wala.analysis.pointers.HeapGraph;
 import com.ibm.wala.cast.ipa.callgraph.GlobalObjectKey;
 import com.ibm.wala.cast.ir.ssa.AstGlobalWrite;
+import com.ibm.wala.cast.ir.ssa.AstPropertyWrite;
 import com.ibm.wala.cast.js.callgraph.fieldbased.flowgraph.vertices.GlobalVertex;
 import com.ibm.wala.cast.js.callgraph.fieldbased.flowgraph.vertices.ObjectVertex;
 import com.ibm.wala.cast.js.callgraph.fieldbased.flowgraph.vertices.PrototypeFieldVertex;
@@ -53,19 +55,18 @@ import com.ibm.wala.ssa.SymbolTable;
 import com.ibm.wala.types.MethodReference;
 import com.ibm.wala.util.CancelException;
 import com.ibm.wala.util.NullProgressMonitor;
-import com.ibm.wala.util.Predicate;
 import com.ibm.wala.util.WalaException;
 import com.ibm.wala.util.collections.EmptyIterator;
 import com.ibm.wala.util.collections.HashSetFactory;
+import com.ibm.wala.util.collections.Iterator2Iterable;
 import com.ibm.wala.util.collections.MapIterator;
 import com.ibm.wala.util.collections.Pair;
-import com.ibm.wala.util.functions.Function;
 import com.ibm.wala.util.intset.OrdinalSet;
 import com.ibm.wala.util.strings.Atom;
 
 public abstract class TestPointerAnalyses {
 
-  private final class CheckPointers extends Predicate<Pair<Set<Pair<CGNode, NewSiteReference>>, Set<Pair<CGNode, NewSiteReference>>>> {
+  private final class CheckPointers implements Predicate<Pair<Set<Pair<CGNode, NewSiteReference>>, Set<Pair<CGNode, NewSiteReference>>>> {
     private Set<Pair<String,Integer>> map(Set<Pair<CGNode, NewSiteReference>> sites) {
       Set<Pair<String,Integer>> result = HashSetFactory.make();
       for(Pair<CGNode,NewSiteReference> s : sites) {
@@ -133,8 +134,8 @@ public abstract class TestPointerAnalyses {
         OrdinalSet<? extends InstanceKey> pointers = pa.getPointsToSet(l);
         if (pointers != null) {
           for(InstanceKey k : pointers) {
-            for(Iterator<Pair<CGNode, NewSiteReference>> css = k.getCreationSites(CG); css.hasNext(); ) {
-              result.add(css.next());
+            for(Pair<CGNode, NewSiteReference> cs : Iterator2Iterable.make(k.getCreationSites(CG))) {
+              result.add(cs);
             }
           }
         }
@@ -251,18 +252,18 @@ public abstract class TestPointerAnalyses {
       SymbolTable symtab = ir.getSymbolTable();
       for(SSAInstruction inst : ir.getInstructions()) {
         if (inst instanceof JavaScriptPropertyWrite) {
-          int property = ((JavaScriptPropertyWrite) inst).getMemberRef();
+          int property = ((AstPropertyWrite) inst).getMemberRef();
           if (symtab.isConstant(property)) {
             String p = JSCallGraphUtil.simulateToStringForPropertyNames(symtab.getConstantValue(property));
             
-            int obj = ((JavaScriptPropertyWrite) inst).getObjectRef();
+            int obj = ((AstPropertyWrite) inst).getObjectRef();
             PointerKey objKey = fbPA.getHeapModel().getPointerKeyForLocal(node, obj);
             OrdinalSet<ObjectVertex> objPtrs = fbPA.getPointsToSet(objKey);
             for(ObjectVertex o : objPtrs) {
               PointerKey propKey = fbPA.getHeapModel().getPointerKeyForInstanceField(o, new AstDynamicField(false, o.getConcreteType(), Atom.findOrCreateUnicodeAtom(p), JavaScriptTypes.Root));
               Assert.assertTrue("object " + o + " should have field " + propKey, hg.hasEdge(o, propKey));
 
-              int val = ((JavaScriptPropertyWrite) inst).getValue();
+              int val = ((AstPropertyWrite) inst).getValue();
               PointerKey valKey = fbPA.getHeapModel().getPointerKeyForLocal(node, val);
               OrdinalSet<ObjectVertex> valPtrs = fbPA.getPointsToSet(valKey);
               for(ObjectVertex v : valPtrs) {
@@ -303,8 +304,8 @@ public abstract class TestPointerAnalyses {
           System.err.println("empty " + f + " for " + k + "(" + k.getConcreteType() + ")");          
         }
         if (dump) {
-          for(Iterator<Pair<CGNode, NewSiteReference>> css = k.getCreationSites(fbCG); css.hasNext(); ) {
-            System.err.println(css.next());
+          for(Pair<CGNode, NewSiteReference> cs : Iterator2Iterable.make(k.getCreationSites(fbCG))) {
+            System.err.println(cs);
           }
         }
       }
@@ -320,9 +321,9 @@ public abstract class TestPointerAnalyses {
     PointerKey fbKey = fbPA.getHeapModel().getPointerKeyForLocal(node, vn);
     OrdinalSet<T> fbPointsTo = fbPA.getPointsToSet(fbKey);
     for(T o : fbPointsTo) {
-      for(Iterator<T> ps = proto.apply(o); ps.hasNext(); ) {
-        for(Iterator<Pair<CGNode, NewSiteReference>> css = ps.next().getCreationSites(CG); css.hasNext(); ) {
-          fbProtos.add(css.next());
+      for(T p : Iterator2Iterable.make(proto.apply(o))) {
+        for(Pair<CGNode, NewSiteReference> cs : Iterator2Iterable.make(p.getCreationSites(CG))) {
+          fbProtos.add(cs);
         }
       }
     }
@@ -334,23 +335,15 @@ public abstract class TestPointerAnalyses {
       CallGraph CG,
       CGNode node, 
       int vn) {
-    return getPrototypeSites(fbPA, CG, new Function<ObjectVertex,Iterator<ObjectVertex>>() {
-      @Override
-      public Iterator<ObjectVertex> apply(ObjectVertex o) {
-        PrototypeFieldVertex proto = new PrototypeFieldVertex(PrototypeField.__proto__, o);
-        if (hg.containsNode(proto)) {
-        return 
-            new MapIterator<>(hg.getSuccNodes(proto),
-                new Function<Object,ObjectVertex>() {
-                  @Override
-                  public ObjectVertex apply(Object object) {
-                    return (ObjectVertex)object;
-                  } 
-            });
-        } else {
-          return EmptyIterator.instance();
-        }
-      } 
+    return getPrototypeSites(fbPA, CG, o -> {
+      PrototypeFieldVertex proto = new PrototypeFieldVertex(PrototypeField.__proto__, o);
+      if (hg.containsNode(proto)) {
+      return 
+          new MapIterator<>(hg.getSuccNodes(proto),
+              ObjectVertex.class::cast);
+      } else {
+        return EmptyIterator.instance();
+      }
     }, node, vn);
   }
 
@@ -358,12 +351,7 @@ public abstract class TestPointerAnalyses {
       CallGraph CG, 
       CGNode node, 
       int vn) {
-    return getPrototypeSites(fbPA, CG, new Function<InstanceKey,Iterator<InstanceKey>>() {
-      @Override
-      public Iterator<InstanceKey> apply(InstanceKey o) {
-        return fbPA.getPointsToSet(new TransitivePrototypeKey(o)).iterator();
-      } 
-    }, node, vn);
+    return getPrototypeSites(fbPA, CG, o -> fbPA.getPointsToSet(new TransitivePrototypeKey(o)).iterator(), node, vn);
   }
 
   private void testPageUserCodeEquivalent(URL page) throws WalaException, CancelException {
@@ -372,13 +360,10 @@ public abstract class TestPointerAnalyses {
   }
 
   protected Predicate<MethodReference> nameFilter(final String name) {
-    return new Predicate<MethodReference>() {
-      @Override
-      public boolean test(MethodReference t) {
-        System.err.println(t + "  " + name);
-        return t.getSelector().equals(AstMethodReference.fnSelector) &&
-            t.getDeclaringClass().getName().toString().startsWith("L" + name);
-      }      
+    return t -> {
+      System.err.println(t + "  " + name);
+      return t.getSelector().equals(AstMethodReference.fnSelector) &&
+          t.getDeclaringClass().getName().toString().startsWith("L" + name);
     };
   }
   

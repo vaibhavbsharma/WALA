@@ -11,6 +11,7 @@
 package com.ibm.wala.examples.drivers;
 
 import java.util.Collection;
+import java.util.function.Predicate;
 
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.window.ApplicationWindow;
@@ -23,7 +24,6 @@ import com.ibm.wala.ipa.cha.ClassHierarchy;
 import com.ibm.wala.ipa.cha.ClassHierarchyFactory;
 import com.ibm.wala.ipa.cha.IClassHierarchy;
 import com.ibm.wala.types.ClassLoaderReference;
-import com.ibm.wala.util.Predicate;
 import com.ibm.wala.util.collections.CollectionFilter;
 import com.ibm.wala.util.config.AnalysisScopeReader;
 import com.ibm.wala.util.graph.Graph;
@@ -106,11 +106,7 @@ public class SWTTypeHierarchy {
    * Restrict g to nodes from the Application loader
    */
   static Graph<IClass> pruneForAppLoader(Graph<IClass> g) {
-    Predicate<IClass> f = new Predicate<IClass>() {
-      @Override public boolean test(IClass c) {
-        return (c.getClassLoader().getReference().equals(ClassLoaderReference.Application));
-      }
-    };
+    Predicate<IClass> f = c -> (c.getClassLoader().getReference().equals(ClassLoaderReference.Application));
     return pruneGraph(g, f);
   }
 

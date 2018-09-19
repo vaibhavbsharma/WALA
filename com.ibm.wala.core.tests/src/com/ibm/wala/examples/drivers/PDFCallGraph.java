@@ -15,7 +15,9 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Properties;
+import java.util.function.Predicate;
 
+import com.ibm.wala.classLoader.Language;
 import com.ibm.wala.core.tests.callGraph.CallGraphTestUtil;
 import com.ibm.wala.examples.properties.WalaExamplesProperties;
 import com.ibm.wala.ipa.callgraph.AnalysisCacheImpl;
@@ -33,7 +35,6 @@ import com.ibm.wala.ipa.cha.ClassHierarchyFactory;
 import com.ibm.wala.properties.WalaProperties;
 import com.ibm.wala.types.ClassLoaderReference;
 import com.ibm.wala.util.CancelException;
-import com.ibm.wala.util.Predicate;
 import com.ibm.wala.util.WalaException;
 import com.ibm.wala.util.collections.HashSetFactory;
 import com.ibm.wala.util.config.AnalysisScopeReader;
@@ -55,9 +56,8 @@ public class PDFCallGraph {
 
   public static String findJarFiles(String[] directories) {
     Collection<String> result = HashSetFactory.make();
-    for (int i = 0; i < directories.length; i++) {
-      for (Iterator<File> it = FileUtil.listFiles(directories[i], ".*\\.jar", true).iterator(); it.hasNext();) {
-        File f = it.next();
+    for (String directorie : directories) {
+      for (File f : FileUtil.listFiles(directorie, ".*\\.jar", true)) {
         result.add(f.getAbsolutePath());
       }
     }
@@ -157,7 +157,7 @@ public class PDFCallGraph {
     // //
     // build the call graph
     // //
-    com.ibm.wala.ipa.callgraph.CallGraphBuilder<InstanceKey> builder = Util.makeZeroCFABuilder(options, new AnalysisCacheImpl(), cha, scope);
+    com.ibm.wala.ipa.callgraph.CallGraphBuilder<InstanceKey> builder = Util.makeZeroCFABuilder(Language.JAVA, options, new AnalysisCacheImpl(), cha, scope);
     CallGraph cg = builder.makeCallGraph(options, null);
 
     System.err.println(CallGraphStats.getStats(cg));
@@ -196,7 +196,7 @@ public class PDFCallGraph {
    * <li> {@link LocalPointerKey}
    * </ul>
    */
-  private static class ApplicationLoaderFilter extends Predicate<CGNode> {
+  private static class ApplicationLoaderFilter implements Predicate<CGNode> {
 
     @Override public boolean test(CGNode o) {
       if (o == null)
