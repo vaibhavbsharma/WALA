@@ -267,6 +267,8 @@ public class SSACFG implements ControlFlowGraph<SSAInstruction, ISSABasicBlock>,
      */
     private SSAPhiInstruction stackSlotPhis[];
 
+	public SSAPhiInstruction[] getStackSlotPhis() { return stackSlotPhis; }
+
     private SSAPhiInstruction localPhis[];
 
     private final static int initialCapacity = 10;
