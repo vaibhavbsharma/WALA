@@ -268,6 +268,8 @@ public class SSACFG
     /** List of PhiInstructions associated with the entry of this block. */
     private SSAPhiInstruction stackSlotPhis[];
 
+	public SSAPhiInstruction[] getStackSlotPhis() { return stackSlotPhis; }
+
     private SSAPhiInstruction localPhis[];
 
     private static final int initialCapacity = 10;
