@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,15 +7,10 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.core.tests.ptrs;
 
-import java.io.IOException;
-import java.util.Iterator;
-
-import org.junit.Assert;
-import org.junit.Test;
-
+import com.ibm.wala.classLoader.Language;
 import com.ibm.wala.core.tests.callGraph.CallGraphTestUtil;
 import com.ibm.wala.core.tests.util.TestConstants;
 import com.ibm.wala.core.tests.util.WalaTestCase;
@@ -36,47 +31,49 @@ import com.ibm.wala.ipa.cha.ClassHierarchyFactory;
 import com.ibm.wala.util.CancelException;
 import com.ibm.wala.util.debug.Assertions;
 import com.ibm.wala.util.intset.OrdinalSet;
+import java.io.IOException;
+import org.junit.Assert;
+import org.junit.Test;
 
 /**
- * 
  * Test for pointer analysis of multidimensional arrays
- * 
+ *
  * @author sfink
  */
-
 public class MultiDimArrayTest extends WalaTestCase {
-
 
   public static void main(String[] args) {
     justThisTest(MultiDimArrayTest.class);
   }
 
+  public MultiDimArrayTest() {}
 
-  
-  public MultiDimArrayTest() {
-    
-  }
-
-  @Test public void testMultiDim() throws ClassHierarchyException, IllegalArgumentException, CancelException, IOException {
-    AnalysisScope scope = CallGraphTestUtil.makeJ2SEAnalysisScope(TestConstants.WALA_TESTDATA, CallGraphTestUtil.REGRESSION_EXCLUSIONS);
+  @Test
+  public void testMultiDim()
+      throws ClassHierarchyException, IllegalArgumentException, CancelException, IOException {
+    AnalysisScope scope =
+        CallGraphTestUtil.makeJ2SEAnalysisScope(
+            TestConstants.WALA_TESTDATA, CallGraphTestUtil.REGRESSION_EXCLUSIONS);
     ClassHierarchy cha = ClassHierarchyFactory.make(scope);
-    Iterable<Entrypoint> entrypoints = com.ibm.wala.ipa.callgraph.impl.Util
-        .makeMainEntrypoints(scope, cha, TestConstants.MULTI_DIM_MAIN);
+    Iterable<Entrypoint> entrypoints =
+        com.ibm.wala.ipa.callgraph.impl.Util.makeMainEntrypoints(
+            scope, cha, TestConstants.MULTI_DIM_MAIN);
     AnalysisOptions options = CallGraphTestUtil.makeAnalysisOptions(scope, entrypoints);
 
-    CallGraphBuilder<InstanceKey> builder = Util.makeVanillaZeroOneCFABuilder(options, new AnalysisCacheImpl(),cha, scope);
+    CallGraphBuilder<InstanceKey> builder =
+        Util.makeVanillaZeroOneCFABuilder(
+            Language.JAVA, options, new AnalysisCacheImpl(), cha, scope);
     CallGraph cg = builder.makeCallGraph(options, null);
     PointerAnalysis<InstanceKey> pa = builder.getPointerAnalysis();
-    
+
     CGNode node = findDoNothingNode(cg);
     PointerKey pk = pa.getHeapModel().getPointerKeyForLocal(node, 1);
     OrdinalSet<InstanceKey> ptsTo = pa.getPointsToSet(pk);
     Assert.assertEquals(1, ptsTo.size());
   }
-  
-  private final static CGNode findDoNothingNode(CallGraph cg) {
-    for (Iterator<? extends CGNode> it = cg.iterator(); it.hasNext(); ) {
-      CGNode n = it.next();
+
+  private static final CGNode findDoNothingNode(CallGraph cg) {
+    for (CGNode n : cg) {
       if (n.getMethod().getName().toString().equals("doNothing")) {
         return n;
       }

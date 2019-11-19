@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,12 +7,13 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 
 package com.ibm.wala.ipa.cha;
 
 /**
- * Exception class that indicates that construction of class hierarchy has been cancelled by a progress monitor.
+ * Exception class that indicates that construction of class hierarchy has been cancelled by a
+ * progress monitor.
  */
 public final class CancelCHAConstructionException extends ClassHierarchyException {
 
@@ -21,5 +22,4 @@ public final class CancelCHAConstructionException extends ClassHierarchyExceptio
   public CancelCHAConstructionException() {
     super("class hierarchy construction was cancelled");
   }
-
 }

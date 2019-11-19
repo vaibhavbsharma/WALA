@@ -1,4 +1,4 @@
-/******************************************************************************
+/*
  * Copyright (c) 2002 - 2008 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,7 +7,7 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *****************************************************************************/
+ */
 public class AnonymousClass {
     private interface Foo {
       public int getValue();
@@ -15,7 +15,7 @@ public class AnonymousClass {
     }
 
     public static void main(String[] args) {
-	final Integer base = new Integer(6);
+	final Integer base = Integer.valueOf(6);
 
 	Foo f= new Foo() {
 	    int value = 3;
@@ -24,7 +24,7 @@ public class AnonymousClass {
       public int getValue() { return value; }
 	    
       @Override
-      public int getValueBase() { return value - base.intValue(); }
+      public int getValueBase() { return value - base; }
 	};
 
 	System.out.println(f.getValue());
@@ -34,7 +34,7 @@ public class AnonymousClass {
     }
 
     public void method() {
-	final Integer base = new Integer(7);
+	final Integer base = Integer.valueOf(7);
 
 	abstract class FooImpl implements Foo {
 	    int y;
@@ -50,7 +50,7 @@ public class AnonymousClass {
 	    
       @Override
       public int getValueBase() { 
-	      return y + getValue() - base.intValue(); 
+	      return y + getValue() - base;
 	    }
 	}
 

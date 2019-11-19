@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2002 - 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,7 +7,7 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.ipa.callgraph.propagation;
 
 import com.ibm.wala.analysis.reflection.CloneInterpreter;
@@ -21,27 +21,28 @@ import com.ibm.wala.util.intset.EmptyIntSet;
 import com.ibm.wala.util.intset.IntSet;
 
 /**
- * This context selector selects a context based on the concrete type of
- * the receiver to a call of java.lang.Object.clone
+ * This context selector selects a context based on the concrete type of the receiver to a call of
+ * java.lang.Object.clone
  */
 public class CloneContextSelector implements ContextSelector {
 
   private final ReceiverTypeContextSelector selector;
-  
+
   private final IClassHierarchy cha;
-  
+
   public CloneContextSelector(IClassHierarchy cha) {
     this.selector = new ReceiverTypeContextSelector();
     this.cha = cha;
   }
 
   @Override
-  public Context getCalleeTarget(CGNode caller, CallSiteReference site, IMethod callee, InstanceKey[] receiver) {
+  public Context getCalleeTarget(
+      CGNode caller, CallSiteReference site, IMethod callee, InstanceKey[] receiver) {
     if (receiver == null) {
       return null;
     }
     if (callee.getReference().equals(CloneInterpreter.CLONE)) {
-      return selector.getCalleeTarget(caller,site,callee,receiver);
+      return selector.getCalleeTarget(caller, site, callee, receiver);
     } else {
       return null;
     }
@@ -56,6 +57,4 @@ public class CloneContextSelector implements ContextSelector {
       return EmptyIntSet.instance;
     }
   }
-
-
 }

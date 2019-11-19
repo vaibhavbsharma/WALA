@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2002 - 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,23 +7,20 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.dataflow.IFDS;
 
 import com.ibm.wala.util.intset.IntSet;
 import com.ibm.wala.util.intset.SparseIntSet;
 
-/**
- * A function which gens a vector of outgoing dataflow facts. 
- */
+/** A function which gens a vector of outgoing dataflow facts. */
 public class VectorGenFlowFunction implements IReversibleFlowFunction {
 
   private final IntSet gen;
-  
+
   /**
-   * @param gen
-   *          the intset of facts which are gen'ned by this flow function. gen
-   *          <em>must</em> contain 0.
+   * @param gen the intset of facts which are gen'ned by this flow function. gen <em>must</em>
+   *     contain 0.
    */
   private VectorGenFlowFunction(IntSet gen) {
     this.gen = gen;

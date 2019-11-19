@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2002 - 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,7 +7,7 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.analysis.reflection;
 
 import com.ibm.wala.analysis.typeInference.PointType;
@@ -19,12 +19,9 @@ import com.ibm.wala.ipa.callgraph.ContextKey;
 import com.ibm.wala.ipa.callgraph.propagation.FilteredPointerKey;
 
 /**
- * @brief
- *  Implements a Context which corresponds to a given type abstraction.
- *  Thus, this maps the name "TYPE" to a JavaTypeAbstraction.
- * TODO
- *  This context maps
- *  {@link com.ibm.wala.ipa.callgraph.ContextKey#RECEIVER} to a {@link TypeAbstraction}.
+ * Implements a Context which corresponds to a given type abstraction. Thus, this maps the name
+ * "TYPE" to a JavaTypeAbstraction. TODO This context maps {@link
+ * com.ibm.wala.ipa.callgraph.ContextKey#RECEIVER} to a {@link TypeAbstraction}.
  */
 public class JavaTypeContext implements Context {
 
@@ -55,7 +52,7 @@ public class JavaTypeContext implements Context {
 
   @Override
   public String toString() {
-    return "JavaTypeContext<" + type + ">";
+    return "JavaTypeContext<" + type + '>';
   }
 
   @Override
@@ -79,5 +76,4 @@ public class JavaTypeContext implements Context {
   public TypeAbstraction getType() {
     return type;
   }
-
 }

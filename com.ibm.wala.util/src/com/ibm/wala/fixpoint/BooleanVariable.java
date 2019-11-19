@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2002 - 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,23 +7,17 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.fixpoint;
 
-
-/**
- * A boolean variable for dataflow analysis.
- */
+/** A boolean variable for dataflow analysis. */
 public class BooleanVariable extends AbstractVariable<BooleanVariable> {
 
   private boolean B;
 
-  public BooleanVariable() {
-  }
+  public BooleanVariable() {}
 
-  /**
-   * @param b initial value for this variable
-   */
+  /** @param b initial value for this variable */
   public BooleanVariable(boolean b) {
     this.B = b;
   }
@@ -48,17 +42,12 @@ public class BooleanVariable extends AbstractVariable<BooleanVariable> {
     return (B ? "[TRUE]" : "[FALSE]");
   }
 
-  /**
-   * @return the value of this variable
-   */
+  /** @return the value of this variable */
   public boolean getValue() {
     return B;
   }
 
-  /**
-   * @param other
-   * @throws IllegalArgumentException if other is null
-   */
+  /** @throws IllegalArgumentException if other is null */
   public void or(BooleanVariable other) {
     if (other == null) {
       throw new IllegalArgumentException("other is null");
@@ -74,5 +63,4 @@ public class BooleanVariable extends AbstractVariable<BooleanVariable> {
   public boolean equals(Object obj) {
     return this == obj;
   }
-
 }

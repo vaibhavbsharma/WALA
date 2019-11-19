@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2002 - 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,17 +7,17 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.util.intset;
-
-import java.util.Set;
 
 import com.ibm.wala.util.collections.HashSetFactory;
 import com.ibm.wala.util.debug.Assertions;
+import java.util.Set;
 
 /**
- * This class wraps two concrete {@link MutableIntSet}s behind the standard interface, carrying out all operations on both of them
- * and performing consistency checks at every step. The purpose of this is debugging bitset implementations.
+ * This class wraps two concrete {@link MutableIntSet}s behind the standard interface, carrying out
+ * all operations on both of them and performing consistency checks at every step. The purpose of
+ * this is debugging bitset implementations.
  */
 class DebuggingMutableIntSet implements MutableIntSet {
 
@@ -36,7 +36,7 @@ class DebuggingMutableIntSet implements MutableIntSet {
     assert primaryImpl.sameValue(secondaryImpl);
   }
 
-  /* 
+  /*
    * @see com.ibm.wala.util.intset.MutableIntSet#clear()
    */
   @Override
@@ -44,36 +44,46 @@ class DebuggingMutableIntSet implements MutableIntSet {
     primaryImpl.clear();
     secondaryImpl.clear();
   }
-  
-  /**
-   * @return true iff this set contains integer i
-   */
+
+  /** @return true iff this set contains integer i */
   @Override
   public boolean contains(int i) {
     assert primaryImpl.contains(i) == secondaryImpl.contains(i);
     return primaryImpl.contains(i);
   }
 
-  /**
-   */
+  /** */
   @Override
   public boolean isEmpty() {
     if (primaryImpl.isEmpty() != secondaryImpl.isEmpty()) {
-      System.err.println(primaryImpl + ".isEmpty() = " + primaryImpl.isEmpty() + " and " + secondaryImpl + ".isEmpty() = "
-          + secondaryImpl.isEmpty());
+      System.err.println(
+          primaryImpl
+              + ".isEmpty() = "
+              + primaryImpl.isEmpty()
+              + " and "
+              + secondaryImpl
+              + ".isEmpty() = "
+              + secondaryImpl.isEmpty());
       Assertions.UNREACHABLE();
     }
 
     return primaryImpl.isEmpty();
   }
 
-  /**
-   */
+  /** */
   @Override
   public int size() {
     if (primaryImpl.size() != secondaryImpl.size()) {
-      assert primaryImpl.size() == secondaryImpl.size() : "size " + primaryImpl.size() + " of " + primaryImpl
-      + " differs from " + "size " + secondaryImpl.size() + " of " + secondaryImpl;
+      assert primaryImpl.size() == secondaryImpl.size()
+          : "size "
+              + primaryImpl.size()
+              + " of "
+              + primaryImpl
+              + " differs from "
+              + "size "
+              + secondaryImpl.size()
+              + " of "
+              + secondaryImpl;
     }
 
     return primaryImpl.size();
@@ -87,7 +97,7 @@ class DebuggingMutableIntSet implements MutableIntSet {
 
   /**
    * Add an integer value to this set.
-   * 
+   *
    * @return true iff the value of this changes.
    */
   @Override
@@ -96,16 +106,25 @@ class DebuggingMutableIntSet implements MutableIntSet {
     boolean sr = secondaryImpl.add(i);
 
     if (pr != sr) {
-      assert pr == sr : "adding " + i + " to " + primaryImpl + " returns " + pr + ", but adding " + i + " to "
-      + secondaryImpl + " returns " + sr;
+      assert pr == sr
+          : "adding "
+              + i
+              + " to "
+              + primaryImpl
+              + " returns "
+              + pr
+              + ", but adding "
+              + i
+              + " to "
+              + secondaryImpl
+              + " returns "
+              + sr;
     }
 
     return pr;
   }
 
-  /**
-   * Remove an integer from this set.
-   */
+  /** Remove an integer from this set. */
   @Override
   public boolean remove(int i) {
     boolean result = primaryImpl.remove(i);
@@ -114,9 +133,7 @@ class DebuggingMutableIntSet implements MutableIntSet {
     return result;
   }
 
-  /**
-   * @return true iff this set contains integer i
-   */
+  /** @return true iff this set contains integer i */
   @Override
   public boolean containsAny(IntSet set) {
     if (set instanceof DebuggingMutableIntSet) {
@@ -125,7 +142,7 @@ class DebuggingMutableIntSet implements MutableIntSet {
       boolean ssr = secondaryImpl.containsAny(db.secondaryImpl);
 
       if (ppr != ssr) {
-        assert ppr == ssr : "containsAny " + this + " " + set + " " + ppr + " " + ssr;
+        assert ppr == ssr : "containsAny " + this + ' ' + set + ' ' + ppr + ' ' + ssr;
       }
       return ppr;
     } else {
@@ -136,7 +153,7 @@ class DebuggingMutableIntSet implements MutableIntSet {
 
   /**
    * This implementation must not despoil the original value of "this"
-   * 
+   *
    * @return a new IntSet which is the intersection of this and that
    */
   @Override
@@ -167,9 +184,7 @@ class DebuggingMutableIntSet implements MutableIntSet {
     return temp;
   }
 
-  /**
-   * @return true iff <code>this</code> has the same value as <code>that</code>.
-   */
+  /** @return true iff {@code this} has the same value as {@code that}. */
   @Override
   public boolean sameValue(IntSet that) {
     if (that instanceof DebuggingMutableIntSet) {
@@ -186,9 +201,7 @@ class DebuggingMutableIntSet implements MutableIntSet {
     }
   }
 
-  /**
-   * @return true iff <code>this</code> is a subset of <code>that</code>.
-   */
+  /** @return true iff {@code this} is a subset of {@code that}. */
   @Override
   public boolean isSubset(IntSet that) {
     if (that instanceof DebuggingMutableIntSet) {
@@ -205,9 +218,7 @@ class DebuggingMutableIntSet implements MutableIntSet {
     }
   }
 
-  /**
-   * Set the value of this to be the same as the value of set
-   */
+  /** Set the value of this to be the same as the value of set */
   @Override
   public void copySet(IntSet set) {
     if (set instanceof DebuggingMutableIntSet) {
@@ -223,7 +234,7 @@ class DebuggingMutableIntSet implements MutableIntSet {
 
   /**
    * Add all members of set to this.
-   * 
+   *
    * @return true iff the value of this changes.
    */
   @Override
@@ -236,8 +247,16 @@ class DebuggingMutableIntSet implements MutableIntSet {
       boolean ssr = secondaryImpl.addAll(db.secondaryImpl);
 
       if (ppr != ssr) {
-        System.err.println("ppr was " + ppr + " (should be " + (ps != primaryImpl.size()) + ") but ssr was " + ssr + " (should be "
-            + (ss != secondaryImpl.size()) + ")");
+        System.err.println(
+            "ppr was "
+                + ppr
+                + " (should be "
+                + (ps != primaryImpl.size())
+                + ") but ssr was "
+                + ssr
+                + " (should be "
+                + (ss != secondaryImpl.size())
+                + ')');
         System.err.println("adding " + set + " to " + this + " failed");
         Assertions.UNREACHABLE();
       }
@@ -249,9 +268,7 @@ class DebuggingMutableIntSet implements MutableIntSet {
     }
   }
 
-  /**
-   * Intersect this with another set.
-   */
+  /** Intersect this with another set. */
   @Override
   public void intersectWith(IntSet set) {
     if (set instanceof DebuggingMutableIntSet) {
@@ -260,15 +277,20 @@ class DebuggingMutableIntSet implements MutableIntSet {
       secondaryImpl.intersectWith(db.secondaryImpl);
 
       if (!primaryImpl.sameValue(secondaryImpl))
-        assert false : this + " (" + primaryImpl.size() + ", " + secondaryImpl.size()
-        + ") inconsistent after intersecting with " + set;
+        assert false
+            : this
+                + " ("
+                + primaryImpl.size()
+                + ", "
+                + secondaryImpl.size()
+                + ") inconsistent after intersecting with "
+                + set;
     } else {
       Assertions.UNREACHABLE();
     }
   }
 
-  /**
-   */
+  /** */
   @Override
   public boolean addAllInIntersection(IntSet other, IntSet filter) {
     if (other instanceof DebuggingMutableIntSet && filter instanceof DebuggingMutableIntSet) {
@@ -292,12 +314,12 @@ class DebuggingMutableIntSet implements MutableIntSet {
   @Override
   public IntIterator intIterator() {
     MutableSparseIntSet bits = MutableSparseIntSet.makeEmpty();
-    for (IntIterator pi = primaryImpl.intIterator(); pi.hasNext();) {
+    for (IntIterator pi = primaryImpl.intIterator(); pi.hasNext(); ) {
       int x = pi.next();
       assert !bits.contains(x);
       bits.add(x);
     }
-    for (IntIterator si = secondaryImpl.intIterator(); si.hasNext();) {
+    for (IntIterator si = secondaryImpl.intIterator(); si.hasNext(); ) {
       int x = si.next();
       assert bits.contains(x);
       bits.remove(x);
@@ -307,51 +329,41 @@ class DebuggingMutableIntSet implements MutableIntSet {
     return primaryImpl.intIterator();
   }
 
-  /**
-   * Invoke an action on each element of the Set
-   */
+  /** Invoke an action on each element of the Set */
   @Override
   public void foreach(IntSetAction action) {
     final Set<Integer> bits = HashSetFactory.make();
-    primaryImpl.foreach(new IntSetAction() {
-      @Override
-      public void act(int x) {
-        assert !bits.contains(Integer.valueOf(x));
-        bits.add(Integer.valueOf(x));
-      }
-    });
-    secondaryImpl.foreach(new IntSetAction() {
-      @Override
-      public void act(int x) {
-        assert bits.contains(Integer.valueOf(x));
-        bits.remove(Integer.valueOf(x));
-      }
-    });
+    primaryImpl.foreach(
+        x -> {
+          assert !bits.contains(x);
+          bits.add(x);
+        });
+    secondaryImpl.foreach(
+        x -> {
+          assert bits.contains(x);
+          bits.remove(x);
+        });
     assert bits.isEmpty();
 
     primaryImpl.foreach(action);
   }
 
-  /**
-   * Invoke an action on each element of the Set, excluding elements of Set X
-   */
+  /** Invoke an action on each element of the Set, excluding elements of Set X */
   @Override
   public void foreachExcluding(IntSet X, IntSetAction action) {
     final Set<Integer> bits = HashSetFactory.make();
-    primaryImpl.foreachExcluding(X, new IntSetAction() {
-      @Override
-      public void act(int x) {
-        assert !bits.contains(Integer.valueOf(x));
-        bits.add(Integer.valueOf(x));
-      }
-    });
-    secondaryImpl.foreachExcluding(X, new IntSetAction() {
-      @Override
-      public void act(int x) {
-        assert bits.contains(Integer.valueOf(x));
-        bits.remove(Integer.valueOf(x));
-      }
-    });
+    primaryImpl.foreachExcluding(
+        X,
+        x -> {
+          assert !bits.contains(x);
+          bits.add(x);
+        });
+    secondaryImpl.foreachExcluding(
+        X,
+        x -> {
+          assert bits.contains(x);
+          bits.remove(x);
+        });
     assert bits.isEmpty();
 
     primaryImpl.foreachExcluding(X, action);
@@ -361,5 +373,4 @@ class DebuggingMutableIntSet implements MutableIntSet {
   public String toString() {
     return "[[P " + primaryImpl.toString() + ", S " + secondaryImpl.toString() + " ]]";
   }
-
 }

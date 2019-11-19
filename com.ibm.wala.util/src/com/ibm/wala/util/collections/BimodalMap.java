@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2002 - 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,19 +7,18 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.util.collections;
 
+import com.ibm.wala.util.debug.UnimplementedError;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
-import com.ibm.wala.util.debug.UnimplementedError;
-
 /**
- * This implementation of {@link Map} chooses between one of two implementations, depending on the size of the map.
+ * This implementation of {@link Map} chooses between one of two implementations, depending on the
+ * size of the map.
  */
 public class BimodalMap<K, V> implements Map<K, V> {
 
@@ -29,13 +28,12 @@ public class BimodalMap<K, V> implements Map<K, V> {
   // smaller footprint.
   private final int cutOff;
 
-  /**
-   * The implementation we delegate to
-   */
+  /** The implementation we delegate to */
   private Map<K, V> backingStore;
 
   /**
-   * @param cutoff the map size at which to switch from the small map implementation to the large map implementation
+   * @param cutoff the map size at which to switch from the small map implementation to the large
+   *     map implementation
    */
   public BimodalMap(int cutoff) {
     this.cutOff = cutoff;
@@ -103,23 +101,17 @@ public class BimodalMap<K, V> implements Map<K, V> {
     }
   }
 
-  /**
-   * Switch backing implementation from a SmallMap to a HashMap
-   */
+  /** Switch backing implementation from a SmallMap to a HashMap */
   private void transferBackingStore() {
     assert backingStore instanceof SmallMap;
     SmallMap<K, V> S = (SmallMap<K, V>) backingStore;
     backingStore = HashMapFactory.make(2 * S.size());
-    for (Iterator<K> it = S.keySet().iterator(); it.hasNext();) {
-      K key = it.next();
-      V value = S.get(key);
-      backingStore.put(key, value);
+    for (Entry<K, V> entry : S.entrySet()) {
+      backingStore.put(entry.getKey(), entry.getValue());
     }
   }
 
-  /**
-   * @throws UnsupportedOperationException if the backingStore doesn't support remove
-   */
+  /** @throws UnsupportedOperationException if the backingStore doesn't support remove */
   @Override
   public V remove(Object key) {
     return (backingStore == null) ? null : backingStore.remove(key);
@@ -185,15 +177,15 @@ public class BimodalMap<K, V> implements Map<K, V> {
   @Override
   @SuppressWarnings("unchecked")
   public Collection<V> values() {
-    return (Collection<V>) ((backingStore == null) ? Collections.emptySet() : backingStore.values());
+    return (Collection<V>)
+        ((backingStore == null) ? Collections.emptySet() : backingStore.values());
   }
 
-  /**
-   * @throws UnimplementedError if the backingStore implementation does
-   */
+  /** @throws UnimplementedError if the backingStore implementation does */
   @Override
   @SuppressWarnings("unchecked")
   public Set<Map.Entry<K, V>> entrySet() {
-    return (Set<Entry<K, V>>) ((backingStore == null) ? Collections.emptySet() : backingStore.entrySet());
+    return (Set<Entry<K, V>>)
+        ((backingStore == null) ? Collections.emptySet() : backingStore.entrySet());
   }
 }

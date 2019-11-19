@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2013 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,7 +7,7 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.cast.js.ipa.callgraph;
 
 import com.ibm.wala.cast.js.ipa.summaries.JavaScriptConstructorFunctions.JavaScriptConstructor;
@@ -21,7 +21,7 @@ import com.ibm.wala.types.TypeReference;
 
 public class JavaScriptConstructorInstanceKeys implements InstanceKeyFactory {
   private final InstanceKeyFactory base;
-  
+
   public JavaScriptConstructorInstanceKeys(InstanceKeyFactory base) {
     super();
     this.base = base;
@@ -48,7 +48,8 @@ public class JavaScriptConstructorInstanceKeys implements InstanceKeyFactory {
   }
 
   @Override
-  public InstanceKey getInstanceKeyForMultiNewArray(CGNode node, NewSiteReference allocation, int dim) {
+  public InstanceKey getInstanceKeyForMultiNewArray(
+      CGNode node, NewSiteReference allocation, int dim) {
     return base.getInstanceKeyForMultiNewArray(node, allocation, dim);
   }
 
@@ -56,5 +57,4 @@ public class JavaScriptConstructorInstanceKeys implements InstanceKeyFactory {
   public InstanceKey getInstanceKeyForPEI(CGNode node, ProgramCounter instr, TypeReference type) {
     return base.getInstanceKeyForPEI(node, instr, type);
   }
-
 }

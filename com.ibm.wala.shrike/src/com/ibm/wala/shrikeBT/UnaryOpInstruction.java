@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2002,2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,24 +7,22 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.shrikeBT;
 
-/**
- * This class represents unary operators where the result is the same type as the operand.
- */
+import java.util.Arrays;
+
+/** This class represents unary operators where the result is the same type as the operand. */
 public final class UnaryOpInstruction extends Instruction implements IUnaryOpInstruction {
   protected UnaryOpInstruction(short opcode) {
     super(opcode);
   }
 
-  private final static UnaryOpInstruction[] preallocated = preallocate();
+  private static final UnaryOpInstruction[] preallocated = preallocate();
 
   private static UnaryOpInstruction[] preallocate() {
     UnaryOpInstruction[] r = new UnaryOpInstruction[OP_dneg - OP_ineg + 1];
-    for (int i = 0; i < r.length; i++) {
-      r[i] = new UnaryOpInstruction((short) (OP_ineg + i));
-    }
+    Arrays.setAll(r, i -> new UnaryOpInstruction((short) (OP_ineg + i)));
     return r;
   }
 
@@ -83,7 +81,7 @@ public final class UnaryOpInstruction extends Instruction implements IUnaryOpIns
 
   @Override
   public String toString() {
-    return "UnaryOp(" + getType() + "," + getOperator() + ")";
+    return "UnaryOp(" + getType() + ',' + getOperator() + ')';
   }
 
   @Override

@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2007 Manu Sridharan and Juergen Graf
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -8,15 +8,15 @@
  * Contributors:
  *     Manu Sridharan
  *     Juergen Graf
- *******************************************************************************/
-/*******************************************************************************
+ */
+/*
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html.
- * 
+ *
  * This file is a derivative of code released by the University of
- * California under the terms listed below.  
+ * California under the terms listed below.
  *
  * Refinement Analysis Tools is Copyright (c) 2007 The Regents of the
  * University of California (Regents). Provided that this notice and
@@ -31,13 +31,13 @@
  * estoppel, or otherwise any license or rights in any intellectual
  * property of Regents, including, but not limited to, any patents
  * of Regents or Regents' employees.
- * 
+ *
  * IN NO EVENT SHALL REGENTS BE LIABLE TO ANY PARTY FOR DIRECT,
  * INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES,
  * INCLUDING LOST PROFITS, ARISING OUT OF THE USE OF THIS SOFTWARE
  * AND ITS DOCUMENTATION, EVEN IF REGENTS HAS BEEN ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
- *   
+ *
  * REGENTS SPECIFICALLY DISCLAIMS ANY WARRANTIES, INCLUDING, BUT NOT
  * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
  * FOR A PARTICULAR PURPOSE AND FURTHER DISCLAIMS ANY STATUTORY
@@ -48,12 +48,6 @@
  */
 package com.ibm.wala.util.graph.labeled;
 
-import java.io.Serializable;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
-
 import com.ibm.wala.util.collections.ArraySetMultiMap;
 import com.ibm.wala.util.collections.HashMapFactory;
 import com.ibm.wala.util.collections.HashSetFactory;
@@ -62,26 +56,25 @@ import com.ibm.wala.util.graph.NumberedNodeManager;
 import com.ibm.wala.util.graph.impl.SparseNumberedEdgeManager;
 import com.ibm.wala.util.intset.BitVectorIntSet;
 import com.ibm.wala.util.intset.IntSet;
+import java.io.Serializable;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
 
-/**
- */
-public class SparseNumberedLabeledEdgeManager<T, U> implements Serializable, NumberedLabeledEdgeManager<T, U> {
+/** */
+public class SparseNumberedLabeledEdgeManager<T, U>
+    implements Serializable, NumberedLabeledEdgeManager<T, U> {
 
-  /**
-   * 
-   */
+  /** */
   private static final long serialVersionUID = 5298089288917726790L;
 
-  /**
-   * the label to be attached to an edge when no label is specified
-   */
+  /** the label to be attached to an edge when no label is specified */
   private final U defaultLabel;
 
   private final NumberedNodeManager<T> nodeManager;
 
-  /**
-   * maps each edge label to its own {@link SparseNumberedEdgeManager}
-   */
+  /** maps each edge label to its own {@link SparseNumberedEdgeManager} */
   private final Map<U, SparseNumberedEdgeManager<T>> edgeLabelToManager = HashMapFactory.make();
 
   private final ArraySetMultiMap<T, U> nodeToPredLabels = new ArraySetMultiMap<>();
@@ -155,7 +148,7 @@ public class SparseNumberedLabeledEdgeManager<T, U> implements Serializable, Num
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see util.LabelledEdgeManager#removeAllIncidentEdges(java.lang.Object)
    */
   @Override
@@ -178,11 +171,9 @@ public class SparseNumberedLabeledEdgeManager<T, U> implements Serializable, Num
    */
   @Override
   public void removeIncomingEdges(T node) throws IllegalArgumentException {
-    for (Iterator<U> inLabelIter = nodeToPredLabels.get(node).iterator(); inLabelIter.hasNext();) {
-      U label = inLabelIter.next();
+    for (U label : nodeToPredLabels.get(node)) {
       getManagerForLabel(label).removeIncomingEdges(node);
     }
-
   }
 
   /*
@@ -190,14 +181,13 @@ public class SparseNumberedLabeledEdgeManager<T, U> implements Serializable, Num
    */
   @Override
   public void removeOutgoingEdges(T node) throws IllegalArgumentException {
-    for (Iterator<U> outLabelIter = nodeToSuccLabels.get(node).iterator(); outLabelIter.hasNext();) {
-      U label = outLabelIter.next();
+    for (U label : nodeToSuccLabels.get(node)) {
       getManagerForLabel(label).removeOutgoingEdges(node);
     }
-
   }
 
-  public SparseNumberedLabeledEdgeManager(final NumberedNodeManager<T> nodeManager, U defaultLabel) {
+  public SparseNumberedLabeledEdgeManager(
+      final NumberedNodeManager<T> nodeManager, U defaultLabel) {
     super();
     this.defaultLabel = defaultLabel;
     this.nodeManager = nodeManager;
@@ -223,9 +213,9 @@ public class SparseNumberedLabeledEdgeManager<T, U> implements Serializable, Num
   public Set<? extends U> getEdgeLabels(T src, T dst) {
     Set<U> labels = HashSetFactory.make();
 
-    for (U key : edgeLabelToManager.keySet()) {
-      if (edgeLabelToManager.get(key).hasEdge(src, dst)) {
-        labels.add(key);
+    for (Map.Entry<U, SparseNumberedEdgeManager<T>> entry : edgeLabelToManager.entrySet()) {
+      if (entry.getValue().hasEdge(src, dst)) {
+        labels.add(entry.getKey());
       }
     }
 
@@ -301,7 +291,7 @@ public class SparseNumberedLabeledEdgeManager<T, U> implements Serializable, Num
   @Override
   public IntSet getPredNodeNumbers(T node) {
     BitVectorIntSet preds = new BitVectorIntSet();
-    
+
     for (U label : nodeToPredLabels.get(node)) {
       preds.addAll(getPredNodeNumbers(node, label));
     }
@@ -312,12 +302,11 @@ public class SparseNumberedLabeledEdgeManager<T, U> implements Serializable, Num
   @Override
   public IntSet getSuccNodeNumbers(T node) {
     BitVectorIntSet succs = new BitVectorIntSet();
-    
+
     for (U label : nodeToSuccLabels.get(node)) {
       succs.addAll(getSuccNodeNumbers(node, label));
     }
 
     return succs;
   }
-
 }

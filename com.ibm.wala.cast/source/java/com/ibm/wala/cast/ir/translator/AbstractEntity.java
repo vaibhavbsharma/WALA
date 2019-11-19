@@ -1,4 +1,4 @@
-/******************************************************************************
+/*
  * Copyright (c) 2002 - 2014 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,16 +7,9 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *****************************************************************************/
-
-/**
- * 
  */
-package com.ibm.wala.cast.ir.translator;
 
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.Map;
+package com.ibm.wala.cast.ir.translator;
 
 import com.ibm.wala.cast.tree.CAstAnnotation;
 import com.ibm.wala.cast.tree.CAstEntity;
@@ -26,6 +19,9 @@ import com.ibm.wala.util.collections.EmptyIterator;
 import com.ibm.wala.util.collections.HashMapFactory;
 import com.ibm.wala.util.collections.HashSetFactory;
 import com.ibm.wala.util.debug.Assertions;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.Map;
 
 public abstract class AbstractEntity implements CAstEntity {
   private Position sourcePosition;
@@ -43,7 +39,6 @@ public abstract class AbstractEntity implements CAstEntity {
     return null;
   }
 
-  
   @Override
   public Collection<CAstAnnotation> getAnnotations() {
     return null;

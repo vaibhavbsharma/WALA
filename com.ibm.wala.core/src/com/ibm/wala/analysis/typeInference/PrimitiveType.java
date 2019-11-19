@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2002 - 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,23 +7,23 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.analysis.typeInference;
-
-import java.util.Map;
 
 import com.ibm.wala.classLoader.IClass;
 import com.ibm.wala.types.TypeReference;
 import com.ibm.wala.util.collections.HashMapFactory;
+import java.util.Map;
 
 /**
- * Abstraction of a primitive type. Subclasses will define the primitive type abstractions for a particular language.
- * 
+ * Abstraction of a primitive type. Subclasses will define the primitive type abstractions for a
+ * particular language.
+ *
  * @see JavaPrimitiveType
  */
 public abstract class PrimitiveType extends TypeAbstraction {
 
-  final protected static Map<TypeReference, PrimitiveType> referenceToType = HashMapFactory.make();
+  protected static final Map<TypeReference, PrimitiveType> referenceToType = HashMapFactory.make();
 
   public static PrimitiveType getPrimitive(TypeReference reference) {
     return referenceToType.get(reference);
@@ -86,5 +86,4 @@ public abstract class PrimitiveType extends TypeAbstraction {
   public String toString() {
     return reference.getName().toString();
   }
-
 }

@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2007 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,15 +7,15 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.ipa.slicer;
 
 import com.ibm.wala.ipa.callgraph.CGNode;
 import com.ibm.wala.ssa.SSAInstruction;
 
 /**
- * A {@link Statement} which carries an instruction index, representing the index of an {@link SSAInstruction} in the IR instruction
- * array.
+ * A {@link Statement} which carries an instruction index, representing the index of an {@link
+ * SSAInstruction} in the IR instruction array.
  */
 public abstract class StatementWithInstructionIndex extends Statement {
 
@@ -44,21 +44,16 @@ public abstract class StatementWithInstructionIndex extends Statement {
 
   @Override
   public boolean equals(Object obj) {
-    if (this == obj)
-      return true;
-    if (!super.equals(obj))
-      return false;
-    if (getClass() != obj.getClass())
-      return false;
+    if (this == obj) return true;
+    if (!super.equals(obj)) return false;
+    if (getClass() != obj.getClass()) return false;
     final StatementWithInstructionIndex other = (StatementWithInstructionIndex) obj;
-    if (instructionIndex != other.instructionIndex)
-      return false;
+    if (instructionIndex != other.instructionIndex) return false;
     return true;
   }
 
   @Override
   public String toString() {
-    return super.toString() + "[" + getInstructionIndex() + "]" + getInstruction();
+    return super.toString() + '[' + getInstructionIndex() + ']' + getInstruction();
   }
-
 }

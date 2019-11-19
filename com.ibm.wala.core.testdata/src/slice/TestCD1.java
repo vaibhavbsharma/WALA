@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,21 +7,16 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package slice;
 
 public class TestCD1 {
 
-  static void doNothing(Object o) {
-  }
+  static void doNothing(Object o) {}
 
-  /**
-   * 
-   * @param args
-   */
   public static void main(String[] args) {
     Integer I = (Integer) new A().foo();
-    int i = I.intValue();
+    int i = I;
     if (i > 0) {
       System.out.println("X");
       if (i > 1) {
@@ -30,5 +25,4 @@ public class TestCD1 {
       }
     }
   }
-
 }

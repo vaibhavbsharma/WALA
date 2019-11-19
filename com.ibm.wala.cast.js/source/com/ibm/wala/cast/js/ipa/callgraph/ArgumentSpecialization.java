@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2013 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,12 +7,8 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.cast.js.ipa.callgraph;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 
 import com.ibm.wala.cast.ipa.callgraph.AstContextInsensitiveSSAContextInterpreter;
 import com.ibm.wala.cast.ir.ssa.AstIRFactory;
@@ -27,6 +23,7 @@ import com.ibm.wala.cast.tree.CAstEntity;
 import com.ibm.wala.cast.tree.CAstNode;
 import com.ibm.wala.cast.tree.impl.CAstImpl;
 import com.ibm.wala.cast.tree.rewrite.CAstBasicRewriter;
+import com.ibm.wala.cast.tree.rewrite.CAstBasicRewriter.NonCopyingContext;
 import com.ibm.wala.cast.util.CAstPattern;
 import com.ibm.wala.cast.util.CAstPattern.Segments;
 import com.ibm.wala.cfg.AbstractCFG;
@@ -45,6 +42,7 @@ import com.ibm.wala.ipa.callgraph.IAnalysisCacheView;
 import com.ibm.wala.ipa.callgraph.propagation.InstanceKey;
 import com.ibm.wala.ssa.DefUse;
 import com.ibm.wala.ssa.IR;
+import com.ibm.wala.ssa.ISSABasicBlock;
 import com.ibm.wala.ssa.SSAAbstractInvokeInstruction;
 import com.ibm.wala.ssa.SSAInstruction;
 import com.ibm.wala.ssa.SSAOptions;
@@ -53,12 +51,17 @@ import com.ibm.wala.types.TypeReference;
 import com.ibm.wala.util.collections.HashMapFactory;
 import com.ibm.wala.util.collections.Pair;
 import com.ibm.wala.util.intset.IntSet;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 public class ArgumentSpecialization {
 
-  public static class ArgumentSpecializationContextIntepreter extends AstContextInsensitiveSSAContextInterpreter {
+  public static class ArgumentSpecializationContextIntepreter
+      extends AstContextInsensitiveSSAContextInterpreter {
 
-    public ArgumentSpecializationContextIntepreter(AnalysisOptions options, IAnalysisCacheView cache) {
+    public ArgumentSpecializationContextIntepreter(
+        AnalysisOptions options, IAnalysisCacheView cache) {
       super(options, cache);
     }
 
@@ -70,7 +73,7 @@ public class ArgumentSpecialization {
         return super.getIR(node);
       }
     }
-    
+
     @Override
     public DefUse getDU(CGNode node) {
       if (node.getMethod() instanceof Retranslatable) {
@@ -85,64 +88,65 @@ public class ArgumentSpecialization {
     private final Context base;
     private final int argumentCount;
 
-    public static ContextKey ARGUMENT_COUNT = new ContextKey() {
-      @Override
-      public String toString() {
-        return "argument count key";
-      }
-    };
-    
+    public static ContextKey ARGUMENT_COUNT =
+        new ContextKey() {
+          @Override
+          public String toString() {
+            return "argument count key";
+          }
+        };
+
     @Override
     public int hashCode() {
       return base.hashCode() + (argumentCount * 4073);
     }
-    
+
     @Override
     public boolean equals(Object o) {
-      return 
-        o.getClass() == this.getClass() && 
-        base.equals(((ArgumentCountContext)o).base) &&
-        argumentCount == ((ArgumentCountContext)o).argumentCount;
+      return o.getClass() == this.getClass()
+          && base.equals(((ArgumentCountContext) o).base)
+          && argumentCount == ((ArgumentCountContext) o).argumentCount;
     }
-    
+
     public ArgumentCountContext(int argumentCount, Context base) {
       this.argumentCount = argumentCount;
       this.base = base;
     }
-    
+
     @Override
     public ContextItem get(ContextKey name) {
-      return (name == ARGUMENT_COUNT)? ContextItem.Value.make(argumentCount): base.get(name);
+      return (name == ARGUMENT_COUNT) ? ContextItem.Value.make(argumentCount) : base.get(name);
     }
 
     @Override
     public String toString() {
-      return base.toString() + "(nargs:" + argumentCount + ")";
+      return base.toString() + "(nargs:" + argumentCount + ')';
     }
   }
 
   public static class ArgumentCountContextSelector implements ContextSelector, ContextKey {
     private final ContextSelector base;
-    
+
     public ArgumentCountContextSelector(ContextSelector base) {
       this.base = base;
     }
 
     @Override
-    public Context getCalleeTarget(CGNode caller, CallSiteReference site, IMethod callee, InstanceKey[] actualParameters) {
+    public Context getCalleeTarget(
+        CGNode caller, CallSiteReference site, IMethod callee, InstanceKey[] actualParameters) {
       Context baseContext = base.getCalleeTarget(caller, site, callee, actualParameters);
       if (caller.getMethod() instanceof Retranslatable) {
         int v = -1;
         for (SSAAbstractInvokeInstruction x : caller.getIR().getCalls(site)) {
           if (v == -1) {
-            v = x.getNumberOfParameters();
+            v = x.getNumberOfPositionalParameters();
           } else {
-            if (v != x.getNumberOfParameters()) {
-              return baseContext; 
+            if (v != x.getNumberOfPositionalParameters()) {
+              return baseContext;
             }
           }
         }
-        
+
         return new ArgumentCountContext(v, baseContext);
       } else {
         return baseContext;
@@ -153,25 +157,30 @@ public class ArgumentSpecialization {
     public IntSet getRelevantParameters(CGNode caller, CallSiteReference site) {
       return base.getRelevantParameters(caller, site);
     }
-
   }
 
   public static class ArgumentCountIRFactory extends AstIRFactory.AstDefaultIRFactory<IMethod> {
-    private static final CAstPattern directAccessPattern = CAstPattern.parse("|(ARRAY_REF(VAR(\"arguments\"),<value>*)||OBJECT_REF(VAR(\"arguments\"),<value>*))|");
+    private static final CAstPattern directAccessPattern =
+        CAstPattern.parse(
+            "|(ARRAY_REF(VAR(\"arguments\"),<value>*)||OBJECT_REF(VAR(\"arguments\"),<value>*))|");
 
-    private static final CAstPattern destructuredAccessPattern = CAstPattern.parse("BLOCK_EXPR(ASSIGN(VAR(/[$][$]destructure[$]rcvr[0-9]+/),VAR(\"arguments\")),ASSIGN(VAR(<name>/[$][$]destructure[$]elt[0-9]+/),<value>*))");
+    private static final CAstPattern destructuredAccessPattern =
+        CAstPattern.parse(
+            "BLOCK_EXPR(ASSIGN(VAR(/[$][$]destructure[$]rcvr[0-9]+/),VAR(\"arguments\")),ASSIGN(VAR(<name>/[$][$]destructure[$]elt[0-9]+/),<value>*))");
 
-    private static final CAstPattern destructuredCallPattern = CAstPattern.parse("CALL(VAR(<name>/[$][$]destructure[$]elt[0-9]+/),\"dispatch\",VAR(<thisptr>/[$][$]destructure[$]rcvr[0-9]+/),<args>**)");
-    
+    private static final CAstPattern destructuredCallPattern =
+        CAstPattern.parse(
+            "CALL(VAR(<name>/[$][$]destructure[$]elt[0-9]+/),\"dispatch\",VAR(<thisptr>/[$][$]destructure[$]rcvr[0-9]+/),<args>**)");
+
     private final SSAOptions defaultOptions;
-    
+
     public ArgumentCountIRFactory(SSAOptions defaultOptions) {
       this.defaultOptions = defaultOptions;
     }
 
     @Override
     public boolean contextIsIrrelevant(IMethod method) {
-      return method instanceof Retranslatable? false: super.contextIsIrrelevant(method);
+      return method instanceof Retranslatable ? false : super.contextIsIrrelevant(method);
     }
 
     @Override
@@ -179,18 +188,19 @@ public class ArgumentSpecialization {
       if (method instanceof Retranslatable) {
         @SuppressWarnings("unchecked")
         final Value<Integer> v = (Value<Integer>) context.get(ArgumentCountContext.ARGUMENT_COUNT);
-        final Retranslatable m = (Retranslatable)method;
+        final Retranslatable m = (Retranslatable) method;
         if (v != null) {
-          final JavaScriptLoader myloader = (JavaScriptLoader) method.getDeclaringClass().getClassLoader();
-                    
-          class FixedArgumentsRewriter extends CAstBasicRewriter {
+          final JavaScriptLoader myloader =
+              (JavaScriptLoader) method.getDeclaringClass().getClassLoader();
+
+          class FixedArgumentsRewriter extends CAstBasicRewriter<NonCopyingContext> {
             private final CAstEntity e;
             private final Map<String, CAstNode> argRefs = HashMapFactory.make();
- 
+
             public FixedArgumentsRewriter(CAst Ast) {
-              super(Ast, false);
+              super(Ast, new NonCopyingContext(), false);
               this.e = m.getEntity();
-              for(Segments s : CAstPattern.findAll(destructuredAccessPattern, m.getEntity())) {
+              for (Segments s : CAstPattern.findAll(destructuredAccessPattern, m.getEntity())) {
                 argRefs.put(s.getSingle("name").getValue().toString(), s.getSingle("value"));
               }
             }
@@ -198,27 +208,27 @@ public class ArgumentSpecialization {
             private CAstNode handleArgumentRef(CAstNode n) {
               Object x = n.getValue();
               if (x != null) {
-                if (x instanceof Number && ((Number)x).intValue() < v.getValue()-2) {
-                  int arg = ((Number)x).intValue() + 2;
+                if (x instanceof Number && ((Number) x).intValue() < v.getValue() - 2) {
+                  int arg = ((Number) x).intValue() + 2;
                   if (arg < e.getArgumentCount()) {
                     return Ast.makeNode(CAstNode.VAR, Ast.makeConstant(e.getArgumentNames()[arg]));
                   } else {
-                    return Ast.makeNode(CAstNode.VAR, Ast.makeConstant("$arg" + arg));                    
+                    return Ast.makeNode(CAstNode.VAR, Ast.makeConstant("$arg" + arg));
                   }
                 } else if (x instanceof String && "length".equals(x)) {
                   return Ast.makeConstant(v.getValue());
                 }
               }
-              
+
               return null;
             }
-            
+
             @Override
-            protected CAstNode copyNodes(CAstNode root, 
-                CAstControlFlowMap cfg, 
+            protected CAstNode copyNodes(
+                CAstNode root,
+                CAstControlFlowMap cfg,
                 NonCopyingContext context,
-                Map<Pair<CAstNode, NoKey>, CAstNode> nodeMap)
-            {
+                Map<Pair<CAstNode, NoKey>, CAstNode> nodeMap) {
               CAstNode result = null;
               Segments s;
 
@@ -227,36 +237,30 @@ public class ArgumentSpecialization {
 
               } else if ((s = CAstPattern.match(destructuredCallPattern, root)) != null) {
                 if (argRefs.containsKey(s.getSingle("name").getValue().toString())) {
-                 List<CAstNode> x = new ArrayList<>();
-                 CAstNode ref = handleArgumentRef(argRefs.get(s.getSingle("name").getValue().toString()));
-                 if (ref != null) {
-                   x.add(ref);
-                   x.add(Ast.makeConstant("do"));
-                   x.add(Ast.makeNode(CAstNode.VAR, Ast.makeConstant("arguments")));
-                   for (CAstNode c : s.getMultiple("args")) {
-                     x.add(copyNodes(c, cfg, context, nodeMap));
-                   }
-                   result = Ast.makeNode(CAstNode.CALL, x.toArray(new CAstNode[ x.size() ]));
-                 }
+                  List<CAstNode> x = new ArrayList<>();
+                  CAstNode ref =
+                      handleArgumentRef(argRefs.get(s.getSingle("name").getValue().toString()));
+                  if (ref != null) {
+                    x.add(ref);
+                    x.add(Ast.makeConstant("do"));
+                    x.add(Ast.makeNode(CAstNode.VAR, Ast.makeConstant("arguments")));
+                    for (CAstNode c : s.getMultiple("args")) {
+                      x.add(copyNodes(c, cfg, context, nodeMap));
+                    }
+                    result = Ast.makeNode(CAstNode.CALL, x);
+                  }
                 }
-               
+
               } else if (root.getKind() == CAstNode.CONSTANT) {
                 result = Ast.makeConstant(root.getValue());
 
               } else if (root.getKind() == CAstNode.OPERATOR) {
                 result = root;
-              } 
-              
+              }
+
               if (result == null) {
-                CAstNode children[] = new CAstNode[root.getChildCount()];
-                for (int i = 0; i < children.length; i++) {
-                  children[i] = copyNodes(root.getChild(i), cfg, context, nodeMap);
-                }
-                for(Object label: cfg.getTargetLabels(root)) {
-                  if (label instanceof CAstNode) {
-                    copyNodes((CAstNode)label, cfg, context, nodeMap);
-                  }
-                }
+                final List<CAstNode> children =
+                    copyChildrenArrayAndTargets(root, cfg, context, nodeMap);
                 CAstNode copy = Ast.makeNode(root.getKind(), children);
                 result = copy;
               }
@@ -264,21 +268,19 @@ public class ArgumentSpecialization {
               nodeMap.put(Pair.make(root, context.key()), result);
               return result;
             }
-            
           }
 
           final FixedArgumentsRewriter args = new FixedArgumentsRewriter(new CAstImpl());
           final JSConstantFoldingRewriter fold = new JSConstantFoldingRewriter(new CAstImpl());
 
           class ArgumentativeTranslator extends JSAstTranslator {
-            
+
             public ArgumentativeTranslator(JavaScriptLoader loader) {
               super(loader);
             }
 
             private CAstEntity codeBodyEntity;
             private IMethod specializedCode;
-            
 
             @Override
             protected int getArgumentCount(CAstEntity f) {
@@ -290,12 +292,13 @@ public class ArgumentSpecialization {
               if (super.getArgumentCount(f) >= v.getValue()) {
                 return super.getArgumentNames(f);
               } else {
-                String[] argNames = new String[ v.getValue() ];
-                System.arraycopy(super.getArgumentNames(f), 0, argNames, 0, super.getArgumentCount(f));
-                for(int i = super.getArgumentCount(f); i < argNames.length; i++) {
+                String[] argNames = new String[v.getValue()];
+                System.arraycopy(
+                    super.getArgumentNames(f), 0, argNames, 0, super.getArgumentCount(f));
+                for (int i = super.getArgumentCount(f); i < argNames.length; i++) {
                   argNames[i] = "$arg" + i;
                 }
-                
+
                 return argNames;
               }
             }
@@ -303,20 +306,45 @@ public class ArgumentSpecialization {
             @Override
             protected String composeEntityName(WalkContext parent, CAstEntity f) {
               if (f == codeBodyEntity) {
-                return super.composeEntityName(parent, f) + "_" + v.getValue().intValue();                
+                return super.composeEntityName(parent, f) + '_' + v.getValue();
               } else {
                 return super.composeEntityName(parent, f);
               }
             }
 
             @Override
-            protected void defineFunction(CAstEntity N, WalkContext definingContext, AbstractCFG<SSAInstruction, ? extends IBasicBlock<SSAInstruction>> cfg, SymbolTable symtab,
-                boolean hasCatchBlock, Map<IBasicBlock<SSAInstruction>,TypeReference[]> caughtTypes, boolean hasMonitorOp, AstLexicalInformation LI,
+            protected void defineFunction(
+                CAstEntity N,
+                WalkContext definingContext,
+                AbstractCFG<SSAInstruction, ? extends IBasicBlock<SSAInstruction>> cfg,
+                SymbolTable symtab,
+                boolean hasCatchBlock,
+                Map<IBasicBlock<SSAInstruction>, TypeReference[]> caughtTypes,
+                boolean hasMonitorOp,
+                AstLexicalInformation LI,
                 DebuggingInformation debugInfo) {
               if (N == codeBodyEntity) {
-                specializedCode = myloader.makeCodeBodyCode(cfg, symtab, hasCatchBlock, caughtTypes, hasMonitorOp, LI, debugInfo, method.getDeclaringClass());
+                specializedCode =
+                    myloader.makeCodeBodyCode(
+                        cfg,
+                        symtab,
+                        hasCatchBlock,
+                        caughtTypes,
+                        hasMonitorOp,
+                        LI,
+                        debugInfo,
+                        method.getDeclaringClass());
               } else {
-                super.defineFunction(N, definingContext, cfg, symtab, hasCatchBlock, caughtTypes, hasMonitorOp, LI, debugInfo);
+                super.defineFunction(
+                    N,
+                    definingContext,
+                    cfg,
+                    symtab,
+                    hasCatchBlock,
+                    caughtTypes,
+                    hasMonitorOp,
+                    LI,
+                    debugInfo);
               }
             }
 
@@ -326,22 +354,22 @@ public class ArgumentSpecialization {
                 codeBodyEntity = fold.rewrite(args.rewrite(N));
                 super.translate(codeBodyEntity, context);
               } else {
-                super.translate(N, context);                
+                super.translate(N, context);
               }
             }
-            
           }
           ArgumentativeTranslator a = new ArgumentativeTranslator(myloader);
           m.retranslate(a);
           return super.makeIR(a.specializedCode, context, options);
         }
       }
-      
+
       return super.makeIR(method, context, options);
     }
 
     @Override
-    public ControlFlowGraph makeCFG(IMethod method, Context context) {
+    public ControlFlowGraph<SSAInstruction, ISSABasicBlock> makeCFG(
+        IMethod method, Context context) {
       return makeIR(method, context, defaultOptions).getControlFlowGraph();
     }
   }

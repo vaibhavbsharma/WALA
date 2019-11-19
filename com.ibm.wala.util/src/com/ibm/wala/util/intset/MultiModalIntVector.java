@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2009 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,28 +7,28 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.util.intset;
 
 import java.util.Arrays;
 
 /**
- * an implementation of {@link IntVector} that uses a mix of backing arrays of type int, char, and byte array, in an attempt to save
- * space for common data structures.
+ * an implementation of {@link IntVector} that uses a mix of backing arrays of type int, char, and
+ * byte array, in an attempt to save space for common data structures.
  */
 public class MultiModalIntVector implements IntVector {
 
-  private final static float INITIAL_GROWTH_FACTOR = 1.5f;
+  private static final float INITIAL_GROWTH_FACTOR = 1.5f;
 
-  private final static float MINIMUM_GROWTH_FACTOR = 1.1f;
+  private static final float MINIMUM_GROWTH_FACTOR = 1.1f;
 
-  private final static float DIFF_GROWTH_FACTOR = INITIAL_GROWTH_FACTOR - MINIMUM_GROWTH_FACTOR;
+  private static final float DIFF_GROWTH_FACTOR = INITIAL_GROWTH_FACTOR - MINIMUM_GROWTH_FACTOR;
 
-  private float CURRENT_GROWTH_RATE = INITIAL_GROWTH_FACTOR;
+  private float currentGrowthRate = INITIAL_GROWTH_FACTOR;
 
-  private final static int MAX_SIZE = 10000;
+  private static final int MAX_SIZE = 10000;
 
-  private final static int INITIAL_SIZE = 1;
+  private static final int INITIAL_SIZE = 1;
 
   int maxIndex = -1;
 
@@ -76,18 +76,16 @@ public class MultiModalIntVector implements IntVector {
 
   /**
    * Will determine a dynamic growth factor that depends on the current size of the array
-   * 
-   * @param size
+   *
    * @return the new growth factor
    */
-
   float getGrowthFactor(int size) {
-    if (CURRENT_GROWTH_RATE >= MINIMUM_GROWTH_FACTOR) {
-
-      float val = (float) (1 / (1 + Math.pow(Math.E, (-1) * ((size / MAX_SIZE) * 12.0 - 6.0))));
-      CURRENT_GROWTH_RATE = INITIAL_GROWTH_FACTOR - DIFF_GROWTH_FACTOR * val;
+    if (currentGrowthRate >= MINIMUM_GROWTH_FACTOR) {
+      float val =
+          (float) (1 / (1 + Math.pow(Math.E, (-1) * (((double) size / MAX_SIZE) * 12.0 - 6.0))));
+      currentGrowthRate = INITIAL_GROWTH_FACTOR - DIFF_GROWTH_FACTOR * val;
     }
-    return CURRENT_GROWTH_RATE;
+    return currentGrowthRate;
   }
 
   /*
@@ -128,7 +126,8 @@ public class MultiModalIntVector implements IntVector {
     if (x > MAX_SIZE) {
       throw new IllegalArgumentException("x is too big: " + x);
     }
-    maxIndex = Math.max(maxIndex, x); // Find out if the new position is bigger than size of the array
+    maxIndex =
+        Math.max(maxIndex, x); // Find out if the new position is bigger than size of the array
     handleMorph(x, value);
     if (value == defaultValue) {
       int length = getStoreLength();
@@ -183,7 +182,12 @@ public class MultiModalIntVector implements IntVector {
         for (int i = 0; i < shortStore.length; i++) {
           newIntStore[byteStore.length - 1 + i] = shortStore[i];
         }
-        System.arraycopy(intStore, 0, newIntStore, byteStore.length + shortStore.length - index, intStore.length);
+        System.arraycopy(
+            intStore,
+            0,
+            newIntStore,
+            byteStore.length + shortStore.length - index,
+            intStore.length);
         intStore = newIntStore;
         byteStore = newByteStore;
         shortStore = new short[0];
@@ -205,11 +209,7 @@ public class MultiModalIntVector implements IntVector {
     }
   }
 
-  /**
-   * make sure we can store to a particular index
-   * 
-   * @param capacity
-   */
+  /** make sure we can store to a particular index */
   private void ensureCapacity(int capacity, int value) {
     int length = getStoreLength();
     // Value is an int
@@ -219,28 +219,26 @@ public class MultiModalIntVector implements IntVector {
         // Current array size
         int[] old = intStore;
         // New array size
-        int newSize = 1 + (int) (getGrowthFactor(length) * capacity) - byteStore.length - shortStore.length;
-        int[] newData = new int[newSize];
-        Arrays.fill(newData, defaultValue);
-        System.arraycopy(old, 0, newData, 0, old.length);
+        int newSize =
+            1 + (int) (getGrowthFactor(length) * capacity) - byteStore.length - shortStore.length;
+        int[] newData = Arrays.copyOf(old, newSize);
+        Arrays.fill(newData, old.length, newSize, defaultValue);
         intStore = newData;
       }
     } else if (shortStore.length > 0 || NumberUtility.isShort(value)) {
       if (capacity >= length) {
         short[] old = shortStore;
         int newSize = 1 + (int) (getGrowthFactor(length) * capacity) - byteStore.length;
-        short[] newData = new short[newSize];
-        Arrays.fill(newData, (short) defaultValue);
-        System.arraycopy(old, 0, newData, 0, old.length);
+        short[] newData = Arrays.copyOf(old, newSize);
+        Arrays.fill(newData, old.length, newSize, (short) defaultValue);
         shortStore = newData;
       }
     } else {
       if (capacity >= length) {
         byte[] old = byteStore;
         int newSize = 1 + (int) (getGrowthFactor(length) * capacity);
-        byte[] newData = new byte[newSize];
-        Arrays.fill(newData, (byte) defaultValue);
-        System.arraycopy(old, 0, newData, 0, old.length);
+        byte[] newData = Arrays.copyOf(old, newSize);
+        Arrays.fill(newData, old.length, newSize, (byte) defaultValue);
         byteStore = newData;
       }
     }
@@ -252,17 +250,16 @@ public class MultiModalIntVector implements IntVector {
   }
 
   public void print() {
-    String str = "";
-    for (int i = 0; i < byteStore.length; i++) {
-      str += byteStore[i] + ",";
+    final StringBuilder str = new StringBuilder();
+    for (byte element : byteStore) {
+      str.append(element).append(',');
     }
-    for (int i = 0; i < shortStore.length; i++) {
-      str += shortStore[i] + ",";
+    for (short element : shortStore) {
+      str.append(element).append(',');
     }
-    for (int i = 0; i < intStore.length; i++) {
-      str += intStore[i] + ",";
+    for (int element : intStore) {
+      str.append(element).append(',');
     }
     System.out.println(str);
   }
-
 }

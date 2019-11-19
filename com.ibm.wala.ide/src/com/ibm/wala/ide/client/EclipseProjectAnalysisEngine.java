@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2002 - 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,17 +7,8 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.ide.client;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-
-import org.eclipse.core.resources.ResourcesPlugin;
-import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IPath;
 
 import com.ibm.wala.client.AbstractAnalysisEngine;
 import com.ibm.wala.ide.util.EclipseProjectPath;
@@ -29,37 +20,49 @@ import com.ibm.wala.ipa.callgraph.propagation.InstanceKey;
 import com.ibm.wala.ipa.cha.IClassHierarchy;
 import com.ibm.wala.util.config.FileOfClasses;
 import com.ibm.wala.util.io.FileProvider;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IPath;
 
-abstract public class EclipseProjectAnalysisEngine<P, I extends InstanceKey> extends AbstractAnalysisEngine<I> {
+public abstract class EclipseProjectAnalysisEngine<P, I extends InstanceKey>
+    extends AbstractAnalysisEngine<I, CallGraphBuilder<I>, Void> {
 
   protected final P project;
-  
+
   protected final IPath workspaceRootPath;
 
-  protected EclipseProjectPath<?,P> ePath;
+  protected EclipseProjectPath<?, P> ePath;
 
   public EclipseProjectAnalysisEngine(P project) {
-    super();
     this.project = project;
     this.workspaceRootPath = ResourcesPlugin.getWorkspace().getRoot().getLocation();
     assert project != null;
     assert workspaceRootPath != null;
   }
 
-  abstract protected EclipseProjectPath<?,P> createProjectPath(P project) throws IOException, CoreException;
+  protected abstract EclipseProjectPath<?, P> createProjectPath(P project)
+      throws IOException, CoreException;
 
   @Override
-  abstract protected CallGraphBuilder<I> getCallGraphBuilder(IClassHierarchy cha, AnalysisOptions options, IAnalysisCacheView cache);
+  protected abstract CallGraphBuilder<I> getCallGraphBuilder(
+      IClassHierarchy cha, AnalysisOptions options, IAnalysisCacheView cache);
 
-  abstract protected AnalysisScope makeAnalysisScope();
-  
+  protected abstract AnalysisScope makeAnalysisScope();
+
   @Override
   public void buildAnalysisScope() throws IOException {
     try {
       ePath = createProjectPath(project);
       super.scope = ePath.toAnalysisScope(makeAnalysisScope());
       if (getExclusionsFile() != null) {
-        try (final InputStream is = new File(getExclusionsFile()).exists()? new FileInputStream(getExclusionsFile()): FileProvider.class.getClassLoader().getResourceAsStream(getExclusionsFile())) {
+        try (final InputStream is =
+            new File(getExclusionsFile()).exists()
+                ? new FileInputStream(getExclusionsFile())
+                : FileProvider.class.getClassLoader().getResourceAsStream(getExclusionsFile())) {
           scope.setExclusions(new FileOfClasses(is));
         }
       }
@@ -68,17 +71,16 @@ abstract public class EclipseProjectAnalysisEngine<P, I extends InstanceKey> ext
     }
   }
 
-  public EclipseProjectPath<?,P> getEclipseProjectPath() {
+  public EclipseProjectPath<?, P> getEclipseProjectPath() {
     return ePath;
   }
 
   @Override
   public IClassHierarchy getClassHierarchy() {
     if (super.getClassHierarchy() == null) {
-      setClassHierarchy( buildClassHierarchy() );
+      setClassHierarchy(buildClassHierarchy());
     }
 
     return super.getClassHierarchy();
   }
-
 }

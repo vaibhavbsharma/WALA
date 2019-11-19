@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2007 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,7 +7,7 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.ssa;
 
 public abstract class SSAAbstractBinaryInstruction extends SSAInstruction {
@@ -41,9 +41,7 @@ public abstract class SSAAbstractBinaryInstruction extends SSAInstruction {
     return result;
   }
 
-  /**
-   * @see com.ibm.wala.ssa.SSAInstruction#getNumberOfUses()
-   */
+  /** @see com.ibm.wala.ssa.SSAInstruction#getNumberOfUses() */
   @Override
   public int getNumberOfDefs() {
     return 1;
@@ -54,9 +52,6 @@ public abstract class SSAAbstractBinaryInstruction extends SSAInstruction {
     return 2;
   }
 
-  /**
-   * @see com.ibm.wala.ssa.SSAInstruction#getUse(int)
-   */
   @Override
   public int getUse(int j) {
     assert j <= 1;
@@ -67,5 +62,4 @@ public abstract class SSAAbstractBinaryInstruction extends SSAInstruction {
   public int hashCode() {
     return 6311 * result ^ 2371 * val1 + val2;
   }
-
 }

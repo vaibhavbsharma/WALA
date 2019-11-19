@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2002,2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,23 +7,19 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.shrikeBT;
 
-/**
- * PopInstructions pop one or two elements off the working stack.
- */
+/** PopInstructions pop one or two elements off the working stack. */
 public final class PopInstruction extends Instruction {
-  final private byte size;
+  private final byte size;
 
   protected PopInstruction(byte size) {
     super((short) -1);
     this.size = size;
   }
 
-  /**
-   * @param size 1 or 2, the number of elements to pop
-   */
+  /** @param size 1 or 2, the number of elements to pop */
   public static PopInstruction make(int size) {
     if (size < 0 || size > 2) {
       throw new IllegalArgumentException("Invalid pop size: " + size);
@@ -62,7 +58,7 @@ public final class PopInstruction extends Instruction {
 
   @Override
   public String toString() {
-    return "Pop(" + size + ")";
+    return "Pop(" + size + ')';
   }
 
   @Override

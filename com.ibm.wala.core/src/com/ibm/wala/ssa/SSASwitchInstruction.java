@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2002 - 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,15 +7,13 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 
 package com.ibm.wala.ssa;
 
 import com.ibm.wala.util.intset.IntIterator;
 
-/**
- * SSA instruction representing a switch statement.
- */
+/** SSA instruction representing a switch statement. */
 public class SSASwitchInstruction extends SSAInstruction {
   private final int val;
 
@@ -24,7 +22,8 @@ public class SSASwitchInstruction extends SSAInstruction {
   private final int[] casesAndLabels;
 
   /**
-   * The labels in casesAndLabels represent <em>instruction indices</em> in the IR that each switch case branches to.
+   * The labels in casesAndLabels represent <em>instruction indices</em> in the IR that each switch
+   * case branches to.
    */
   public SSASwitchInstruction(int iindex, int val, int defaultLabel, int[] casesAndLabels) {
     super(iindex);
@@ -36,12 +35,16 @@ public class SSASwitchInstruction extends SSAInstruction {
   @Override
   public SSAInstruction copyForSSA(SSAInstructionFactory insts, int[] defs, int[] uses) {
     assert uses == null || uses.length == 1;
-    return insts.SwitchInstruction(iindex, uses == null ? val : uses[0], defaultLabel, casesAndLabels);
+    for (int i = 1; i < casesAndLabels.length; i += 2) {
+      assert casesAndLabels[i] != iIndex() : "do not branch to self: " + this;
+    }
+    return insts.SwitchInstruction(
+        iIndex(), uses == null ? val : uses[0], defaultLabel, casesAndLabels);
   }
 
   @Override
   public String toString(SymbolTable symbolTable) {
-    StringBuffer result = new StringBuffer("switch ");
+    StringBuilder result = new StringBuilder(iIndex() + ": switch ");
     result.append(getValueString(symbolTable, val));
     result.append(" [");
     for (int i = 0; i < casesAndLabels.length - 1; i++) {
@@ -50,17 +53,13 @@ public class SSASwitchInstruction extends SSAInstruction {
       result.append("->");
       result.append(casesAndLabels[i]);
       if (i < casesAndLabels.length - 2) {
-        result.append(",");
+        result.append(',');
       }
     }
-    result.append("]");
+    result.append("] default: ").append(defaultLabel);
     return result.toString();
   }
 
-  /**
-   * @see com.ibm.wala.ssa.SSAInstruction#visit(IVisitor)
-   * @throws IllegalArgumentException if v is null
-   */
   @Override
   public void visit(IVisitor v) {
     if (v == null) {
@@ -69,17 +68,11 @@ public class SSASwitchInstruction extends SSAInstruction {
     v.visitSwitch(this);
   }
 
-  /**
-   * @see com.ibm.wala.ssa.SSAInstruction#getNumberOfUses()
-   */
   @Override
   public int getNumberOfUses() {
     return 1;
   }
 
-  /**
-   * @see com.ibm.wala.ssa.SSAInstruction#getUse(int)
-   */
   @Override
   public int getUse(int j) {
     assert j <= 1;
@@ -94,8 +87,7 @@ public class SSASwitchInstruction extends SSAInstruction {
 
   public int getTarget(int caseValue) {
     for (int i = 0; i < casesAndLabels.length; i += 2)
-      if (caseValue == casesAndLabels[i])
-        return casesAndLabels[i + 1];
+      if (caseValue == casesAndLabels[i]) return casesAndLabels[i + 1];
 
     return defaultLabel;
   }
@@ -138,5 +130,4 @@ public class SSASwitchInstruction extends SSAInstruction {
   public boolean isFallThrough() {
     return false;
   }
-
 }

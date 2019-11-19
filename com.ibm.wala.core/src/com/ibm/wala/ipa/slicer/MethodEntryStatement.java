@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,15 +7,15 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.ipa.slicer;
 
 import com.ibm.wala.ipa.callgraph.CGNode;
 
 /**
  * A statement representing method entry, used for managing control dependence.
- * 
- * This is also used as a dummy entry for starting propagation to a seed statement.
+ *
+ * <p>This is also used as a dummy entry for starting propagation to a seed statement.
  */
 public class MethodEntryStatement extends Statement {
 
@@ -50,5 +50,4 @@ public class MethodEntryStatement extends Statement {
   public String toString() {
     return getKind() + ":" + getNode();
   }
-
 }

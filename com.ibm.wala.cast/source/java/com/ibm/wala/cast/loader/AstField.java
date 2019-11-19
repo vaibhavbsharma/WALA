@@ -1,4 +1,4 @@
-/******************************************************************************
+/*
  * Copyright (c) 2002 - 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,11 +7,8 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *****************************************************************************/
+ */
 package com.ibm.wala.cast.loader;
-
-
-import java.util.Collection;
 
 import com.ibm.wala.cast.tree.CAstQualifier;
 import com.ibm.wala.classLoader.IClass;
@@ -21,6 +18,7 @@ import com.ibm.wala.types.FieldReference;
 import com.ibm.wala.types.TypeReference;
 import com.ibm.wala.types.annotations.Annotation;
 import com.ibm.wala.util.strings.Atom;
+import java.util.Collection;
 
 public class AstField implements IField {
   private final Collection<CAstQualifier> qualifiers;
@@ -29,12 +27,12 @@ public class AstField implements IField {
   private final IClassHierarchy cha;
   private final Collection<Annotation> annotations;
 
-  public AstField(FieldReference ref,
-		  Collection<CAstQualifier> qualifiers,
-		  IClass declaringClass,
-		  IClassHierarchy cha,
-		  Collection<Annotation> annotations)
-  {
+  public AstField(
+      FieldReference ref,
+      Collection<CAstQualifier> qualifiers,
+      IClass declaringClass,
+      IClassHierarchy cha,
+      Collection<Annotation> annotations) {
     this.declaringClass = declaringClass;
     this.qualifiers = qualifiers;
     this.ref = ref;
@@ -42,7 +40,6 @@ public class AstField implements IField {
     this.annotations = annotations;
   }
 
-  
   @Override
   public Collection<Annotation> getAnnotations() {
     return annotations;
@@ -52,7 +49,7 @@ public class AstField implements IField {
   public IClass getDeclaringClass() {
     return declaringClass;
   }
-  
+
   @Override
   public String toString() {
     return "field " + ref.getName();
@@ -67,7 +64,7 @@ public class AstField implements IField {
   public TypeReference getFieldTypeReference() {
     return ref.getFieldType();
   }
-  
+
   @Override
   public FieldReference getReference() {
     return ref;

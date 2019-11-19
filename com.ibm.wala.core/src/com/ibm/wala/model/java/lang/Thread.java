@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2008 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,17 +7,14 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.model.java.lang;
 
-
-/**
- * A synthetic model of single-threaded behavior
- */
+/** A synthetic model of single-threaded behavior */
 public class Thread {
 
   static final java.lang.Thread singleThread = new java.lang.Thread();
-  
+
   public static java.lang.Thread currentThread() {
     return singleThread;
   }

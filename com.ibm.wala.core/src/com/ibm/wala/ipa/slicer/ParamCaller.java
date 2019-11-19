@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2007 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,19 +7,15 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.ipa.slicer;
 
 import com.ibm.wala.ipa.callgraph.CGNode;
 import com.ibm.wala.ssa.SSAAbstractInvokeInstruction;
 
-/**
- * A {@link Statement} representing an actual parameter
- */
+/** A {@link Statement} representing an actual parameter */
 public class ParamCaller extends StatementWithInstructionIndex implements ValueNumberCarrier {
-  /**
-   * Value number of the actual parameter
-   */
+  /** Value number of the actual parameter */
   protected final int valueNumber;
 
   public ParamCaller(CGNode node, int callIndex, int valueNumber) {
@@ -34,12 +30,12 @@ public class ParamCaller extends StatementWithInstructionIndex implements ValueN
 
   @Override
   public SSAAbstractInvokeInstruction getInstruction() {
-    return (SSAAbstractInvokeInstruction)super.getInstruction();
+    return (SSAAbstractInvokeInstruction) super.getInstruction();
   }
 
   @Override
   public String toString() {
-    return super.toString() +  " v" + getValueNumber();
+    return super.toString() + " v" + getValueNumber();
   }
 
   @Override
@@ -57,17 +53,11 @@ public class ParamCaller extends StatementWithInstructionIndex implements ValueN
 
   @Override
   public boolean equals(Object obj) {
-    if (this == obj)
-      return true;
-    if (!super.equals(obj))
-      return false;
-    if (getClass() != obj.getClass())
-      return false;
+    if (this == obj) return true;
+    if (!super.equals(obj)) return false;
+    if (getClass() != obj.getClass()) return false;
     final ParamCaller other = (ParamCaller) obj;
-    if (valueNumber != other.valueNumber)
-      return false;
+    if (valueNumber != other.valueNumber) return false;
     return true;
   }
-
-
 }

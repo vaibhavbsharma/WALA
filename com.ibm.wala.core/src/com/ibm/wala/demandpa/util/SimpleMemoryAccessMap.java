@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2007 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,14 +7,8 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.demandpa.util;
-
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
 
 import com.ibm.wala.classLoader.IField;
 import com.ibm.wala.classLoader.ShrikeCTMethod;
@@ -48,34 +42,31 @@ import com.ibm.wala.util.collections.Iterator2Iterable;
 import com.ibm.wala.util.collections.MapUtil;
 import com.ibm.wala.util.debug.Assertions;
 import com.ibm.wala.util.shrike.ShrikeUtil;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Map;
+import java.util.Set;
 
-/**
- * @author sfink
- * 
- */
+/** @author sfink */
 public class SimpleMemoryAccessMap implements MemoryAccessMap {
 
   private static final boolean DEBUG = false;
 
   /**
-   * if true, always use IR from CGNode when reasoning about method statements; otherwise, try to use bytecodes when possible. Note
-   * that current code may not work if set to false.
+   * if true, always use IR from CGNode when reasoning about method statements; otherwise, try to
+   * use bytecodes when possible. Note that current code may not work if set to false.
    */
   private static final boolean ALWAYS_BUILD_IR = true;
 
-  /**
-   * Map: IField -> Set<MemoryAccess>
-   */
-  final private Map<IField, Set<MemoryAccess>> readMap = HashMapFactory.make();
+  /** Map: IField -&gt; Set&lt;MemoryAccess&gt; */
+  private final Map<IField, Set<MemoryAccess>> readMap = HashMapFactory.make();
 
-  /**
-   * Map: IField -> Set<MemoryAccess>
-   */
-  final private Map<IField, Set<MemoryAccess>> writeMap = HashMapFactory.make();
+  /** Map: IField -&gt; Set&lt;MemoryAccess&gt; */
+  private final Map<IField, Set<MemoryAccess>> writeMap = HashMapFactory.make();
 
-  final private Set<MemoryAccess> arrayReads = HashSetFactory.make();
+  private final Set<MemoryAccess> arrayReads = HashSetFactory.make();
 
-  final private Set<MemoryAccess> arrayWrites = HashSetFactory.make();
+  private final Set<MemoryAccess> arrayWrites = HashSetFactory.make();
 
   private final IClassHierarchy cha;
 
@@ -94,8 +85,7 @@ public class SimpleMemoryAccessMap implements MemoryAccessMap {
   }
 
   private void populate(CallGraph cg) {
-    for (Iterator<CGNode> it = cg.iterator(); it.hasNext();) {
-      CGNode n = it.next();
+    for (CGNode n : cg) {
       populate(n);
     }
   }
@@ -104,7 +94,7 @@ public class SimpleMemoryAccessMap implements MemoryAccessMap {
   private void populate(CGNode n) {
     // we analyze bytecodes to avoid the cost of IR construction, except
     // for synthetic methods, where we must use the synthetic IR
-    if (ALWAYS_BUILD_IR || n.getMethod().isSynthetic()) {
+    if (ALWAYS_BUILD_IR || n.getMethod().isWalaSynthetic()) {
       if (DEBUG) {
         System.err.println("synthetic method");
       }
@@ -127,7 +117,9 @@ public class SimpleMemoryAccessMap implements MemoryAccessMap {
         System.err.println("Shrike method");
       }
       ShrikeCTMethod sm = (ShrikeCTMethod) n.getMethod();
-      MemoryAccessVisitor v = new MemoryAccessVisitor(n.getMethod().getReference().getDeclaringClass().getClassLoader(), n);
+      MemoryAccessVisitor v =
+          new MemoryAccessVisitor(
+              n.getMethod().getReference().getDeclaringClass().getClassLoader(), n);
       try {
         IInstruction[] statements = sm.getInstructions();
         if (statements == null) {
@@ -151,7 +143,6 @@ public class SimpleMemoryAccessMap implements MemoryAccessMap {
         Assertions.UNREACHABLE();
       }
     }
-
   }
 
   private class SSAMemoryAccessVisitor extends SSAInstruction.Visitor {
@@ -175,7 +166,6 @@ public class SimpleMemoryAccessMap implements MemoryAccessMap {
       if (declaredType.isArrayType() && declaredType.getArrayElementType().isArrayType()) {
         arrayWrites.add(new MemoryAccess(instructionIndex, node));
       }
-
     }
 
     @Override
@@ -223,7 +213,6 @@ public class SimpleMemoryAccessMap implements MemoryAccessMap {
       MemoryAccess fa = new MemoryAccess(instructionIndex, node);
       s.add(fa);
     }
-
   }
 
   private class MemoryAccessVisitor extends IInstruction.Visitor {
@@ -257,7 +246,7 @@ public class SimpleMemoryAccessMap implements MemoryAccessMap {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.ibm.shrikeBT.Instruction.Visitor#visitArrayLoad(com.ibm.shrikeBT.ArrayLoadInstruction)
      */
     @Override
@@ -268,14 +257,13 @@ public class SimpleMemoryAccessMap implements MemoryAccessMap {
         if (tr.isPrimitiveType()) {
           return;
         }
-
       }
       arrayReads.add(new MemoryAccess(instructionIndex, node));
     }
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.ibm.shrikeBT.Instruction.Visitor#visitArrayStore(com.ibm.shrikeBT.ArrayStoreInstruction)
      */
     @Override
@@ -295,13 +283,17 @@ public class SimpleMemoryAccessMap implements MemoryAccessMap {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.ibm.shrikeBT.Instruction.Visitor#visitGet(com.ibm.shrikeBT.GetInstruction)
      */
     @Override
     public void visitGet(IGetInstruction instruction) {
-      FieldReference fr = FieldReference.findOrCreate(loader, instruction.getClassType(), instruction.getFieldName(), instruction
-          .getFieldType());
+      FieldReference fr =
+          FieldReference.findOrCreate(
+              loader,
+              instruction.getClassType(),
+              instruction.getFieldName(),
+              instruction.getFieldType());
       if (!includePrimOps && fr.getFieldType().isPrimitiveType()) {
         return;
       }
@@ -316,13 +308,17 @@ public class SimpleMemoryAccessMap implements MemoryAccessMap {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.ibm.shrikeBT.Instruction.Visitor#visitPut(com.ibm.shrikeBT.PutInstruction)
      */
     @Override
     public void visitPut(IPutInstruction instruction) {
-      FieldReference fr = FieldReference.findOrCreate(loader, instruction.getClassType(), instruction.getFieldName(), instruction
-          .getFieldType());
+      FieldReference fr =
+          FieldReference.findOrCreate(
+              loader,
+              instruction.getClassType(),
+              instruction.getFieldName(),
+              instruction.getFieldType());
       if (!includePrimOps && fr.getFieldType().isPrimitiveType()) {
         return;
       }
@@ -334,7 +330,6 @@ public class SimpleMemoryAccessMap implements MemoryAccessMap {
       MemoryAccess fa = new MemoryAccess(instructionIndex, node);
       s.add(fa);
     }
-
   }
 
   /*
@@ -381,27 +376,26 @@ public class SimpleMemoryAccessMap implements MemoryAccessMap {
 
   @Override
   public String toString() {
-    StringBuffer result = new StringBuffer();
+    StringBuilder result = new StringBuilder();
 
     Collection<IField> allFields = HashSetFactory.make();
     allFields.addAll(readMap.keySet());
     allFields.addAll(writeMap.keySet());
 
-    for (Iterator<IField> it = allFields.iterator(); it.hasNext();) {
-      IField f = it.next();
+    for (IField f : allFields) {
       result.append("FIELD ").append(f).append(":\n");
       Collection<MemoryAccess> reads = getFieldReads(null, f);
       if (!reads.isEmpty()) {
         result.append("  reads:\n");
-        for (Iterator<MemoryAccess> it2 = reads.iterator(); it2.hasNext();) {
-          result.append("  ").append(it2.next()).append("\n");
+        for (MemoryAccess memoryAccess : reads) {
+          result.append("  ").append(memoryAccess).append('\n');
         }
       }
       Collection<MemoryAccess> writes = getFieldWrites(null, f);
       if (!writes.isEmpty()) {
         result.append("  writes:\n");
-        for (Iterator<MemoryAccess> it2 = writes.iterator(); it2.hasNext();) {
-          result.append("  ").append(it2.next()).append("\n");
+        for (MemoryAccess memoryAccess : writes) {
+          result.append("  ").append(memoryAccess).append('\n');
         }
       }
     }
@@ -410,14 +404,14 @@ public class SimpleMemoryAccessMap implements MemoryAccessMap {
     result.append("ARRAY CONTENTS:\n");
     if (!arrayReads.isEmpty()) {
       result.append("  reads:\n");
-      for (Iterator<MemoryAccess> it2 = arrayReads.iterator(); it2.hasNext();) {
-        result.append("  ").append(it2.next()).append("\n");
+      for (MemoryAccess memoryAccess : arrayReads) {
+        result.append("  ").append(memoryAccess).append('\n');
       }
     }
     if (!arrayWrites.isEmpty()) {
       result.append("  writes:\n");
-      for (Iterator<MemoryAccess> it2 = arrayWrites.iterator(); it2.hasNext();) {
-        result.append("  ").append(it2.next()).append("\n");
+      for (MemoryAccess memoryAccess : arrayWrites) {
+        result.append("  ").append(memoryAccess).append('\n');
       }
     }
     return result.toString();
@@ -440,21 +434,29 @@ public class SimpleMemoryAccessMap implements MemoryAccessMap {
   }
 
   public void repOk() {
-    for (MemoryAccess m : Iterator2Iterable.make(new CompoundIterator<MemoryAccess>(arrayReads.iterator(), arrayWrites.iterator()))) {
+    for (MemoryAccess m :
+        Iterator2Iterable.make(
+            new CompoundIterator<>(arrayReads.iterator(), arrayWrites.iterator()))) {
       CGNode node = m.getNode();
       IR ir = node.getIR();
       assert ir != null : "null IR for " + node + " but we have a memory access";
       SSAInstruction[] instructions = ir.getInstructions();
       int instructionIndex = m.getInstructionIndex();
-      assert instructionIndex >= 0 && instructionIndex < instructions.length : "instruction index " + instructionIndex
-          + " out of range for " + node + ", which has " + instructions.length + " instructions";
+      assert instructionIndex >= 0 && instructionIndex < instructions.length
+          : "instruction index "
+              + instructionIndex
+              + " out of range for "
+              + node
+              + ", which has "
+              + instructions.length
+              + " instructions";
       SSAInstruction s = instructions[m.getInstructionIndex()];
       if (s == null) {
         // this is possible due to dead bytecodes
         continue;
       }
-      assert s instanceof SSAArrayReferenceInstruction || s instanceof SSANewInstruction : "bad type " + s.getClass()
-          + " for array access instruction";
+      assert s instanceof SSAArrayReferenceInstruction || s instanceof SSANewInstruction
+          : "bad type " + s.getClass() + " for array access instruction";
     }
   }
 }

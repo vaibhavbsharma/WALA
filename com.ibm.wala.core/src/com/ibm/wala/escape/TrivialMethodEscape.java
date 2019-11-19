@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2002 - 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,12 +7,8 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.escape;
-
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.Set;
 
 import com.ibm.wala.analysis.pointers.HeapGraph;
 import com.ibm.wala.classLoader.NewSiteReference;
@@ -25,26 +21,26 @@ import com.ibm.wala.ipa.callgraph.propagation.ReturnValueKey;
 import com.ibm.wala.types.MethodReference;
 import com.ibm.wala.util.WalaException;
 import com.ibm.wala.util.collections.HashSetFactory;
+import com.ibm.wala.util.collections.Iterator2Iterable;
+import java.util.Collections;
+import java.util.Set;
 
 /**
  * Trivial method-level escape analysis.
- * 
- * An instance does not escape from method m if the following hold:
+ *
+ * <p>An instance does not escape from method m if the following hold:
+ *
  * <ol>
- * <li>the instance is only ever pointed to by locals (it is never stored in the heap)
- * <li>the method m does NOT return (either normally or exceptionally) a pointer to the instance
+ *   <li>the instance is only ever pointed to by locals (it is never stored in the heap)
+ *   <li>the method m does NOT return (either normally or exceptionally) a pointer to the instance
  * </ol>
  */
 public class TrivialMethodEscape implements IMethodEscapeAnalysis, INodeEscapeAnalysis {
 
-  /**
-   * Heap graph representation of pointer analysis
-   */
+  /** Heap graph representation of pointer analysis */
   private final HeapGraph<InstanceKey> hg;
 
-  /**
-   * Governing call graph
-   */
+  /** Governing call graph */
   private final CallGraph cg;
 
   /**
@@ -57,21 +53,23 @@ public class TrivialMethodEscape implements IMethodEscapeAnalysis, INodeEscapeAn
   }
 
   @Override
-  public boolean mayEscape(MethodReference allocMethod, int allocPC, MethodReference m) throws WalaException {
+  public boolean mayEscape(MethodReference allocMethod, int allocPC, MethodReference m)
+      throws WalaException {
 
     if (allocMethod == null) {
       throw new IllegalArgumentException("null allocMethod");
     }
     // nodes:= set of call graph nodes representing method m
-    Set nodes = cg.getNodes(m);
+    Set<CGNode> nodes = cg.getNodes(m);
     if (nodes.size() == 0) {
       throw new WalaException("could not find call graph node for method " + m);
     }
 
     // allocN := set of call graph nodes representing method allocMethod
-    Set allocN = cg.getNodes(allocMethod);
+    Set<CGNode> allocN = cg.getNodes(allocMethod);
     if (allocN.size() == 0) {
-      throw new WalaException("could not find call graph node for allocation method " + allocMethod);
+      throw new WalaException(
+          "could not find call graph node for allocation method " + allocMethod);
     }
     return mayEscape(allocN, allocPC, nodes);
   }
@@ -82,18 +80,16 @@ public class TrivialMethodEscape implements IMethodEscapeAnalysis, INodeEscapeAn
   }
 
   /**
-   * @param allocN Set<CGNode> representing the allocation site.
-   * @param allocPC
-   * @param nodes Set<CGNode>, the nodes of interest
-   * @return true iff some instance allocated at a site N \in &lt;allocN, allocPC> might escape from some activation of a node m \in
-   *         { nodes }
-   * @throws WalaException
+   * @param allocN {@code Set<CGNode>} representing the allocation site.
+   * @param nodes {@code Set<CGNode>}, the nodes of interest
+   * @return true iff some instance allocated at a site N \in &lt;allocN, allocPC> might escape from
+   *     some activation of a node m \in { nodes }
    */
-  private boolean mayEscape(Set allocN, int allocPC, Set nodes) throws WalaException {
+  private boolean mayEscape(Set<CGNode> allocN, int allocPC, Set<CGNode> nodes)
+      throws WalaException {
     Set<InstanceKey> instances = HashSetFactory.make();
     // instances := set of instance key allocated at &lt;allocMethod, allocPC>
-    for (Iterator it = allocN.iterator(); it.hasNext();) {
-      CGNode n = (CGNode) it.next();
+    for (CGNode n : allocN) {
       NewSiteReference site = findAlloc(n, allocPC);
       InstanceKey ik = hg.getHeapModel().getInstanceKeyForAllocation(n, site);
       if (ik == null) {
@@ -102,10 +98,9 @@ public class TrivialMethodEscape implements IMethodEscapeAnalysis, INodeEscapeAn
       instances.add(ik);
     }
 
-    for (Iterator<InstanceKey> it = instances.iterator(); it.hasNext();) {
-      InstanceKey ik = it.next();
-      for (Iterator it2 = hg.getPredNodes(ik); it2.hasNext();) {
-        PointerKey p = (PointerKey) it2.next();
+    for (InstanceKey ik : instances) {
+      for (Object o : Iterator2Iterable.make(hg.getPredNodes(ik))) {
+        PointerKey p = (PointerKey) o;
         if (!(p instanceof AbstractLocalPointerKey)) {
           // a pointer from the heap. give up.
           return true;
@@ -130,19 +125,16 @@ public class TrivialMethodEscape implements IMethodEscapeAnalysis, INodeEscapeAn
    * @param n a call graph node
    * @param allocPC a bytecode index corresponding to an allocation
    * @return the NewSiteReference for the allocation
-   * @throws WalaException
    */
   static NewSiteReference findAlloc(CGNode n, int allocPC) throws WalaException {
     if (n == null) {
       throw new IllegalArgumentException("null n");
     }
-    for (Iterator it = n.iterateNewSites(); it.hasNext();) {
-      NewSiteReference site = (NewSiteReference) it.next();
+    for (NewSiteReference site : Iterator2Iterable.make(n.iterateNewSites())) {
       if (site.getProgramCounter() == allocPC) {
         return site;
       }
     }
     throw new WalaException("Failed to find an allocation at pc " + allocPC + " in node " + n);
   }
-
 }

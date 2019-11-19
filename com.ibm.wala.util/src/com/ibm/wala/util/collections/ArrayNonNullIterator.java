@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2002 - 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,17 +7,18 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.util.collections;
 
 import java.util.NoSuchElementException;
 
 /**
  * Iterator that only returns non-null elements of the array
- * 
- * hasNext() return true when there is a non-null element, false otherwise
- * 
- * next() returns the current element and advances the counter up to the next non-null element or beyond the limit of the array
+ *
+ * <p>hasNext() return true when there is a non-null element, false otherwise
+ *
+ * <p>next() returns the current element and advances the counter up to the next non-null element or
+ * beyond the limit of the array
  */
 public class ArrayNonNullIterator<T> extends ArrayIterator<T> {
 

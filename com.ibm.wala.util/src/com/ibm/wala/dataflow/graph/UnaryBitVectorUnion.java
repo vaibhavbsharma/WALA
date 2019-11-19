@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2002 - 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,30 +7,26 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.dataflow.graph;
 
 import com.ibm.wala.fixpoint.BitVectorVariable;
 import com.ibm.wala.fixpoint.UnaryOperator;
 
-
-/**
- * Operator U(n) = U(n) U U(j)
- */
+/** Operator U(n) = U(n) U U(j) */
 public class UnaryBitVectorUnion extends UnaryOperator<BitVectorVariable> {
-  
-  private final static UnaryBitVectorUnion SINGLETON = new UnaryBitVectorUnion();
-  
+
+  private static final UnaryBitVectorUnion SINGLETON = new UnaryBitVectorUnion();
+
   public static UnaryBitVectorUnion instance() {
     return SINGLETON;
   }
-  
-  private UnaryBitVectorUnion() {
-  }
-  
+
+  private UnaryBitVectorUnion() {}
 
   @Override
-  public byte evaluate(BitVectorVariable lhs, BitVectorVariable rhs) throws IllegalArgumentException {
+  public byte evaluate(BitVectorVariable lhs, BitVectorVariable rhs)
+      throws IllegalArgumentException {
     if (lhs == null) {
       throw new IllegalArgumentException("lhs == null");
     }

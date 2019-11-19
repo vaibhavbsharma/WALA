@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2002 - 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,7 +7,7 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.ipa.callgraph.propagation.rta;
 
 import com.ibm.wala.classLoader.CallSiteReference;
@@ -15,9 +15,7 @@ import com.ibm.wala.ipa.callgraph.CGNode;
 import com.ibm.wala.types.Selector;
 import com.ibm.wala.util.collections.Pair;
 
-/**
- * A utility class consisting of a pair CallSiteReference x CGNode
- */
+/** A utility class consisting of a pair CallSiteReference x CGNode */
 public final class CallSite extends Pair<CallSiteReference, CGNode> {
 
   private static final long serialVersionUID = -5277592800329960642L;
@@ -40,11 +38,8 @@ public final class CallSite extends Pair<CallSiteReference, CGNode> {
     return fst;
   }
 
-  /**
-   * @return the Selector that identifies this site
-   */
+  /** @return the Selector that identifies this site */
   public Selector getSelector() {
     return getSite().getDeclaredTarget().getSelector();
   }
-
 }

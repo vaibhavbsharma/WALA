@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2013 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,7 +7,7 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.cast.tree.impl;
 
 import com.ibm.wala.cast.tree.CAstType;
@@ -33,10 +33,17 @@ public class CAstSymbolImpl extends CAstSymbolImplBase {
     super(_name, type, _isFinal, _defaultInitValue);
   }
 
-  public CAstSymbolImpl(String _name, CAstType type, boolean _isFinal, boolean _isCaseInsensitive, Object _defaultInitValue) {
+  public CAstSymbolImpl(
+      String _name,
+      CAstType type,
+      boolean _isFinal,
+      boolean _isCaseInsensitive,
+      Object _defaultInitValue) {
     super(_name, type, _isFinal, _isCaseInsensitive, _defaultInitValue);
   }
 
   @Override
-  public boolean isInternalName() { return false; }
+  public boolean isInternalName() {
+    return false;
+  }
 }

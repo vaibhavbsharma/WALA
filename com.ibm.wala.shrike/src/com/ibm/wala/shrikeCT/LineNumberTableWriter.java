@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2002,2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,14 +7,12 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.shrikeCT;
 
-/**
- * This class helps emit LineNumberTable attributes.
- */
+/** This class helps emit LineNumberTable attributes. */
 public final class LineNumberTableWriter extends ClassWriter.Element {
-  final private int attrID;
+  private final int attrID;
 
   private int[] rawTable = emptyTable;
 
@@ -22,7 +20,7 @@ public final class LineNumberTableWriter extends ClassWriter.Element {
 
   /**
    * Build an empty LineNumberTable.
-   * 
+   *
    * @throws IllegalArgumentException if w is null
    */
   public LineNumberTableWriter(ClassWriter w) {
@@ -33,8 +31,9 @@ public final class LineNumberTableWriter extends ClassWriter.Element {
   }
 
   /**
-   * Set the raw table entries. Consider calling LineNumberTableWriter.makeRawTable to build the raw entries.
-   * 
+   * Set the raw table entries. Consider calling LineNumberTableWriter.makeRawTable to build the raw
+   * entries.
+   *
    * @param table a flattened sequence of (startPC, lineNumber) pairs
    */
   public void setRawTable(int[] table) {
@@ -69,8 +68,8 @@ public final class LineNumberTableWriter extends ClassWriter.Element {
     ClassWriter.setInt(buf, offset + 2, 2 + rawTable.length * 2);
     ClassWriter.setUShort(buf, offset + 6, rawTable.length / 2);
     offset += 8;
-    for (int i = 0; i < rawTable.length; i++) {
-      ClassWriter.setUShort(buf, offset, rawTable[i]);
+    for (int element : rawTable) {
+      ClassWriter.setUShort(buf, offset, element);
       offset += 2;
     }
 
@@ -78,8 +77,8 @@ public final class LineNumberTableWriter extends ClassWriter.Element {
   }
 
   /**
-   * @param newLineMap an array indexed by bytecode offset, mapping each bytecode offset to its line number (or 0 if there is no
-   *          line or it's not known)
+   * @param newLineMap an array indexed by bytecode offset, mapping each bytecode offset to its line
+   *     number (or 0 if there is no line or it's not known)
    * @return the line numbers in "raw" format, a flattened sequence of (startPC, lineNumber) pairs
    * @throws IllegalArgumentException if newLineMap == null
    */
@@ -89,8 +88,7 @@ public final class LineNumberTableWriter extends ClassWriter.Element {
     }
     int rawCount = 0;
     int last = -1;
-    for (int i = 0; i < newLineMap.length; i++) {
-      int next = newLineMap[i];
+    for (int next : newLineMap) {
       if (next != last) {
         rawCount++;
       }

@@ -1,4 +1,4 @@
-/******************************************************************************
+/*
  * Copyright (c) 2002 - 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,7 +7,7 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *****************************************************************************/
+ */
 package com.ibm.wala.cast.ipa.callgraph;
 
 import com.ibm.wala.ipa.callgraph.propagation.AbstractPointerKey;
@@ -17,7 +17,7 @@ public class ObjectPropertyCatalogKey extends AbstractPointerKey {
   private final InstanceKey object;
 
   public String getName() {
-      return "catalog of "+object.toString();
+    return "catalog of " + object.toString();
   }
 
   public ObjectPropertyCatalogKey(InstanceKey object) {
@@ -26,8 +26,8 @@ public class ObjectPropertyCatalogKey extends AbstractPointerKey {
 
   @Override
   public boolean equals(Object x) {
-    return (x instanceof ObjectPropertyCatalogKey) &&
-      ((ObjectPropertyCatalogKey)x).object.equals(object);
+    return (x instanceof ObjectPropertyCatalogKey)
+        && ((ObjectPropertyCatalogKey) x).object.equals(object);
   }
 
   @Override
@@ -37,7 +37,7 @@ public class ObjectPropertyCatalogKey extends AbstractPointerKey {
 
   @Override
   public String toString() {
-    return "[" + getName() + "]";
+    return '[' + getName() + ']';
   }
 
   public InstanceKey getObject() {

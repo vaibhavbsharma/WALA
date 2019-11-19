@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2002 - 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,11 +7,8 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.ipa.callgraph.propagation;
-
-import java.util.Collection;
-import java.util.Iterator;
 
 import com.ibm.wala.classLoader.IClass;
 import com.ibm.wala.classLoader.NewSiteReference;
@@ -20,17 +17,15 @@ import com.ibm.wala.ipa.callgraph.CallGraph;
 import com.ibm.wala.ipa.cha.IClassHierarchy;
 import com.ibm.wala.ssa.SSAInstruction;
 import com.ibm.wala.types.TypeReference;
-import com.ibm.wala.util.Predicate;
 import com.ibm.wala.util.collections.ComposedIterator;
 import com.ibm.wala.util.collections.FilterIterator;
 import com.ibm.wala.util.collections.MapIterator;
 import com.ibm.wala.util.collections.Pair;
 import com.ibm.wala.util.debug.Assertions;
-import com.ibm.wala.util.functions.Function;
+import java.util.Collection;
+import java.util.Iterator;
 
-/**
- * An instance key which represents a unique set for each concrete type.
- */
+/** An instance key which represents a unique set for each concrete type. */
 public final class ConcreteTypeKey implements InstanceKey {
   private final IClass type;
 
@@ -61,7 +56,7 @@ public final class ConcreteTypeKey implements InstanceKey {
 
   @Override
   public String toString() {
-    return "[" + type + "]";
+    return "[" + type + ']';
   }
 
   public IClass getType() {
@@ -86,15 +81,14 @@ public final class ConcreteTypeKey implements InstanceKey {
     if (pei == null) {
       throw new IllegalArgumentException("pei is null");
     }
-    Collection types = pei.getExceptionTypes();
+    Collection<TypeReference> types = pei.getExceptionTypes();
     // TODO: institute a cache?
     if (types == null) {
       return null;
     }
     InstanceKey[] result = new InstanceKey[types.size()];
     int i = 0;
-    for (Iterator it = types.iterator(); it.hasNext();) {
-      TypeReference type = (TypeReference) it.next();
+    for (TypeReference type : types) {
       assert type != null;
       IClass klass = cha.lookupClass(type);
       result[i++] = new ConcreteTypeKey(klass);
@@ -107,21 +101,10 @@ public final class ConcreteTypeKey implements InstanceKey {
     return new ComposedIterator<CGNode, Pair<CGNode, NewSiteReference>>(CG.iterator()) {
       @Override
       public Iterator<? extends Pair<CGNode, NewSiteReference>> makeInner(final CGNode outer) {
-        return new MapIterator<NewSiteReference, Pair<CGNode, NewSiteReference>>(
-            new FilterIterator<NewSiteReference>(
-                outer.iterateNewSites(),
-                new Predicate<NewSiteReference>() {
-                  @Override public boolean test(NewSiteReference o) {
-                    return o.getDeclaredType().equals(type.getReference());
-                  }
-                }
-            ),
-            new Function<NewSiteReference, Pair<CGNode, NewSiteReference>>() {
-              @Override
-              public Pair<CGNode, NewSiteReference> apply(NewSiteReference object) {
-                return Pair.make(outer, object);
-              }
-            });
+        return new MapIterator<>(
+            new FilterIterator<>(
+                outer.iterateNewSites(), o -> o.getDeclaredType().equals(type.getReference())),
+            object -> Pair.make(outer, object));
       }
     };
   }

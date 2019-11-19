@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2002 - 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,28 +7,23 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.dataflow.graph;
 
 import com.ibm.wala.fixpoint.BooleanVariable;
 
-/**
- * Operator U(n) = U(n) U U(j)
- */
+/** Operator U(n) = U(n) U U(j) */
 public class BooleanUnion extends AbstractMeetOperator<BooleanVariable> {
 
-  private final static BooleanUnion SINGLETON = new BooleanUnion();
+  private static final BooleanUnion SINGLETON = new BooleanUnion();
 
   public static BooleanUnion instance() {
     return SINGLETON;
   }
 
-  private BooleanUnion() {
-  }
+  private BooleanUnion() {}
 
-  /**
-   * @see java.lang.Object#toString()
-   */
+  /** @see java.lang.Object#toString() */
   @Override
   public String toString() {
     return "UNION";
@@ -51,8 +46,7 @@ public class BooleanUnion extends AbstractMeetOperator<BooleanVariable> {
     }
     BooleanVariable U = new BooleanVariable();
     U.copyState(lhs);
-    for (int i = 0; i < rhs.length; i++) {
-      BooleanVariable R = rhs[i];
+    for (BooleanVariable R : rhs) {
       if (R != null) {
         U.or(R);
       }

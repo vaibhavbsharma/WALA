@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2002 - 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,18 +7,14 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.cfg.cdg;
-
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
 
 import com.ibm.wala.cfg.MinimalCFG;
 import com.ibm.wala.util.collections.EmptyIterator;
 import com.ibm.wala.util.collections.HashMapFactory;
 import com.ibm.wala.util.collections.HashSetFactory;
+import com.ibm.wala.util.collections.Iterator2Iterable;
 import com.ibm.wala.util.collections.Pair;
 import com.ibm.wala.util.graph.AbstractNumberedGraph;
 import com.ibm.wala.util.graph.NumberedEdgeManager;
@@ -28,59 +24,57 @@ import com.ibm.wala.util.graph.impl.GraphInverter;
 import com.ibm.wala.util.intset.IntSet;
 import com.ibm.wala.util.intset.IntSetUtil;
 import com.ibm.wala.util.intset.MutableIntSet;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
 
-/**
- * Control Dependence Graph
- */
+/** Control Dependence Graph */
 public class ControlDependenceGraph<T> extends AbstractNumberedGraph<T> {
 
-  /**
-   * Governing control flow-graph. The control dependence graph is computed from this cfg.
-   */
+  /** Governing control flow-graph. The control dependence graph is computed from this cfg. */
   private final MinimalCFG<T> cfg;
 
   /**
-   * the EdgeManager for the CDG. It implements the edge part of the standard Graph abstraction, using the control-dependence edges
-   * of the cdg.
+   * the EdgeManager for the CDG. It implements the edge part of the standard Graph abstraction,
+   * using the control-dependence edges of the cdg.
    */
   private final NumberedEdgeManager<T> edgeManager;
 
   /**
-   * If requested, this is a map from parentXchild Pairs representing edges in the CDG to the labels of the control flow edges that
-   * edge corresponds to. The labels are Boolean.True or Boolean.False for conditionals and an Integer for a switch label.
+   * If requested, this is a map from parentXchild Pairs representing edges in the CDG to the labels
+   * of the control flow edges that edge corresponds to. The labels are Boolean.True or
+   * Boolean.False for conditionals and an Integer for a switch label.
    */
-  private Map<Pair<T,T>, Set<? extends Object>> edgeLabels;
+  private Map<Pair<T, T>, Set<? extends Object>> edgeLabels;
 
   /**
-   * This is the heart of the CDG computation. Based on Cytron et al., this is the reverse dominance frontier based algorithm for
-   * computing control dependence edges.
-   * 
+   * This is the heart of the CDG computation. Based on Cytron et al., this is the reverse dominance
+   * frontier based algorithm for computing control dependence edges.
+   *
    * @return Map: node n -&gt; {x : n is control-dependent on x}
    */
   private Map<T, Set<T>> buildControlDependence(boolean wantEdgeLabels) {
     Map<T, Set<T>> controlDependence = HashMapFactory.make(cfg.getNumberOfNodes());
 
-    DominanceFrontiers<T> RDF = new DominanceFrontiers<T>(GraphInverter.invert(cfg), cfg.exit());
+    DominanceFrontiers<T> RDF = new DominanceFrontiers<>(GraphInverter.invert(cfg), cfg.exit());
 
     if (wantEdgeLabels) {
       edgeLabels = HashMapFactory.make();
     }
 
-    for (Iterator<? extends T> ns = cfg.iterator(); ns.hasNext();) {
+    for (T name : cfg) {
       HashSet<T> s = HashSetFactory.make(2);
-      controlDependence.put(ns.next(), s);
+      controlDependence.put(name, s);
     }
 
-    for (Iterator<? extends T> ns = cfg.iterator(); ns.hasNext();) {
-      T y = ns.next();
-      for (Iterator<T> ns2 = RDF.getDominanceFrontier(y); ns2.hasNext();) {
-        T x = ns2.next();
+    for (T y : cfg) {
+      for (T x : Iterator2Iterable.make(RDF.getDominanceFrontier(y))) {
         controlDependence.get(x).add(y);
         if (wantEdgeLabels) {
-           HashSet<Object> labels = HashSetFactory.make();
+          HashSet<Object> labels = HashSetFactory.make();
           edgeLabels.put(Pair.make(x, y), labels);
-          for (Iterator<? extends T> ss = cfg.getSuccNodes(x); ss.hasNext();) {
-            T s = ss.next();
+          for (T s : Iterator2Iterable.make(cfg.getSuccNodes(x))) {
             if (RDF.isDominatedBy(s, y)) {
               labels.add(makeEdgeLabel(x, y, s));
             }
@@ -92,44 +86,44 @@ public class ControlDependenceGraph<T> extends AbstractNumberedGraph<T> {
     return controlDependence;
   }
 
-  protected Object makeEdgeLabel(@SuppressWarnings("unused") T from, @SuppressWarnings("unused") T to, T s) {
+  protected Object makeEdgeLabel(
+      @SuppressWarnings("unused") T from, @SuppressWarnings("unused") T to, T s) {
     return s;
-  }  
+  }
 
-   /**
-   * Given the control-dependence edges in a forward direction (i.e. edges from control parents to control children), this method
-   * creates an EdgeManager that provides the edge half of the Graph abstraction.
+  /**
+   * Given the control-dependence edges in a forward direction (i.e. edges from control parents to
+   * control children), this method creates an EdgeManager that provides the edge half of the Graph
+   * abstraction.
    */
   private NumberedEdgeManager<T> constructGraphEdges(final Map<T, Set<T>> forwardEdges) {
     return new NumberedEdgeManager<T>() {
       Map<T, Set<T>> backwardEdges = HashMapFactory.make(forwardEdges.size());
+
       {
-        for (Iterator<? extends T> x = cfg.iterator(); x.hasNext();) {
+        for (T name : cfg) {
           Set<T> s = HashSetFactory.make();
-          backwardEdges.put(x.next(), s);
+          backwardEdges.put(name, s);
         }
-        for (Iterator<T> ps = forwardEdges.keySet().iterator(); ps.hasNext();) {
-          T p = ps.next();
-          for (Iterator ns = ((Set) forwardEdges.get(p)).iterator(); ns.hasNext();) {
-            Object n = ns.next();
-            backwardEdges.get(n).add(p);
+        for (Map.Entry<T, Set<T>> entry : forwardEdges.entrySet()) {
+          for (T t : entry.getValue()) {
+            Object n = t;
+            backwardEdges.get(n).add(entry.getKey());
           }
         }
       }
 
       @Override
       public Iterator<T> getPredNodes(T N) {
-        if (backwardEdges.containsKey(N))
-          return backwardEdges.get(N).iterator();
-        else
-          return EmptyIterator.instance();
+        if (backwardEdges.containsKey(N)) return backwardEdges.get(N).iterator();
+        else return EmptyIterator.instance();
       }
 
       @Override
       public IntSet getPredNodeNumbers(T node) {
         MutableIntSet x = IntSetUtil.make();
         if (backwardEdges.containsKey(node)) {
-          for(T pred : backwardEdges.get(node)) {
+          for (T pred : backwardEdges.get(node)) {
             x.add(cfg.getNumber(pred));
           }
         }
@@ -138,25 +132,21 @@ public class ControlDependenceGraph<T> extends AbstractNumberedGraph<T> {
 
       @Override
       public int getPredNodeCount(T N) {
-        if (backwardEdges.containsKey(N))
-          return ((Set) backwardEdges.get(N)).size();
-        else
-          return 0;
+        if (backwardEdges.containsKey(N)) return backwardEdges.get(N).size();
+        else return 0;
       }
 
       @Override
       public Iterator<T> getSuccNodes(T N) {
-        if (forwardEdges.containsKey(N))
-          return forwardEdges.get(N).iterator();
-        else
-          return EmptyIterator.instance();
+        if (forwardEdges.containsKey(N)) return forwardEdges.get(N).iterator();
+        else return EmptyIterator.instance();
       }
 
       @Override
       public IntSet getSuccNodeNumbers(T node) {
         MutableIntSet x = IntSetUtil.make();
         if (forwardEdges.containsKey(node)) {
-          for(T succ : forwardEdges.get(node)) {
+          for (T succ : forwardEdges.get(node)) {
             x.add(cfg.getNumber(succ));
           }
         }
@@ -165,15 +155,13 @@ public class ControlDependenceGraph<T> extends AbstractNumberedGraph<T> {
 
       @Override
       public int getSuccNodeCount(T N) {
-        if (forwardEdges.containsKey(N))
-          return ((Set) forwardEdges.get(N)).size();
-        else
-          return 0;
+        if (forwardEdges.containsKey(N)) return forwardEdges.get(N).size();
+        else return 0;
       }
 
       @Override
       public boolean hasEdge(T src, T dst) {
-        return forwardEdges.containsKey(src) && ((Set) forwardEdges.get(src)).contains(dst);
+        return forwardEdges.containsKey(src) && forwardEdges.get(src).contains(dst);
       }
 
       @Override
@@ -205,17 +193,15 @@ public class ControlDependenceGraph<T> extends AbstractNumberedGraph<T> {
 
   @Override
   public String toString() {
-    StringBuffer sb = new StringBuffer();
-    for (Iterator<? extends T> ns = iterator(); ns.hasNext();) {
-      T n = ns.next();
-      sb.append(n.toString()).append("\n");
-      for (Iterator ss = getSuccNodes(n); ss.hasNext();) {
-        Object s = ss.next();
+    StringBuilder sb = new StringBuilder();
+    for (T n : this) {
+      sb.append(n.toString()).append('\n');
+      for (T s : Iterator2Iterable.make(getSuccNodes(n))) {
         sb.append("  --> ").append(s);
         if (edgeLabels != null)
-          for (Iterator labels = ((Set) edgeLabels.get(Pair.make(n, s))).iterator(); labels.hasNext();)
-            sb.append("\n   label: ").append(labels.next());
-        sb.append("\n");
+          for (Object name : edgeLabels.get(Pair.make(n, s)))
+            sb.append("\n   label: ").append(name);
+        sb.append('\n');
       }
     }
 
@@ -234,20 +220,18 @@ public class ControlDependenceGraph<T> extends AbstractNumberedGraph<T> {
     this.edgeManager = constructGraphEdges(buildControlDependence(wantEdgeLabels));
   }
 
-  /**
-   * @param cfg governing control flow graph
-   */
+  /** @param cfg governing control flow graph */
   public ControlDependenceGraph(MinimalCFG<T> cfg) {
     this(cfg, false);
   }
 
-  public MinimalCFG getControlFlowGraph() {
+  public MinimalCFG<T> getControlFlowGraph() {
     return cfg;
   }
 
   /**
-   * Return the set of edge labels for the control flow edges that cause the given edge in the CDG. Requires that the CDG be
-   * constructed with wantEdgeLabels being true.
+   * Return the set of edge labels for the control flow edges that cause the given edge in the CDG.
+   * Requires that the CDG be constructed with wantEdgeLabels being true.
    */
   public Set<? extends Object> getEdgeLabels(T from, T to) {
     return edgeLabels.get(Pair.make(from, to));
@@ -268,8 +252,8 @@ public class ControlDependenceGraph<T> extends AbstractNumberedGraph<T> {
       return false;
     }
 
-    for (Iterator<? extends T> pbs1 = getPredNodes(bb1); pbs1.hasNext();) {
-      if (!hasEdge(pbs1.next(), bb2)) {
+    for (T pb : Iterator2Iterable.make(getPredNodes(bb1))) {
+      if (!hasEdge(pb, bb2)) {
         return false;
       }
     }

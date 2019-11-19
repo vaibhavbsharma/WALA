@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2002 - 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,11 +7,9 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 
 package com.ibm.wala.ipa.callgraph.propagation.rta;
-
-import java.util.Iterator;
 
 import com.ibm.wala.classLoader.CallSiteReference;
 import com.ibm.wala.classLoader.IClass;
@@ -22,19 +20,16 @@ import com.ibm.wala.ipa.callgraph.IAnalysisCacheView;
 import com.ibm.wala.ipa.callgraph.impl.FakeRootMethod;
 import com.ibm.wala.ipa.callgraph.propagation.cfa.ContextInsensitiveSSAInterpreter;
 import com.ibm.wala.types.FieldReference;
+import java.util.Iterator;
 
-/**
- * Basic analysis; context-insensitive
- */
+/** Basic analysis; context-insensitive */
 public class DefaultRTAInterpreter implements RTAContextInterpreter {
 
   private static final boolean DEBUG = false;
 
   private final ContextInsensitiveRTAInterpreter defaultInterpreter;
 
-  /**
-   * @param options governing analysis options
-   */
+  /** @param options governing analysis options */
   public DefaultRTAInterpreter(AnalysisOptions options, IAnalysisCacheView cache) {
     defaultInterpreter = new ContextInsensitiveSSAInterpreter(options, cache);
   }

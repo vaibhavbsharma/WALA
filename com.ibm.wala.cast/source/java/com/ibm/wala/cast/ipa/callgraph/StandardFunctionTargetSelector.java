@@ -1,4 +1,4 @@
-/******************************************************************************
+/*
  * Copyright (c) 2002 - 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,7 +7,7 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *****************************************************************************/
+ */
 package com.ibm.wala.cast.ipa.callgraph;
 
 import com.ibm.wala.cast.types.AstMethodReference;
@@ -21,7 +21,7 @@ import com.ibm.wala.ipa.cha.IClassHierarchy;
 import com.ibm.wala.types.ClassLoaderReference;
 import com.ibm.wala.types.TypeReference;
 
-public class StandardFunctionTargetSelector implements MethodTargetSelector {  
+public class StandardFunctionTargetSelector implements MethodTargetSelector {
   private final IClassHierarchy cha;
   private final MethodTargetSelector base;
 
@@ -33,29 +33,33 @@ public class StandardFunctionTargetSelector implements MethodTargetSelector {
 
   @Override
   public IMethod getCalleeTarget(CGNode caller, CallSiteReference site, IClass receiver) {
-   ClassLoaderReference loader =
-      (site.isStatic() || receiver==null)? 
-	site.getDeclaredTarget().getDeclaringClass().getClassLoader(): 
-	receiver.getClassLoader().getReference();
+    ClassLoaderReference loader =
+        (site.isStatic() || receiver == null)
+            ? site.getDeclaredTarget().getDeclaringClass().getClassLoader()
+            : receiver.getClassLoader().getReference();
 
     TypeReference functionTypeRef =
-      TypeReference.findOrCreate(loader, AstTypeReference.functionTypeName);
+        TypeReference.findOrCreate(loader, AstTypeReference.functionTypeName);
 
-    IClass declarer = 
-      site.isStatic()?
-	cha.lookupClass(site.getDeclaredTarget().getDeclaringClass()):
-	receiver;
+    IClass declarer =
+        site.isStatic() ? cha.lookupClass(site.getDeclaredTarget().getDeclaringClass()) : receiver;
 
     if (declarer == null) {
-      System.err.println(("cannot find declarer for " +
-      site + ", " + receiver + " in " + caller));
+      System.err.println(("cannot find declarer for " + site + ", " + receiver + " in " + caller));
     }
 
     IClass fun = cha.lookupClass(functionTypeRef);
 
     if (fun == null) {
-      System.err.println(("cannot find function " + functionTypeRef + " for " +
-      site + ", " + receiver + " in " + caller));
+      System.err.println(
+          ("cannot find function "
+              + functionTypeRef
+              + " for "
+              + site
+              + ", "
+              + receiver
+              + " in "
+              + caller));
     }
 
     if (fun != null && declarer != null && cha.isSubclassOf(declarer, fun)) {

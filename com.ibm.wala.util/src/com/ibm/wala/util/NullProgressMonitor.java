@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2008 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,19 +7,17 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.util;
 
 import com.ibm.wala.util.MonitorUtil.IProgressMonitor;
 
-/**
- * Dummy {@link IProgressMonitor} 
- */
+/** Dummy {@link IProgressMonitor} */
 public class NullProgressMonitor implements IProgressMonitor {
 
   @Override
   public void beginTask(String task, int totalWork) {
-    // do nothing    
+    // do nothing
   }
 
   @Override
@@ -38,7 +36,7 @@ public class NullProgressMonitor implements IProgressMonitor {
     // do nothing
   }
 
-/** BEGIN Custom change: subtasks and canceling */
+  /* BEGIN Custom change: subtasks and canceling */
   @Override
   public void subTask(String subTask) {
     // do nothing
@@ -49,11 +47,10 @@ public class NullProgressMonitor implements IProgressMonitor {
     // do nothing
   }
 
-/** END Custom change: subtasks and canceling */
+  /* END Custom change: subtasks and canceling */
   @Override
   public String getCancelMessage() {
     assert false;
     return "never cqncels";
   }
-
 }

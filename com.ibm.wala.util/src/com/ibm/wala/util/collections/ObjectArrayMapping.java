@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2002 - 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,28 +7,27 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.util.collections;
-
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.NoSuchElementException;
 
 import com.ibm.wala.util.debug.Assertions;
 import com.ibm.wala.util.debug.UnimplementedError;
 import com.ibm.wala.util.intset.OrdinalSetMapping;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.NoSuchElementException;
+import java.util.stream.Stream;
 
 /**
- * A bit set mapping based on an immutable object array. This is not terribly efficient, but is useful for prototyping.
+ * A bit set mapping based on an immutable object array. This is not terribly efficient, but is
+ * useful for prototyping.
  */
 public class ObjectArrayMapping<T> implements OrdinalSetMapping<T> {
 
-  final private T[] array;
+  private final T[] array;
 
-  /**
-   * A mapping from object to Integer
-   */
-  final private HashMap<T, Integer> map = HashMapFactory.make();
+  /** A mapping from object to Integer */
+  private final HashMap<T, Integer> map = HashMapFactory.make();
 
   public ObjectArrayMapping(final T[] array) {
     if (array == null) {
@@ -36,7 +35,7 @@ public class ObjectArrayMapping<T> implements OrdinalSetMapping<T> {
     }
     this.array = array;
     for (int i = 0; i < array.length; i++) {
-      map.put(array[i], Integer.valueOf(i));
+      map.put(array[i], i);
     }
   }
 
@@ -54,7 +53,7 @@ public class ObjectArrayMapping<T> implements OrdinalSetMapping<T> {
     if (map.get(o) == null) {
       return -1;
     }
-    return map.get(o).intValue();
+    return map.get(o);
   }
 
   @Override
@@ -65,6 +64,11 @@ public class ObjectArrayMapping<T> implements OrdinalSetMapping<T> {
   @Override
   public Iterator<T> iterator() {
     return map.keySet().iterator();
+  }
+
+  @Override
+  public Stream<T> stream() {
+    return map.keySet().stream();
   }
 
   @Override

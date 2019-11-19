@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2007 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,21 +7,13 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 
 package com.ibm.wala.demandpa.flowgraph;
-
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 import com.ibm.wala.analysis.typeInference.TypeAbstraction;
 import com.ibm.wala.analysis.typeInference.TypeInference;
 import com.ibm.wala.cfg.ControlFlowGraph;
-import com.ibm.wala.cfg.IBasicBlock;
 import com.ibm.wala.classLoader.CallSiteReference;
 import com.ibm.wala.classLoader.IClass;
 import com.ibm.wala.classLoader.IField;
@@ -65,43 +57,49 @@ import com.ibm.wala.types.FieldReference;
 import com.ibm.wala.types.TypeReference;
 import com.ibm.wala.util.collections.HashMapFactory;
 import com.ibm.wala.util.collections.HashSetFactory;
+import com.ibm.wala.util.collections.Iterator2Iterable;
 import com.ibm.wala.util.debug.Assertions;
 import com.ibm.wala.util.debug.UnimplementedError;
 import com.ibm.wala.util.graph.impl.SlowSparseNumberedGraph;
 import com.ibm.wala.util.intset.BitVectorIntSet;
 import com.ibm.wala.util.intset.IntSet;
 import com.ibm.wala.util.ref.ReferenceCleanser;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
- * The nodes in this graph are PointerKeys corresponding to local variables and static fields, InstanceKeys, and FieldRefs (see
- * below).
- * 
- * This graph is constructed on-demand during a traversal.
- * 
- * The edges represent
+ * The nodes in this graph are PointerKeys corresponding to local variables and static fields,
+ * InstanceKeys, and FieldRefs (see below).
+ *
+ * <p>This graph is constructed on-demand during a traversal.
+ *
+ * <p>The edges represent
+ *
  * <ul>
- * <li>flow from local -> local representing assignment (i.e. phi,pi)
- * <li>flow from instancekey -> local for news
- * <li>flow from formal -> actual parameter
- * <li>flow from return value -> local
- * <li>match edges
- * <li>local -> local edges representing loads/stores (e.g. x = y.f will have a edge x->y, labelled with f) for a getstatic x = Y.f,
- * we have an edge from x -> Y.f.
+ *   <li>flow from local -&gt; local representing assignment (i.e. phi,pi)
+ *   <li>flow from instancekey -&gt; local for news
+ *   <li>flow from formal -&gt; actual parameter
+ *   <li>flow from return value -&gt; local
+ *   <li>match edges
+ *   <li>local -&gt; local edges representing loads/stores (e.g. x = y.f will have a edge x-&gt;y,
+ *       labelled with f) for a getstatic x = Y.f, we have an edge from x -&gt; Y.f.
  * </ul>
- * 
+ *
  * N.B: Edges go OPPOSITE the flow of values.
- * 
- * Edges carry labels if they arise from loads/stores, or calls
+ *
+ * <p>Edges carry labels if they arise from loads/stores, or calls
  */
 public class SimpleDemandPointerFlowGraph extends SlowSparseNumberedGraph<Object> {
 
   private static final long serialVersionUID = 5208052568163692029L;
 
-  private final static boolean DEBUG = false;
+  private static final boolean DEBUG = false;
 
-  /**
-   * Counter for wiping soft caches
-   */
+  /** Counter for wiping soft caches */
   private static int wipeCount = 0;
 
   private final CallGraph cg;
@@ -112,31 +110,31 @@ public class SimpleDemandPointerFlowGraph extends SlowSparseNumberedGraph<Object
 
   private final IClassHierarchy cha;
 
-  /**
-   * node numbers of CGNodes we have already visited
-   */
+  /** node numbers of CGNodes we have already visited */
   final BitVectorIntSet cgNodesVisited = new BitVectorIntSet();
 
   /**
-   * Map: LocalPointerKey -> IField. if we have (x,f), that means x was def'fed by a getfield on f.
+   * Map: LocalPointerKey -&gt; IField. if we have (x,f), that means x was def'fed by a getfield on
+   * f.
    */
   final Map<PointerKey, IField> getFieldDefs = HashMapFactory.make();
 
   final Collection<PointerKey> arrayDefs = HashSetFactory.make();
 
   /**
-   * Map: LocalPointerKey -> SSAInvokeInstruction. If we have (x, foo()), that means that x was def'fed by the return value from a
-   * call to foo()
+   * Map: LocalPointerKey -&gt; SSAInvokeInstruction. If we have (x, foo()), that means that x was
+   * def'fed by the return value from a call to foo()
    */
   final Map<PointerKey, SSAInvokeInstruction> callDefs = HashMapFactory.make();
 
   /**
-   * Map: LocalPointerKey -> CGNode. If we have (x, foo), then x is a parameter of method foo. For now, we have to re-discover the
-   * parameter position.
+   * Map: LocalPointerKey -&gt; CGNode. If we have (x, foo), then x is a parameter of method foo.
+   * For now, we have to re-discover the parameter position.
    */
   final Map<PointerKey, CGNode> params = HashMapFactory.make();
 
-  public SimpleDemandPointerFlowGraph(CallGraph cg, HeapModel heapModel, MemoryAccessMap fam, IClassHierarchy cha) {
+  public SimpleDemandPointerFlowGraph(
+      CallGraph cg, HeapModel heapModel, MemoryAccessMap fam, IClassHierarchy cha) {
     super();
     if (cg == null) {
       throw new IllegalArgumentException("null cg");
@@ -156,11 +154,7 @@ public class SimpleDemandPointerFlowGraph extends SlowSparseNumberedGraph<Object
     }
   }
 
-  /**
-   * add nodes for parameters and return values
-   * 
-   * @param node
-   */
+  /** add nodes for parameters and return values */
   private void addNodesForParameters(CGNode node) {
     // TODO Auto-generated method stub
     IR ir = node.getIR();
@@ -179,9 +173,7 @@ public class SimpleDemandPointerFlowGraph extends SlowSparseNumberedGraph<Object
     addNode(heapModel.getPointerKeyForExceptionalReturnValue(node));
   }
 
-  /**
-   * @return Returns the heapModel.
-   */
+  /** @return Returns the heapModel. */
   protected HeapModel getHeapModel() {
     return heapModel;
   }
@@ -205,7 +197,8 @@ public class SimpleDemandPointerFlowGraph extends SlowSparseNumberedGraph<Object
   @Override
   public IntSet getSuccNodeNumbers(Object node) throws IllegalArgumentException {
     if (node instanceof com.ibm.wala.ipa.callgraph.propagation.StaticFieldKey) {
-      throw new IllegalArgumentException("node instanceof com.ibm.wala.ipa.callgraph.propagation.StaticFieldKey");
+      throw new IllegalArgumentException(
+          "node instanceof com.ibm.wala.ipa.callgraph.propagation.StaticFieldKey");
     }
     return super.getSuccNodeNumbers(node);
   }
@@ -229,7 +222,8 @@ public class SimpleDemandPointerFlowGraph extends SlowSparseNumberedGraph<Object
   @Override
   public Iterator<Object> getPredNodes(Object N) throws IllegalArgumentException {
     if (N instanceof com.ibm.wala.ipa.callgraph.propagation.StaticFieldKey) {
-      throw new IllegalArgumentException("N instanceof com.ibm.wala.ipa.callgraph.propagation.StaticFieldKey");
+      throw new IllegalArgumentException(
+          "N instanceof com.ibm.wala.ipa.callgraph.propagation.StaticFieldKey");
     }
     return super.getPredNodes(N);
   }
@@ -284,7 +278,8 @@ public class SimpleDemandPointerFlowGraph extends SlowSparseNumberedGraph<Object
     }
     for (MemoryAccess a : arrayWrites) {
       IR ir = a.getNode().getIR();
-      SSAArrayStoreInstruction s = (SSAArrayStoreInstruction) ir.getInstructions()[a.getInstructionIndex()];
+      SSAArrayStoreInstruction s =
+          (SSAArrayStoreInstruction) ir.getInstructions()[a.getInstructionIndex()];
       PointerKey r = heapModel.getPointerKeyForLocal(a.getNode(), s.getValue());
       assert containsNode(r);
       assert containsNode(pk);
@@ -301,36 +296,35 @@ public class SimpleDemandPointerFlowGraph extends SlowSparseNumberedGraph<Object
       // as the argument
       addSubgraphForNode(caller);
       IR ir = caller.getIR();
-      for (Iterator<CallSiteReference> iterator = ir.iterateCallSites(); iterator.hasNext();) {
-        CallSiteReference call = iterator.next();
+      for (CallSiteReference call : Iterator2Iterable.make(ir.iterateCallSites())) {
         if (cg.getPossibleTargets(caller, call).contains(node)) {
           SSAAbstractInvokeInstruction[] callInstrs = ir.getCalls(call);
-          for (int i = 0; i < callInstrs.length; i++) {
-            SSAAbstractInvokeInstruction callInstr = callInstrs[i];
-            PointerKey actualPk = heapModel.getPointerKeyForLocal(caller, callInstr.getUse(paramPos));
+          for (SSAAbstractInvokeInstruction callInstr : callInstrs) {
+            PointerKey actualPk =
+                heapModel.getPointerKeyForLocal(caller, callInstr.getUse(paramPos));
             assert containsNode(actualPk);
             assert containsNode(pk);
             addEdge(pk, actualPk);
-
           }
         }
       }
     }
   }
 
-  /**
-   * @param pk value being def'fed by a call instruction (either normal or exceptional)
-   */
+  /** @param pk value being def'fed by a call instruction (either normal or exceptional) */
   private void addReturnEdges(LocalPointerKey pk, SSAInvokeInstruction callInstr) {
     boolean isExceptional = pk.getValueNumber() == callInstr.getException();
 
     // get call targets
-    Collection<CGNode> possibleCallees = cg.getPossibleTargets(pk.getNode(), callInstr.getCallSite());
+    Collection<CGNode> possibleCallees =
+        cg.getPossibleTargets(pk.getNode(), callInstr.getCallSite());
     // construct graph for each target
     for (CGNode callee : possibleCallees) {
       addSubgraphForNode(callee);
-      PointerKey retVal = isExceptional ? heapModel.getPointerKeyForExceptionalReturnValue(callee) : heapModel
-          .getPointerKeyForReturnValue(callee);
+      PointerKey retVal =
+          isExceptional
+              ? heapModel.getPointerKeyForExceptionalReturnValue(callee)
+              : heapModel.getPointerKeyForReturnValue(callee);
       assert containsNode(retVal);
       addEdge(pk, retVal);
     }
@@ -368,7 +362,7 @@ public class SimpleDemandPointerFlowGraph extends SlowSparseNumberedGraph<Object
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see com.ibm.capa.util.graph.AbstractGraph#hasEdge(java.lang.Object, java.lang.Object)
    */
   public boolean hasEdge(PointerKey src, PointerKey dst) {
@@ -403,11 +397,13 @@ public class SimpleDemandPointerFlowGraph extends SlowSparseNumberedGraph<Object
   }
 
   /**
-   * Add constraints to represent the flow of exceptions to the exceptional return value for this node
+   * Add constraints to represent the flow of exceptions to the exceptional return value for this
+   * node
    */
   protected void addNodePassthruExceptionConstraints(CGNode node, IR ir) {
     // add constraints relating to thrown exceptions that reach the exit block.
-    List<ProgramCounter> peis = SSAPropagationCallGraphBuilder.getIncomingPEIs(ir, ir.getExitBlock());
+    List<ProgramCounter> peis =
+        SSAPropagationCallGraphBuilder.getIncomingPEIs(ir, ir.getExitBlock());
     PointerKey exception = heapModel.getPointerKeyForExceptionalReturnValue(node);
     IClass c = node.getClassHierarchy().lookupClass(TypeReference.JavaLangThrowable);
 
@@ -416,13 +412,17 @@ public class SimpleDemandPointerFlowGraph extends SlowSparseNumberedGraph<Object
 
   /**
    * Generate constraints which assign exception values into an exception pointer
-   * 
+   *
    * @param node governing node
    * @param peis list of PEI instructions
    * @param exceptionVar PointerKey representing a pointer to an exception value
    * @param catchClasses the types "caught" by the exceptionVar
    */
-  private void addExceptionDefConstraints(IR ir, CGNode node, List<ProgramCounter> peis, PointerKey exceptionVar,
+  private void addExceptionDefConstraints(
+      IR ir,
+      CGNode node,
+      List<ProgramCounter> peis,
+      PointerKey exceptionVar,
       Set<IClass> catchClasses) {
     for (ProgramCounter peiLoc : peis) {
       SSAInstruction pei = ir.getPEI(peiLoc);
@@ -450,7 +450,8 @@ public class SimpleDemandPointerFlowGraph extends SlowSparseNumberedGraph<Object
         for (TypeReference type : types) {
           if (type != null) {
             InstanceKey ik = heapModel.getInstanceKeyForPEI(node, peiLoc, type);
-            assert ik instanceof ConcreteTypeKey : "uh oh: need to implement getCaughtException constraints for instance " + ik;
+            assert ik instanceof ConcreteTypeKey
+                : "uh oh: need to implement getCaughtException constraints for instance " + ik;
             ConcreteTypeKey ck = (ConcreteTypeKey) ik;
             IClass klass = ck.getType();
             if (PropagationCallGraphBuilder.catches(catchClasses, klass, cha)) {
@@ -464,9 +465,7 @@ public class SimpleDemandPointerFlowGraph extends SlowSparseNumberedGraph<Object
     }
   }
 
-  /**
-   * Add pointer flow constraints based on instructions in a given node
-   */
+  /** Add pointer flow constraints based on instructions in a given node */
   protected void addNodeInstructionConstraints(CGNode node, IR ir, DefUse du) {
     StatementVisitor v = makeVisitor((ExplicitCallGraph.ExplicitNode) node, ir, du);
     ControlFlowGraph<SSAInstruction, ISSABasicBlock> cfg = ir.getControlFlowGraph();
@@ -475,16 +474,16 @@ public class SimpleDemandPointerFlowGraph extends SlowSparseNumberedGraph<Object
     }
   }
 
-  /**
-   * Add constraints for a particular basic block.
-   */
-  protected void addBlockInstructionConstraints(CGNode node, ControlFlowGraph<SSAInstruction, ISSABasicBlock> cfg,
-      ISSABasicBlock b, StatementVisitor v) {
+  /** Add constraints for a particular basic block. */
+  protected void addBlockInstructionConstraints(
+      CGNode node,
+      ControlFlowGraph<SSAInstruction, ISSABasicBlock> cfg,
+      ISSABasicBlock b,
+      StatementVisitor v) {
     v.setBasicBlock(b);
 
     // visit each instruction in the basic block.
-    for (Iterator<SSAInstruction> it = b.iterator(); it.hasNext();) {
-      SSAInstruction s = it.next();
+    for (SSAInstruction s : b) {
       if (s != null) {
         s.visit(v);
       }
@@ -493,11 +492,11 @@ public class SimpleDemandPointerFlowGraph extends SlowSparseNumberedGraph<Object
     addPhiConstraints(node, cfg, b);
   }
 
-  private void addPhiConstraints(CGNode node, ControlFlowGraph<SSAInstruction, ISSABasicBlock> cfg, ISSABasicBlock b) {
+  private void addPhiConstraints(
+      CGNode node, ControlFlowGraph<SSAInstruction, ISSABasicBlock> cfg, ISSABasicBlock b) {
 
     // visit each phi instruction in each successor block
-    for (Iterator<? extends IBasicBlock> sbs = cfg.getSuccNodes(b); sbs.hasNext();) {
-      ISSABasicBlock sb = (ISSABasicBlock) sbs.next();
+    for (ISSABasicBlock sb : Iterator2Iterable.make(cfg.getSuccNodes(b))) {
       if (sb.isExitBlock()) {
         // an optimization based on invariant that exit blocks should have no
         // phis.
@@ -505,14 +504,14 @@ public class SimpleDemandPointerFlowGraph extends SlowSparseNumberedGraph<Object
       }
       int n = 0;
       // set n to be whichPred(this, sb);
-      for (Iterator<? extends IBasicBlock> back = cfg.getPredNodes(sb); back.hasNext(); n++) {
-        if (back.next() == b) {
+      for (ISSABasicBlock back : Iterator2Iterable.make(cfg.getPredNodes(sb))) {
+        if (back == b) {
           break;
         }
+        ++n;
       }
       assert n < cfg.getPredNodeCount(sb);
-      for (Iterator<SSAPhiInstruction> phis = sb.iteratePhis(); phis.hasNext();) {
-        SSAPhiInstruction phi = phis.next();
+      for (SSAPhiInstruction phi : Iterator2Iterable.make(sb.iteratePhis())) {
         if (phi == null) {
           continue;
         }
@@ -550,36 +549,27 @@ public class SimpleDemandPointerFlowGraph extends SlowSparseNumberedGraph<Object
 
   /**
    * A visitor that generates graph nodes and edges for an IR.
-   * 
-   * strategy: when visiting a statement, for each use of that statement, add a graph edge from def to use.
-   * 
-   * TODO: special treatment for parameter passing, etc.
+   *
+   * <p>strategy: when visiting a statement, for each use of that statement, add a graph edge from
+   * def to use.
+   *
+   * <p>TODO: special treatment for parameter passing, etc.
    */
   protected class StatementVisitor extends SSAInstruction.Visitor {
 
-    /**
-     * The node whose statements we are currently traversing
-     */
+    /** The node whose statements we are currently traversing */
     protected final CGNode node;
 
-    /**
-     * The governing IR
-     */
+    /** The governing IR */
     protected final IR ir;
 
-    /**
-     * The basic block currently being processed
-     */
+    /** The basic block currently being processed */
     private ISSABasicBlock basicBlock;
 
-    /**
-     * Governing symbol table
-     */
+    /** Governing symbol table */
     protected final SymbolTable symbolTable;
 
-    /**
-     * Def-use information
-     */
+    /** Def-use information */
     protected final DefUse du;
 
     public StatementVisitor(CGNode node, IR ir, DefUse du) {
@@ -592,7 +582,7 @@ public class SimpleDemandPointerFlowGraph extends SlowSparseNumberedGraph<Object
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.ibm.domo.ssa.SSAInstruction.Visitor#visitArrayLoad(com.ibm.domo.ssa.SSAArrayLoadInstruction)
      */
     @Override
@@ -636,7 +626,7 @@ public class SimpleDemandPointerFlowGraph extends SlowSparseNumberedGraph<Object
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.ibm.domo.ssa.SSAInstruction.Visitor#visitArrayStore(com.ibm.domo.ssa.SSAArrayStoreInstruction)
      */
     @Override
@@ -729,14 +719,14 @@ public class SimpleDemandPointerFlowGraph extends SlowSparseNumberedGraph<Object
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.ibm.domo.ssa.SSAInstruction.Visitor#visitCheckCast(com.ibm.domo.ssa.SSACheckCastInstruction)
      */
     @Override
     public void visitCheckCast(SSACheckCastInstruction instruction) {
-    Set<IClass> types = HashSetFactory.make();
-      
-      for(TypeReference t : instruction.getDeclaredResultTypes()) {
+      Set<IClass> types = HashSetFactory.make();
+
+      for (TypeReference t : instruction.getDeclaredResultTypes()) {
         IClass cls = cha.lookupClass(t);
         if (cls == null) {
           return;
@@ -744,12 +734,13 @@ public class SimpleDemandPointerFlowGraph extends SlowSparseNumberedGraph<Object
           types.add(cls);
         }
       }
-      
 
-      PointerKey result = heapModel.getFilteredPointerKeyForLocal(node, 
-          instruction.getResult(), 
-          new FilteredPointerKey.MultipleClassesFilter(types.toArray(new IClass[ types.size() ])) );
-        
+      PointerKey result =
+          heapModel.getFilteredPointerKeyForLocal(
+              node,
+              instruction.getResult(),
+              new FilteredPointerKey.MultipleClassesFilter(types.toArray(new IClass[0])));
+
       PointerKey value = heapModel.getPointerKeyForLocal(node, instruction.getVal());
       // TODO actually use the cast type
       addNode(result);
@@ -796,7 +787,7 @@ public class SimpleDemandPointerFlowGraph extends SlowSparseNumberedGraph<Object
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.ibm.domo.ssa.SSAInstruction.Visitor#visitReturn(com.ibm.domo.ssa.SSAReturnInstruction)
      */
     @Override
@@ -831,12 +822,13 @@ public class SimpleDemandPointerFlowGraph extends SlowSparseNumberedGraph<Object
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.ibm.domo.ssa.SSAInstruction.Visitor#visitGet(com.ibm.domo.ssa.SSAGetInstruction)
      */
     @Override
     public void visitGet(SSAGetInstruction instruction) {
-      visitGetInternal(instruction.getDef(), instruction.isStatic(), instruction.getDeclaredField());
+      visitGetInternal(
+          instruction.getDef(), instruction.isStatic(), instruction.getDeclaredField());
     }
 
     protected void visitGetInternal(int lval, boolean isStatic, FieldReference field) {
@@ -913,12 +905,13 @@ public class SimpleDemandPointerFlowGraph extends SlowSparseNumberedGraph<Object
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.ibm.domo.ssa.Instruction.Visitor#visitPut(com.ibm.domo.ssa.PutInstruction)
      */
     @Override
     public void visitPut(SSAPutInstruction instruction) {
-      visitPutInternal(instruction.getVal(), instruction.isStatic(), instruction.getDeclaredField());
+      visitPutInternal(
+          instruction.getVal(), instruction.isStatic(), instruction.getDeclaredField());
     }
 
     public void visitPutInternal(int rval, boolean isStatic, FieldReference field) {
@@ -1035,7 +1028,7 @@ public class SimpleDemandPointerFlowGraph extends SlowSparseNumberedGraph<Object
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.ibm.domo.ssa.Instruction.Visitor#visitNew(com.ibm.domo.ssa.NewInstruction)
      */
     @Override
@@ -1104,7 +1097,7 @@ public class SimpleDemandPointerFlowGraph extends SlowSparseNumberedGraph<Object
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.ibm.domo.ssa.Instruction.Visitor#visitThrow(com.ibm.domo.ssa.ThrowInstruction)
      */
     @Override
@@ -1116,12 +1109,13 @@ public class SimpleDemandPointerFlowGraph extends SlowSparseNumberedGraph<Object
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.ibm.domo.ssa.Instruction.Visitor#visitGetCaughtException(com.ibm.domo.ssa.GetCaughtExceptionInstruction)
      */
     @Override
     public void visitGetCaughtException(SSAGetCaughtExceptionInstruction instruction) {
-      List<ProgramCounter> peis = SSAPropagationCallGraphBuilder.getIncomingPEIs(ir, getBasicBlock());
+      List<ProgramCounter> peis =
+          SSAPropagationCallGraphBuilder.getIncomingPEIs(ir, getBasicBlock());
       PointerKey def = heapModel.getPointerKeyForLocal(node, instruction.getDef());
 
       Set<IClass> types = SSAPropagationCallGraphBuilder.getCaughtExceptionTypes(instruction, ir);
@@ -1163,7 +1157,7 @@ public class SimpleDemandPointerFlowGraph extends SlowSparseNumberedGraph<Object
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.ibm.domo.ssa.SSAInstruction.Visitor#visitPi(com.ibm.domo.ssa.SSAPiInstruction)
      */
     @Override
@@ -1228,9 +1222,7 @@ public class SimpleDemandPointerFlowGraph extends SlowSparseNumberedGraph<Object
       return basicBlock;
     }
 
-    /**
-     * The calling loop must call this in each iteration!
-     */
+    /** The calling loop must call this in each iteration! */
     public void setBasicBlock(ISSABasicBlock block) {
       basicBlock = block;
     }

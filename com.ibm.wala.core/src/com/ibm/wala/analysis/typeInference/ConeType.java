@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2002 - 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,26 +7,21 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.analysis.typeInference;
-
-import java.util.Iterator;
 
 import com.ibm.wala.classLoader.IClass;
 import com.ibm.wala.ipa.cha.IClassHierarchy;
 import com.ibm.wala.types.TypeReference;
 import com.ibm.wala.util.debug.Assertions;
+import java.util.Iterator;
 
-/**
- * Represents a type and its subtypes.
- */
+/** Represents a type and its subtypes. */
 public class ConeType extends TypeAbstraction {
 
   private final IClass type;
 
-  /**
-   * @throws IllegalArgumentException if type is null
-   */
+  /** @throws IllegalArgumentException if type is null */
   public ConeType(IClass type) {
     if (type == null) {
       throw new IllegalArgumentException("type is null");
@@ -47,7 +42,8 @@ public class ConeType extends TypeAbstraction {
         // give up on arrays. We don't care anyway.
         return new ConeType(type.getClassHierarchy().getRootClass());
       } else {
-        return new ConeType(type.getClassHierarchy().getLeastCommonSuperclass(this.type, other.type));
+        return new ConeType(
+            type.getClassHierarchy().getLeastCommonSuperclass(this.type, other.type));
       }
     } else if (rhs instanceof PointType) {
       return rhs.meet(this);
@@ -59,12 +55,11 @@ public class ConeType extends TypeAbstraction {
     }
   }
 
-
   @Override
   public String toString() {
     return "cone:" + type.toString();
   }
-  
+
   @Override
   public IClass getType() {
     return type;
@@ -85,7 +80,7 @@ public class ConeType extends TypeAbstraction {
       return false;
     }
     if (!type.getClassHierarchy().equals(other.type.getClassHierarchy())) {
-      Assertions.UNREACHABLE("different chas " + this + " " + other);
+      Assertions.UNREACHABLE("different chas " + this + ' ' + other);
     }
     return type.equals(other.type);
   }
@@ -103,10 +98,8 @@ public class ConeType extends TypeAbstraction {
     return getType().isInterface();
   }
 
-  /**
-   * @return an Iterator of IClass that implement this interface
-   */
-  public Iterator iterateImplementors() {
+  /** @return an Iterator of IClass that implement this interface */
+  public Iterator<IClass> iterateImplementors() {
     return type.getClassHierarchy().getImplementors(getType().getReference()).iterator();
   }
 

@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2013 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,7 +7,7 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.shrikeBT;
 
 public interface IConversionInstruction extends IInstruction {
@@ -17,5 +17,4 @@ public interface IConversionInstruction extends IInstruction {
   String getToType();
 
   boolean throwsExceptionOnOverflow();
-
 }

@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2002 - 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,7 +7,7 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.analysis.reflection;
 
 import com.ibm.wala.classLoader.CallSiteReference;
@@ -22,23 +22,21 @@ import com.ibm.wala.ipa.callgraph.propagation.cfa.CallStringContext;
 import com.ibm.wala.util.intset.EmptyIntSet;
 import com.ibm.wala.util.intset.IntSet;
 
-/**
- * For synthetic methods marked as "Factories", we analyze in a context defined by the caller.
- */
+/** For synthetic methods marked as "Factories", we analyze in a context defined by the caller. */
 class FactoryContextSelector implements ContextSelector {
 
-  public FactoryContextSelector() {
-  }
-  
+  public FactoryContextSelector() {}
+
   /*
    * @see com.ibm.wala.ipa.callgraph.ContextSelector#getCalleeTarget(com.ibm.wala.ipa.callgraph.CGNode, com.ibm.wala.classLoader.CallSiteReference, com.ibm.wala.classLoader.IMethod)
    */
   @Override
-  public Context getCalleeTarget(CGNode caller, CallSiteReference site, IMethod callee, InstanceKey[] receiver) {
+  public Context getCalleeTarget(
+      CGNode caller, CallSiteReference site, IMethod callee, InstanceKey[] receiver) {
     if (callee == null) {
       throw new IllegalArgumentException("callee is null");
     }
-    if (callee.isSynthetic()) {
+    if (callee.isWalaSynthetic()) {
       SyntheticMethod s = (SyntheticMethod) callee;
       if (s.isFactoryMethod()) {
         return new CallStringContext(new CallString(site, caller.getMethod()));
@@ -51,5 +49,4 @@ class FactoryContextSelector implements ContextSelector {
   public IntSet getRelevantParameters(CGNode caller, CallSiteReference site) {
     return EmptyIntSet.instance;
   }
-
 }

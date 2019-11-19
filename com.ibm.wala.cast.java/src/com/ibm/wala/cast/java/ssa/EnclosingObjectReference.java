@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2013 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,22 +7,22 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.cast.java.ssa;
-
-import java.util.Collection;
-import java.util.Collections;
 
 import com.ibm.wala.ssa.SSAInstruction;
 import com.ibm.wala.ssa.SSAInstructionFactory;
 import com.ibm.wala.ssa.SymbolTable;
 import com.ibm.wala.types.TypeReference;
+import java.util.Collection;
+import java.util.Collections;
 
 /**
- * The CAst source language front end for Java has explicit support for lexically-enclosing objects, rather than compiling them
- * away into extra fields and access-control thwarting accessor methods as is done in bytecode. This instruction represents a read
- * of the object of the given type that lexically encloses its use value.
- * 
+ * The CAst source language front end for Java has explicit support for lexically-enclosing objects,
+ * rather than compiling them away into extra fields and access-control thwarting accessor methods
+ * as is done in bytecode. This instruction represents a read of the object of the given type that
+ * lexically encloses its use value.
+ *
  * @author Julian Dolby (dolby@us.ibm.com)
  */
 public class EnclosingObjectReference extends SSAInstruction {
@@ -64,7 +64,8 @@ public class EnclosingObjectReference extends SSAInstruction {
 
   @Override
   public SSAInstruction copyForSSA(SSAInstructionFactory insts, int[] defs, int[] uses) {
-    return ((AstJavaInstructionFactory) insts).EnclosingObjectReference(iindex, defs == null ? lval : defs[0], type);
+    return ((AstJavaInstructionFactory) insts)
+        .EnclosingObjectReference(iIndex(), defs == null ? lval : defs[0], type);
   }
 
   @Override
@@ -91,5 +92,4 @@ public class EnclosingObjectReference extends SSAInstruction {
   public boolean isFallThrough() {
     return true;
   }
-
 }

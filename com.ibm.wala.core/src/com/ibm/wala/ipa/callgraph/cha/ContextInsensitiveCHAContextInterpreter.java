@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2007 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,10 +7,8 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.ipa.callgraph.cha;
-
-import java.util.Iterator;
 
 import com.ibm.wala.classLoader.CallSiteReference;
 import com.ibm.wala.classLoader.CodeScanner;
@@ -18,6 +16,7 @@ import com.ibm.wala.classLoader.NewSiteReference;
 import com.ibm.wala.ipa.callgraph.CGNode;
 import com.ibm.wala.shrikeCT.InvalidClassFileException;
 import com.ibm.wala.util.debug.Assertions;
+import java.util.Iterator;
 
 public class ContextInsensitiveCHAContextInterpreter implements CHAContextInterpreter {
 
@@ -51,5 +50,4 @@ public class ContextInsensitiveCHAContextInterpreter implements CHAContextInterp
       throw new RuntimeException(e);
     }
   }
-
 }

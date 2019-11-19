@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2002 - 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,18 +7,16 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.util.tables;
-
-import java.util.ArrayList;
-import java.util.Map;
 
 import com.ibm.wala.util.collections.HashMapFactory;
 import com.ibm.wala.util.collections.SimpleVector;
 import com.ibm.wala.util.intset.BitVector;
+import java.util.ArrayList;
+import java.util.Map;
 
-/**
- */
+/** */
 public class Table<T> {
 
   // table is implemented as an ArrayList of rows. Each row is a SimpleVector<T>.
@@ -27,15 +25,12 @@ public class Table<T> {
   // SimpleVector<String> ... headings of columns
   protected final SimpleVector<String> columnHeadings = new SimpleVector<>();
 
-  /**
-   * create an empty table
-   */
-  public Table() {
-  }
+  /** create an empty table */
+  public Table() {}
 
   /**
    * create an empty table with the same column headings as t
-   * 
+   *
    * @throws IllegalArgumentException if t == null
    */
   public Table(Table<T> t) throws IllegalArgumentException {
@@ -49,7 +44,7 @@ public class Table<T> {
 
   /**
    * create an empty table with the given column headings
-   * 
+   *
    * @throws IllegalArgumentException if columns == null, or columns[i] == null for some i
    */
   public Table(String[] columns) throws IllegalArgumentException {
@@ -67,21 +62,21 @@ public class Table<T> {
   @Override
   public String toString() {
     int[] format = computeColumnWidths();
-    StringBuffer result = new StringBuffer();
+    StringBuilder result = new StringBuilder();
     for (int i = 0; i < getNumberOfColumns(); i++) {
-      StringBuffer heading = new StringBuffer(getColumnHeading(i));
+      StringBuilder heading = new StringBuilder(getColumnHeading(i));
       padWithSpaces(heading, format[i]);
       result.append(heading);
     }
-    result.append("\n");
+    result.append('\n');
     for (int j = 0; j < getNumberOfRows(); j++) {
       for (int i = 0; i < getNumberOfColumns(); i++) {
         T e = getElement(j, i);
-        StringBuffer element = e == null ? new StringBuffer() : new StringBuffer(e.toString());
+        StringBuilder element = e == null ? new StringBuilder() : new StringBuilder(e.toString());
         padWithSpaces(element, format[i]);
         result.append(element);
       }
-      result.append("\n");
+      result.append('\n');
     }
     return result.toString();
   }
@@ -95,9 +90,7 @@ public class Table<T> {
     }
   }
 
-  /**
-   * Note that column indices start at zero
-   */
+  /** Note that column indices start at zero */
   public synchronized String getColumnHeading(int i) {
     return columnHeadings.get(i);
   }
@@ -110,7 +103,8 @@ public class Table<T> {
     for (int j = 0; j < getNumberOfRows(); j++) {
       for (int i = 0; i < getNumberOfColumns(); i++) {
         T element = getElement(j, i);
-        result[i] = element == null ? result[i] : Math.max(result[i], element.toString().length() + 1);
+        result[i] =
+            element == null ? result[i] : Math.max(result[i], element.toString().length() + 1);
       }
     }
     return result;
@@ -159,16 +153,15 @@ public class Table<T> {
         rows.remove(i);
       }
     }
-
   }
-  
-  public static void padWithSpaces(StringBuffer b, int length) {
+
+  public static void padWithSpaces(StringBuilder b, int length) {
     if (b == null) {
       throw new IllegalArgumentException("b is null");
     }
     if (b.length() < length) {
       for (int i = b.length(); i < length; i++) {
-        b.append(" ");
+        b.append(' ');
       }
     }
   }

@@ -1,4 +1,4 @@
-/******************************************************************************
+/*
  * Copyright (c) 2002 - 2014 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,11 +7,9 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *****************************************************************************/
+ */
 
 package com.ibm.wala.cfg.exc.inter;
-
-import java.util.HashMap;
 
 import com.ibm.wala.cfg.ControlFlowGraph;
 import com.ibm.wala.cfg.exc.ExceptionPruningAnalysis;
@@ -24,34 +22,34 @@ import com.ibm.wala.ssa.analysis.IExplodedBasicBlock;
 import com.ibm.wala.util.CancelException;
 import com.ibm.wala.util.MonitorUtil.IProgressMonitor;
 import com.ibm.wala.util.graph.GraphIntegrity.UnsoundGraphException;
+import java.util.HashMap;
 
 /**
  * Saves interprocedural state of a single method.
  *
- * This class has been developed as part of a student project "Studienarbeit" by Markus Herhoffer.
- * It has been adapted and integrated into the WALA project by Juergen Graf.
- * 
- * @author Markus Herhoffer <markus.herhoffer@student.kit.edu>
- * @author Juergen Graf <graf@kit.edu>
- * 
+ * <p>This class has been developed as part of a student project "Studienarbeit" by Markus
+ * Herhoffer. It has been adapted and integrated into the WALA project by Juergen Graf.
+ *
+ * @author Markus Herhoffer &lt;markus.herhoffer@student.kit.edu&gt;
+ * @author Juergen Graf &lt;graf@kit.edu&gt;
  */
-final class IntraprocAnalysisState implements ExceptionPruningAnalysis<SSAInstruction, IExplodedBasicBlock> {
+final class IntraprocAnalysisState
+    implements ExceptionPruningAnalysis<SSAInstruction, IExplodedBasicBlock> {
 
   private final ControlFlowGraph<SSAInstruction, IExplodedBasicBlock> cfg;
-  private final HashMap<IExplodedBasicBlock, NullPointerState> statesOfSsaVars =
-      new HashMap<IExplodedBasicBlock, NullPointerState>();
-  private final HashMap<IExplodedBasicBlock, Object[]> valuesOfSsaVars = new HashMap<IExplodedBasicBlock, Object[]>();
+  private final HashMap<IExplodedBasicBlock, NullPointerState> statesOfSsaVars = new HashMap<>();
+  private final HashMap<IExplodedBasicBlock, Object[]> valuesOfSsaVars = new HashMap<>();
   private final HashMap<IExplodedBasicBlock, int[]> numbersOfSsaVarsThatAreParemerters =
-      new HashMap<IExplodedBasicBlock, int[]>();
+      new HashMap<>();
   private final boolean noAnalysisPossible;
   private final int deletedEdges;
   private boolean throwsException = true;
 
   /**
-   * Constructor for the state of a method that has not been analyzed. These are methods with an empty IR or methods
-   * left out explicitly.
-   * 
-   * Use it if you have nothing to tell about the node.
+   * Constructor for the state of a method that has not been analyzed. These are methods with an
+   * empty IR or methods left out explicitly.
+   *
+   * <p>Use it if you have nothing to tell about the node.
    */
   IntraprocAnalysisState() {
     this.cfg = null;
@@ -61,26 +59,23 @@ final class IntraprocAnalysisState implements ExceptionPruningAnalysis<SSAInstru
 
   /**
    * Constructor if you have informations on the node.
-   * 
-   * All values are saved at construction time. So if the analysis changes
-   * anything after this OptimizationInfo was created, it won't affect its final
-   * attributes.
-   * 
-   * @param intra
-   *          The <code>node</code>'s intraprocedural analysis
-   * @param node
-   *          the node itself
-   * @throws UnsoundGraphException
-   * @throws CancelException
+   *
+   * <p>All values are saved at construction time. So if the analysis changes anything after this
+   * OptimizationInfo was created, it won't affect its final attributes.
+   *
+   * @param intra The {@code node}'s intraprocedural analysis
+   * @param node the node itself
    */
-  IntraprocAnalysisState(final ExceptionPruningAnalysis<SSAInstruction, IExplodedBasicBlock> intra, final CGNode node,
-      final ControlFlowGraph<SSAInstruction, IExplodedBasicBlock> cfg, final int deletedEdges)
-      throws UnsoundGraphException, CancelException {
+  IntraprocAnalysisState(
+      final ExceptionPruningAnalysis<SSAInstruction, IExplodedBasicBlock> intra,
+      final CGNode node,
+      final ControlFlowGraph<SSAInstruction, IExplodedBasicBlock> cfg,
+      final int deletedEdges) {
     this.cfg = cfg;
     this.noAnalysisPossible = false;
     this.deletedEdges = deletedEdges;
     final SymbolTable sym = node.getIR().getSymbolTable();
-    
+
     for (final IExplodedBasicBlock block : cfg) {
       // set states
       final NullPointerState state = intra.getState(block);
@@ -103,7 +98,8 @@ final class IntraprocAnalysisState implements ExceptionPruningAnalysis<SSAInstru
 
       // set nr. of parameters
       if (block.getInstruction() instanceof SSAAbstractInvokeInstruction) {
-        final SSAAbstractInvokeInstruction instr = (SSAAbstractInvokeInstruction) block.getInstruction();
+        final SSAAbstractInvokeInstruction instr =
+            (SSAAbstractInvokeInstruction) block.getInstruction();
         final int[] numbersOfParams = AnalysisUtil.getParameterNumbers(instr);
         this.numbersOfSsaVarsThatAreParemerters.put(block, numbersOfParams);
       } else {
@@ -117,7 +113,7 @@ final class IntraprocAnalysisState implements ExceptionPruningAnalysis<SSAInstru
   public int compute(IProgressMonitor progress) throws UnsoundGraphException, CancelException {
     return deletedEdges;
   }
-  
+
   @Override
   public NullPointerState getState(final IExplodedBasicBlock block) {
     if (noAnalysisPossible) {
@@ -149,7 +145,7 @@ final class IntraprocAnalysisState implements ExceptionPruningAnalysis<SSAInstru
 
   /**
    * Returns the CFG.
-   * 
+   *
    * @return the CFG or null if there is no CFG for the CGNode.
    */
   @Override
@@ -177,12 +173,7 @@ final class IntraprocAnalysisState implements ExceptionPruningAnalysis<SSAInstru
     }
 
     final String ls = System.getProperty("line.separator");
-    final StringBuffer output = new StringBuffer();
-    output.append(statesOfSsaVars.toString() + ls);
-    output.append(valuesOfSsaVars.toString() + ls);
-    output.append(numbersOfSsaVarsThatAreParemerters.toString());
 
-    return output.toString();
+    return statesOfSsaVars + ls + valuesOfSsaVars + ls + numbersOfSsaVarsThatAreParemerters;
   }
-
 }

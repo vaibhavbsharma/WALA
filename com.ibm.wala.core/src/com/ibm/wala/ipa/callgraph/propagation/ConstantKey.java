@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2002 - 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,10 +7,8 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.ipa.callgraph.propagation;
-
-import java.util.Iterator;
 
 import com.ibm.wala.classLoader.IClass;
 import com.ibm.wala.classLoader.NewSiteReference;
@@ -18,10 +16,10 @@ import com.ibm.wala.ipa.callgraph.CGNode;
 import com.ibm.wala.ipa.callgraph.CallGraph;
 import com.ibm.wala.util.collections.EmptyIterator;
 import com.ibm.wala.util.collections.Pair;
+import java.util.Iterator;
+import java.util.Objects;
 
-/**
- * An instance key which represents a unique, constant object.
- */
+/** An instance key which represents a unique, constant object. */
 public final class ConstantKey<T> implements InstanceKey {
   private final T value;
 
@@ -36,8 +34,8 @@ public final class ConstantKey<T> implements InstanceKey {
   @Override
   public boolean equals(Object obj) {
     if (obj instanceof ConstantKey) {
-      ConstantKey other = (ConstantKey) obj;
-      return value == null ? other.value == null : value.equals(other.value);
+      ConstantKey<?> other = (ConstantKey<?>) obj;
+      return valueClass.equals(other.valueClass) ? Objects.equals(value, other.value) : false;
     } else {
       return false;
     }
@@ -50,10 +48,8 @@ public final class ConstantKey<T> implements InstanceKey {
 
   @Override
   public String toString() {
-    if (value == null)
-      return "[ConstantKey:null]";
-    else
-      return "[ConstantKey:" + value + ":" + value.getClass() + "]";
+    if (value == null) return "[ConstantKey:null]";
+    else return "[ConstantKey:" + value + ':' + valueClass.getReference() + ']';
   }
 
   /*

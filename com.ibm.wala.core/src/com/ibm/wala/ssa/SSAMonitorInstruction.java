@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2002 - 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,22 +7,15 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.ssa;
 
-
-/**
- * An instruction representing a monitorenter or monitorexit operation.
- */
+/** An instruction representing a monitorenter or monitorexit operation. */
 public abstract class SSAMonitorInstruction extends SSAInstruction {
-  /**
-   * The value number of the object being locked or unlocked
-   */
+  /** The value number of the object being locked or unlocked */
   private final int ref;
 
-  /**
-   * Does this instruction represent a monitorenter?
-   */
+  /** Does this instruction represent a monitorenter? */
   private final boolean isEnter;
 
   /**
@@ -38,7 +31,7 @@ public abstract class SSAMonitorInstruction extends SSAInstruction {
   @Override
   public SSAInstruction copyForSSA(SSAInstructionFactory insts, int[] defs, int[] uses) {
     assert uses == null || uses.length == 1;
-    return insts.MonitorInstruction(iindex, uses == null ? ref : uses[0], isEnter);
+    return insts.MonitorInstruction(iIndex(), uses == null ? ref : uses[0], isEnter);
   }
 
   @Override
@@ -46,10 +39,6 @@ public abstract class SSAMonitorInstruction extends SSAInstruction {
     return "monitor" + (isEnter ? "enter " : "exit ") + getValueString(symbolTable, ref);
   }
 
-  /**
-   * @see com.ibm.wala.ssa.SSAInstruction#visit(IVisitor)
-   * @throws IllegalArgumentException if v is null
-   */
   @Override
   public void visit(IVisitor v) {
     if (v == null) {
@@ -58,17 +47,11 @@ public abstract class SSAMonitorInstruction extends SSAInstruction {
     v.visitMonitor(this);
   }
 
-  /**
-   * @see com.ibm.wala.ssa.SSAInstruction#getNumberOfUses()
-   */
   @Override
   public int getNumberOfUses() {
     return 1;
   }
 
-  /**
-   * @see com.ibm.wala.ssa.SSAInstruction#getUse(int)
-   */
   @Override
   public int getUse(int j) {
     assert j == 0;
@@ -96,16 +79,12 @@ public abstract class SSAMonitorInstruction extends SSAInstruction {
     return true;
   }
 
-  /**
-   * @return The value number of the object being locked or unlocked
-   */
+  /** @return The value number of the object being locked or unlocked */
   public int getRef() {
     return ref;
   }
 
-  /**
-   * Does this instruction represent a monitorenter?
-   */
+  /** Does this instruction represent a monitorenter? */
   public boolean isMonitorEnter() {
     return isEnter;
   }

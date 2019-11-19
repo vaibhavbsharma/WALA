@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2002 - 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,7 +7,7 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.ssa;
 
 import com.ibm.wala.cfg.ControlFlowGraph;
@@ -23,8 +23,8 @@ import com.ibm.wala.util.debug.Assertions;
 
 /**
  * Default implementation of {@link IRFactory}.
- * 
- * This creates {@link IR} objects from Shrike methods, and directly from synthetic methods.
+ *
+ * <p>This creates {@link IR} objects from Shrike methods, and directly from synthetic methods.
  */
 public class DefaultIRFactory implements IRFactory<IMethod> {
 
@@ -36,15 +36,16 @@ public class DefaultIRFactory implements IRFactory<IMethod> {
    * @see com.ibm.wala.ssa.IRFactory#makeCFG(com.ibm.wala.classLoader.IMethod, com.ibm.wala.ipa.callgraph.Context,
    * com.ibm.wala.ipa.cha.IClassHierarchy, com.ibm.wala.util.warnings.WarningSet)
    */
-  public ControlFlowGraph makeCFG(IMethod method, @SuppressWarnings("unused") Context c) throws IllegalArgumentException {
+  public ControlFlowGraph<?, ?> makeCFG(IMethod method, @SuppressWarnings("unused") Context c)
+      throws IllegalArgumentException {
     if (method == null) {
       throw new IllegalArgumentException("method cannot be null");
     }
-    if (method.isSynthetic()) {
+    if (method.isWalaSynthetic()) {
       return syntheticFactory.makeCFG((SyntheticMethod) method);
     } else if (method instanceof IBytecodeMethod) {
       @SuppressWarnings("unchecked")
-      final IBytecodeMethod<IInstruction> castMethod = (IBytecodeMethod) method;
+      final IBytecodeMethod<IInstruction> castMethod = (IBytecodeMethod<IInstruction>) method;
       return shrikeFactory.makeCFG(castMethod);
     } else {
       Assertions.UNREACHABLE();
@@ -61,7 +62,7 @@ public class DefaultIRFactory implements IRFactory<IMethod> {
     if (method == null) {
       throw new IllegalArgumentException("method cannot be null");
     }
-    if (method.isSynthetic()) {
+    if (method.isWalaSynthetic()) {
       return syntheticFactory.makeIR((SyntheticMethod) method, c, options);
     } else if (method instanceof IBytecodeMethod) {
       @SuppressWarnings("unchecked")
@@ -74,14 +75,15 @@ public class DefaultIRFactory implements IRFactory<IMethod> {
   }
 
   /**
-   * Is the {@link Context} irrelevant as to structure of the {@link IR} for a particular {@link IMethod}? 
+   * Is the {@link Context} irrelevant as to structure of the {@link IR} for a particular {@link
+   * IMethod}?
    */
   @Override
   public boolean contextIsIrrelevant(IMethod method) {
     if (method == null) {
       throw new IllegalArgumentException("null method");
     }
-    if (method.isSynthetic()) {
+    if (method.isWalaSynthetic()) {
       return syntheticFactory.contextIsIrrelevant((SyntheticMethod) method);
     } else if (method instanceof ShrikeCTMethod) {
       // we know ShrikeFactory contextIsIrrelevant
@@ -91,5 +93,4 @@ public class DefaultIRFactory implements IRFactory<IMethod> {
       return false;
     }
   }
-
 }

@@ -1,4 +1,4 @@
-/******************************************************************************
+/*
  * Copyright (c) 2002 - 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,10 +7,8 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *****************************************************************************/
+ */
 package com.ibm.wala.ide.client;
-
-import java.io.IOException;
 
 import com.ibm.wala.ide.plugin.CorePlugin;
 import com.ibm.wala.ide.util.EclipseFileProvider;
@@ -23,17 +21,15 @@ import com.ibm.wala.ssa.SymbolTable;
 import com.ibm.wala.types.ClassLoaderReference;
 import com.ibm.wala.util.debug.Assertions;
 import com.ibm.wala.util.io.FileProvider;
+import java.io.IOException;
 
-/**
- * An {@link EclipseProjectAnalysisEngine} specialized for source code analysis
- */
-abstract public class EclipseProjectSourceAnalysisEngine<P, I extends InstanceKey> extends EclipseProjectAnalysisEngine<P, I> {
+/** An {@link EclipseProjectAnalysisEngine} specialized for source code analysis */
+public abstract class EclipseProjectSourceAnalysisEngine<P, I extends InstanceKey>
+    extends EclipseProjectAnalysisEngine<P, I> {
 
   public static final String defaultFileExt = "java";
 
-  /**
-   * file extension for source files in this Eclipse project
-   */
+  /** file extension for source files in this Eclipse project */
   final String fileExt;
 
   public EclipseProjectSourceAnalysisEngine(P project) {
@@ -44,12 +40,16 @@ abstract public class EclipseProjectSourceAnalysisEngine<P, I extends InstanceKe
     super(project);
     this.fileExt = fileExt;
     try {
-      setExclusionsFile((new EclipseFileProvider()).getFileFromPlugin(CorePlugin.getDefault(), "J2SEClassHierarchyExclusions.txt")
-          .getAbsolutePath());
+      setExclusionsFile(
+          (new EclipseFileProvider())
+              .getFileFromPlugin(CorePlugin.getDefault(), "J2SEClassHierarchyExclusions.txt")
+              .getAbsolutePath());
     } catch (IOException e) {
       try {
-        setExclusionsFile((new FileProvider()).getFile("J2SEClassHierarchyExclusions.txt", getClass().getClassLoader())
-          .getAbsolutePath());
+        setExclusionsFile(
+            (new FileProvider())
+                .getFile("J2SEClassHierarchyExclusions.txt", getClass().getClassLoader())
+                .getAbsolutePath());
       } catch (IOException f) {
         Assertions.UNREACHABLE("Cannot find exclusions file");
       }
@@ -57,12 +57,12 @@ abstract public class EclipseProjectSourceAnalysisEngine<P, I extends InstanceKe
   }
 
   /**
-   * we don't provide a default implementation of this method to avoid
-   * introducing a dependence on com.ibm.wala.cast from this project
+   * we don't provide a default implementation of this method to avoid introducing a dependence on
+   * com.ibm.wala.cast from this project
    */
   @Override
   public abstract IAnalysisCacheView makeDefaultCache();
-  
+
   protected abstract ClassLoaderReference getSourceLoader();
 
   @Override
@@ -70,12 +70,7 @@ abstract public class EclipseProjectSourceAnalysisEngine<P, I extends InstanceKe
     AnalysisOptions options = new AnalysisOptions(getScope(), entrypoints);
 
     SSAOptions ssaOptions = new SSAOptions();
-    ssaOptions.setDefaultValues(new SSAOptions.DefaultValues() {
-      @Override
-      public int getDefaultValue(SymbolTable symtab, int valueNumber) {
-        return symtab.getDefaultValue(valueNumber);
-      }
-    });
+    ssaOptions.setDefaultValues(SymbolTable::getDefaultValue);
 
     options.setSSAOptions(ssaOptions);
 

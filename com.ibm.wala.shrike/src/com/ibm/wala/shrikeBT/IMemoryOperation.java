@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2013 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,16 +7,15 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.shrikeBT;
 
 public interface IMemoryOperation {
 
   /**
-   *  Denotes whether this instruction is taking the address of whatever
-   * location it refers to.
+   * Denotes whether this instruction is taking the address of whatever location it refers to.
+   *
    * @return whether this instruction is taking the address of a location
    */
   public boolean isAddressOf();
-  
 }

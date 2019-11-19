@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2002 - 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,60 +7,50 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.util.intset;
 
-import java.util.Iterator;
+import com.ibm.wala.util.debug.Assertions;
+import com.ibm.wala.util.debug.UnimplementedError;
 import java.util.NoSuchElementException;
 import java.util.StringTokenizer;
 import java.util.TreeSet;
 
-import com.ibm.wala.util.debug.Assertions;
-import com.ibm.wala.util.debug.UnimplementedError;
-
-/**
- * A sparse ordered, duplicate-free, fully-encapsulated set of longs; not necessary mutable
- */
+/** A sparse ordered, duplicate-free, fully-encapsulated set of longs; not necessary mutable */
 public class SparseLongSet implements LongSet {
 
-  private final static int SINGLETON_CACHE_SIZE = 0;
+  private static final int SINGLETON_CACHE_SIZE = 0;
 
-  private final static SparseLongSet[] singletonCache = new SparseLongSet[SINGLETON_CACHE_SIZE];
+  private static final SparseLongSet[] singletonCache = new SparseLongSet[SINGLETON_CACHE_SIZE];
 
   static {
     for (int i = 0; i < SINGLETON_CACHE_SIZE; i++) {
-      singletonCache[i] = new SparseLongSet(new long[] { i });
+      singletonCache[i] = new SparseLongSet(new long[] {i});
     }
   }
 
   // TODO: I'm not thrilled with exposing these to subclasses, but
   // it seems expedient for now.
-  /**
-   * The backing store of int arrays
-   */
+  /** The backing store of int arrays */
   protected long[] elements;
 
-  /**
-   * The number of entries in the backing store that are valid.
-   */
+  /** The number of entries in the backing store that are valid. */
   protected int size = 0;
 
-  /*****************************************************************************
-   * * * Constructors & Factories *
-   ****************************************************************************/
+  /////////////////////////////////////////////////////////////////////////////
+  //
+  //  Constructors & Factories
+  //
+  /////////////////////////////////////////////////////////////////////////////
 
-  /**
-   * @param size
-   */
   protected SparseLongSet(int size) {
     elements = new long[size];
     this.size = size;
   }
 
   /**
-   * Subclasses should use this with extreme care. Do not allow the backing array to escape elsewhere.
-   * 
-   * @param backingArray
+   * Subclasses should use this with extreme care. Do not allow the backing array to escape
+   * elsewhere.
    */
   protected SparseLongSet(long[] backingArray) {
     if (backingArray == null) {
@@ -70,9 +60,7 @@ public class SparseLongSet implements LongSet {
     this.size = backingArray.length;
   }
 
-  /**
-   * Subclasses should use this with extreme care.
-   */
+  /** Subclasses should use this with extreme care. */
   public SparseLongSet() {
     elements = null;
     this.size = 0;
@@ -82,9 +70,6 @@ public class SparseLongSet implements LongSet {
     cloneState(S);
   }
 
-  /**
-   * @param S
-   */
   private void cloneState(SparseLongSet S) {
     elements = S.elements.clone();
     this.size = S.size;
@@ -99,20 +84,21 @@ public class SparseLongSet implements LongSet {
     } else {
       elements = new long[S.size()];
       size = S.size();
-      S.foreach(new IntSetAction() {
-        private int index = 0;
+      S.foreach(
+          new IntSetAction() {
+            private int index = 0;
 
-        @Override
-        public void act(int i) {
-          elements[index++] = i;
-        }
-      });
+            @Override
+            public void act(int i) {
+              elements[index++] = i;
+            }
+          });
     }
   }
 
   /**
    * Does this set contain value x?
-   * 
+   *
    * @see com.ibm.wala.util.intset.IntSet#contains(int)
    */
   @Override
@@ -123,10 +109,7 @@ public class SparseLongSet implements LongSet {
     return LongSetUtil.binarySearch(elements, x, 0, size - 1) >= 0;
   }
 
-  /**
-   * @param x
-   * @return index i s.t. elements[i] == x, or -1 if not found.
-   */
+  /** @return index i s.t. elements[i] == x, or -1 if not found. */
   public final int getIndex(long x) {
     if (elements == null) {
       return -1;
@@ -178,18 +161,14 @@ public class SparseLongSet implements LongSet {
   }
 
   /**
-   * @return true iff <code>this</code> is a subset of <code>that</code>.
-   * 
-   *         Faster than: <code>this.diff(that) == EMPTY</code>.
+   * @return true iff {@code this} is a subset of {@code that}.
+   *     <p>Faster than: {@code this.diff(that) == EMPTY}.
    */
   private boolean isSubsetInternal(SparseLongSet that) {
 
-    if (elements == null)
-      return true;
-    if (that.elements == null)
-      return false;
-    if (this.equals(that))
-      return true;
+    if (elements == null) return true;
+    if (that.elements == null) return false;
+    if (this.equals(that)) return true;
     if (this.sameValue(that)) {
       return true;
     }
@@ -223,7 +202,7 @@ public class SparseLongSet implements LongSet {
 
   /**
    * Compute the asymmetric difference of two sets, a \ b.
-   * 
+   *
    * @throws IllegalArgumentException if A is null
    */
   public static SparseLongSet diff(SparseLongSet A, SparseLongSet B) {
@@ -285,24 +264,25 @@ public class SparseLongSet implements LongSet {
 
   @Override
   public String toString() {
-    StringBuffer sb = new StringBuffer(6 * size);
+    StringBuilder sb = new StringBuilder(6 * size);
     sb.append("{ ");
     if (elements != null) {
       for (int ii = 0; ii < size; ii++) {
         sb.append(elements[ii]);
-        sb.append(" ");
+        sb.append(' ');
       }
     }
-    sb.append("}");
+    sb.append('}');
     return sb.toString();
   }
 
   /**
    * Reverse of toString(): "{2,3}" -&gt; [2,3]
-   * 
+   *
    * @throws IllegalArgumentException if str is null
    */
-  public static long[] parseLongArray(String str) throws NumberFormatException, IllegalArgumentException {
+  public static long[] parseLongArray(String str)
+      throws NumberFormatException, IllegalArgumentException {
     if (str == null) {
       throw new IllegalArgumentException("str is null");
     }
@@ -323,9 +303,8 @@ public class SparseLongSet implements LongSet {
     }
     long[] result = new long[set.size()];
     int i = 0;
-    for (Iterator<Long> it = set.iterator(); it.hasNext();) {
-      Long L = it.next();
-      result[i++] = L.longValue();
+    for (Long L : set) {
+      result[i++] = L;
     }
     return result;
   }
@@ -334,15 +313,15 @@ public class SparseLongSet implements LongSet {
     if (i >= 0 && i < SINGLETON_CACHE_SIZE) {
       return singletonCache[i];
     } else {
-      return new SparseLongSet(new long[] { i });
+      return new SparseLongSet(new long[] {i});
     }
   }
 
   public static SparseLongSet pair(long i, long j) {
     if (j > i) {
-      return new SparseLongSet(new long[] { i, j });
+      return new SparseLongSet(new long[] {i, j});
     } else {
-      return new SparseLongSet(new long[] { j, i });
+      return new SparseLongSet(new long[] {j, i});
     }
   }
 
@@ -392,8 +371,7 @@ public class SparseLongSet implements LongSet {
     if (action == null) {
       throw new IllegalArgumentException("null action");
     }
-    for (int i = 0; i < size; i++)
-      action.act(elements[i]);
+    for (int i = 0; i < size; i++) action.act(elements[i]);
   }
 
   @Override
@@ -411,9 +389,7 @@ public class SparseLongSet implements LongSet {
     }
   }
 
-  /**
-   * @return the largest element in the set
-   */
+  /** @return the largest element in the set */
   @Override
   public final long max() throws IllegalStateException {
     if (elements == null) {
@@ -422,9 +398,7 @@ public class SparseLongSet implements LongSet {
     return (size > 0) ? elements[size - 1] : -1;
   }
 
-  /**
-   * @return a new sparse int set which adds j to s
-   */
+  /** @return a new sparse int set which adds j to s */
   public static SparseLongSet add(SparseLongSet s, int j) {
     if (s == null || s.elements == null) {
       return SparseLongSet.singleton(j);

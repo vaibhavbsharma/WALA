@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2002 - 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,13 +7,10 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.fixpoint;
 
-
-/**
- * Operator U(n) = U(n) | U(j)
- */
+/** Operator U(n) = U(n) | U(j) */
 public final class UnaryOr extends UnaryOperator<BooleanVariable> {
 
   private static final UnaryOr SINGLETON = new UnaryOr();
@@ -22,8 +19,7 @@ public final class UnaryOr extends UnaryOperator<BooleanVariable> {
     return UnaryOr.SINGLETON;
   }
 
-  private UnaryOr() {
-  }
+  private UnaryOr() {}
 
   @Override
   public byte evaluate(BooleanVariable lhs, BooleanVariable rhs) throws IllegalArgumentException {

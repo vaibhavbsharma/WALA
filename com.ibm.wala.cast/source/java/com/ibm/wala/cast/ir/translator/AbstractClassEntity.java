@@ -1,4 +1,4 @@
-/******************************************************************************
+/*
  * Copyright (c) 2002 - 2014 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,19 +7,15 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *****************************************************************************/
-
-/**
- * 
  */
-package com.ibm.wala.cast.ir.translator;
 
-import java.util.Collection;
+package com.ibm.wala.cast.ir.translator;
 
 import com.ibm.wala.cast.tree.CAstQualifier;
 import com.ibm.wala.cast.tree.CAstType;
+import java.util.Collection;
 
-public class AbstractClassEntity extends AbstractDataEntity {
+public abstract class AbstractClassEntity extends AbstractDataEntity {
   private final CAstType.Class type;
 
   public AbstractClassEntity(CAstType.Class type) {

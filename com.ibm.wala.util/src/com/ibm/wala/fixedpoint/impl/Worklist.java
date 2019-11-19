@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2002 - 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,19 +7,16 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.fixedpoint.impl;
-
-import java.util.HashSet;
-import java.util.NoSuchElementException;
 
 import com.ibm.wala.fixpoint.AbstractStatement;
 import com.ibm.wala.util.collections.HashSetFactory;
 import com.ibm.wala.util.collections.Heap;
+import java.util.HashSet;
+import java.util.NoSuchElementException;
 
-/**
- * Worklist for fixed-point solver implementation
- */
+/** Worklist for fixed-point solver implementation */
 @SuppressWarnings("rawtypes")
 public class Worklist extends Heap<AbstractStatement> {
 
@@ -39,12 +36,10 @@ public class Worklist extends Heap<AbstractStatement> {
     contents.remove(result);
     return result;
   }
-  
+
   public void insertStatement(AbstractStatement eq) {
-    if (!contents.contains(eq)) {
-      contents.add(eq);
+    if (contents.add(eq)) {
       super.insert(eq);
     }
   }
-
 }

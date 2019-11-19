@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,7 +7,7 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.types.generics;
 
 import com.ibm.wala.classLoader.IMethod;
@@ -16,13 +16,12 @@ import com.ibm.wala.shrikeCT.InvalidClassFileException;
 
 /**
  * UNDER CONSTRUCTION.
- * 
- * MethodTypeSignature: FormalTypeParameters? (TypeSignature*) ReturnType ThrowsSignature*
- * 
- * ReturnType: TypeSignature
- * 
+ *
+ * <p>MethodTypeSignature: FormalTypeParameters? (TypeSignature*) ReturnType ThrowsSignature*
+ *
+ * <p>ReturnType: TypeSignature
+ *
  * @author sjfink
- * 
  */
 public class MethodTypeSignature extends Signature {
 
@@ -38,12 +37,9 @@ public class MethodTypeSignature extends Signature {
       throw new IllegalArgumentException();
     }
     return new MethodTypeSignature(genericsSignature);
-
   }
 
-  /**
-   * @return null if no arguments
-   */
+  /** @return null if no arguments */
   public TypeSignature[] getArguments() {
     String typeSig = rawString().replaceAll(".*\\(", "\\(").replaceAll("\\).*", "\\)");
     String[] args = TypeSignature.parseForTypeSignatures(typeSig);
@@ -68,7 +64,8 @@ public class MethodTypeSignature extends Signature {
       return null;
     }
     int index = endOfFormalTypeParameters();
-    String[] args = FormalTypeParameter.parseForFormalTypeParameters(rawString().substring(0, index));
+    String[] args =
+        FormalTypeParameter.parseForFormalTypeParameters(rawString().substring(0, index));
     FormalTypeParameter[] result = new FormalTypeParameter[args.length];
     for (int i = 0; i < args.length; i++) {
       result[i] = FormalTypeParameter.make(args[i]);
@@ -94,10 +91,7 @@ public class MethodTypeSignature extends Signature {
     return i;
   }
 
-  /**
-   * @return {@link TypeSignature} for arguments, which includes information about generic types
-   * @throws InvalidClassFileException
-   */
+  /** @return {@link TypeSignature} for arguments, which includes information about generic types */
   public static TypeSignature[] getArguments(IMethod method) throws InvalidClassFileException {
     if (method instanceof ShrikeCTMethod) {
       ShrikeCTMethod sm = (ShrikeCTMethod) method;
@@ -111,7 +105,8 @@ public class MethodTypeSignature extends Signature {
     }
   }
 
-  public static MethodTypeSignature getMethodTypeSignature(IMethod method) throws InvalidClassFileException {
+  public static MethodTypeSignature getMethodTypeSignature(IMethod method)
+      throws InvalidClassFileException {
     if (method instanceof ShrikeCTMethod) {
       ShrikeCTMethod sm = (ShrikeCTMethod) method;
       return sm.getMethodTypeSignature();
@@ -119,5 +114,4 @@ public class MethodTypeSignature extends Signature {
       return null;
     }
   }
-
 }

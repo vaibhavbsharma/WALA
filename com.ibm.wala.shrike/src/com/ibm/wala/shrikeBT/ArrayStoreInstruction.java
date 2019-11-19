@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2002,2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,18 +7,16 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.shrikeBT;
 
-/**
- * This class represents the ?astore instructions.
- */
-final public class ArrayStoreInstruction extends Instruction implements IArrayStoreInstruction {
+/** This class represents the ?astore instructions. */
+public final class ArrayStoreInstruction extends Instruction implements IArrayStoreInstruction {
   protected ArrayStoreInstruction(short opcode) {
     super(opcode);
   }
 
-  private final static ArrayStoreInstruction[] preallocated = preallocate();
+  private static final ArrayStoreInstruction[] preallocated = preallocate();
 
   private static ArrayStoreInstruction[] preallocate() {
     ArrayStoreInstruction[] r = new ArrayStoreInstruction[OP_sastore - OP_iastore + 2];
@@ -64,7 +62,7 @@ final public class ArrayStoreInstruction extends Instruction implements IArraySt
 
   @Override
   public String toString() {
-    return "ArrayStore(" + getType() + ")";
+    return "ArrayStore(" + getType() + ')';
   }
 
   @Override

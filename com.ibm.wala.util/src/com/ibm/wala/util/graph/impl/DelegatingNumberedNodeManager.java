@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2002 - 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,22 +7,27 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.util.graph.impl;
-
-import java.util.Iterator;
 
 import com.ibm.wala.util.debug.Assertions;
 import com.ibm.wala.util.graph.INodeWithNumber;
 import com.ibm.wala.util.graph.NumberedNodeManager;
 import com.ibm.wala.util.intset.IntSet;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.Objects;
+import java.util.stream.Stream;
 
 /**
- * Basic implementation of a numbered graph -- this implementation relies on nodes that carry numbers and edges.
- * 
- * The management of node numbers is a bit fragile, but designed this way for efficiency. Use this class with care.
+ * Basic implementation of a numbered graph -- this implementation relies on nodes that carry
+ * numbers and edges.
+ *
+ * <p>The management of node numbers is a bit fragile, but designed this way for efficiency. Use
+ * this class with care.
  */
-public class DelegatingNumberedNodeManager<T extends INodeWithNumber> implements NumberedNodeManager<T> {
+public class DelegatingNumberedNodeManager<T extends INodeWithNumber>
+    implements NumberedNodeManager<T> {
 
   private final double BUFFER_FACTOR = 1.5;
 
@@ -70,6 +75,7 @@ public class DelegatingNumberedNodeManager<T extends INodeWithNumber> implements
     final INodeWithNumber[] arr = nodes;
     return new Iterator<T>() {
       int nextCounter = -1;
+
       {
         advance();
       }
@@ -108,6 +114,12 @@ public class DelegatingNumberedNodeManager<T extends INodeWithNumber> implements
     };
   }
 
+  @SuppressWarnings("unchecked")
+  @Override
+  public Stream<T> stream() {
+    return Arrays.stream(nodes).filter(Objects::nonNull).map(node -> (T) node);
+  }
+
   /*
    * @see com.ibm.wala.util.graph.Graph#getNumberOfNodes()
    */
@@ -117,8 +129,9 @@ public class DelegatingNumberedNodeManager<T extends INodeWithNumber> implements
   }
 
   /**
-   * If N.getNumber() == -1, then set N.number and insert this node in the graph. Use with extreme care.
-   * 
+   * If N.getNumber() == -1, then set N.number and insert this node in the graph. Use with extreme
+   * care.
+   *
    * @see com.ibm.wala.util.graph.NodeManager#addNode(java.lang.Object)
    * @throws IllegalArgumentException if n is null
    */
@@ -146,15 +159,10 @@ public class DelegatingNumberedNodeManager<T extends INodeWithNumber> implements
     numberOfNodes++;
   }
 
-  /**
-   * @param number
-   */
   private void ensureCapacity(int number) {
     if (nodes.length < number + 1) {
       int newLength = (int) ((number + 1) * BUFFER_FACTOR);
-      INodeWithNumber[] old = nodes;
-      nodes = new INodeWithNumber[newLength];
-      System.arraycopy(old, 0, nodes, 0, old.length);
+      nodes = Arrays.copyOf(nodes, newLength);
     }
   }
 
@@ -179,13 +187,13 @@ public class DelegatingNumberedNodeManager<T extends INodeWithNumber> implements
 
   @Override
   public String toString() {
-    StringBuffer result = new StringBuffer("Nodes:\n");
+    StringBuilder result = new StringBuilder("Nodes:\n");
     for (int i = 0; i <= maxNumber; i++) {
-      result.append(i).append(" ");
+      result.append(i).append(' ');
       if (nodes[i] != null) {
         result.append(nodes[i].toString());
       }
-      result.append("\n");
+      result.append('\n');
     }
     return result.toString();
   }
@@ -206,11 +214,18 @@ public class DelegatingNumberedNodeManager<T extends INodeWithNumber> implements
     if (number >= nodes.length) {
       throw new IllegalArgumentException(
           "node already has a graph node id, but is not registered there in this graph (number too big)\n"
-              + "this graph implementation is fragile and won't support this kind of test\n" + n.getClass() + " : " + n);
+              + "this graph implementation is fragile and won't support this kind of test\n"
+              + n.getClass()
+              + " : "
+              + n);
     }
     if (nodes[number] != N) {
-      throw new IllegalArgumentException("node already has a graph node id, but is not registered there in this graph\n"
-          + "this graph implementation is fragile and won't support this kind of test\n" + n.getClass() + " : " + n);
+      throw new IllegalArgumentException(
+          "node already has a graph node id, but is not registered there in this graph\n"
+              + "this graph implementation is fragile and won't support this kind of test\n"
+              + n.getClass()
+              + " : "
+              + n);
     }
     return true;
     // return (nodes[number] == N);
@@ -223,5 +238,4 @@ public class DelegatingNumberedNodeManager<T extends INodeWithNumber> implements
   public Iterator<T> iterateNodes(IntSet s) {
     return new NumberedNodeIterator<>(s, this);
   }
-
 }

@@ -1,4 +1,4 @@
-/******************************************************************************
+/*
  * Copyright (c) 2002 - 2008 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,7 +7,7 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *****************************************************************************/
+ */
 public class MiniaturList {
 	MiniaturList next;
 
@@ -50,8 +50,8 @@ public class MiniaturList {
 	}
 
 	public static void main(String[] args) {
-		MiniaturList l1 = cons(1, cons(2, cons(3, cons(2, null))));
-		MiniaturList l2 = cons(5, null);
+    MiniaturList l1 = cons(1, cons(2, cons(3, cons(2, null))));
+    MiniaturList l2 = cons(5, null);
 
 		l1 = l1.remove(2);
 		//assert 2 !in l1.*next.data

@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2002 - 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,7 +7,7 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.dataflow.graph;
 
 import com.ibm.wala.fixpoint.BitVectorVariable;
@@ -16,9 +16,7 @@ import com.ibm.wala.util.intset.BitVector;
 import com.ibm.wala.util.intset.BitVectorIntSet;
 import com.ibm.wala.util.intset.IntSet;
 
-/**
- * Operator OUT = IN - filterSet
- */
+/** Operator OUT = IN - filterSet */
 public class BitVectorFilter extends UnaryOperator<BitVectorVariable> {
 
   private final BitVectorIntSet mask;
@@ -31,7 +29,8 @@ public class BitVectorFilter extends UnaryOperator<BitVectorVariable> {
   }
 
   @Override
-  public byte evaluate(BitVectorVariable lhs, BitVectorVariable rhs) throws IllegalArgumentException {
+  public byte evaluate(BitVectorVariable lhs, BitVectorVariable rhs)
+      throws IllegalArgumentException {
     if (rhs == null) {
       throw new IllegalArgumentException("rhs == null");
     }
@@ -59,9 +58,7 @@ public class BitVectorFilter extends UnaryOperator<BitVectorVariable> {
     }
   }
 
-  /**
-   * @see java.lang.Object#toString()
-   */
+  /** @see java.lang.Object#toString() */
   @Override
   public String toString() {
     return "U - " + mask;

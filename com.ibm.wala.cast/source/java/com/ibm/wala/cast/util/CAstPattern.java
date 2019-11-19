@@ -1,4 +1,4 @@
-/******************************************************************************
+/*
  * Copyright (c) 2002 - 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,17 +7,8 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *****************************************************************************/
+ */
 package com.ibm.wala.cast.util;
-
-import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
-import java.util.regex.Pattern;
 
 import com.ibm.wala.cast.tree.CAstEntity;
 import com.ibm.wala.cast.tree.CAstNode;
@@ -27,25 +18,33 @@ import com.ibm.wala.cast.tree.visit.CAstVisitor.Context;
 import com.ibm.wala.util.collections.HashMapFactory;
 import com.ibm.wala.util.collections.HashSetFactory;
 import com.ibm.wala.util.debug.Assertions;
+import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+import java.util.regex.Pattern;
 
 public class CAstPattern {
   private static boolean DEBUG_PARSER = false;
 
   private static boolean DEBUG_MATCH = false;
 
-  private final static int CHILD_KIND = -1;
+  private static final int CHILD_KIND = -1;
 
-  private final static int CHILDREN_KIND = -2;
+  private static final int CHILDREN_KIND = -2;
 
-  private final static int REPEATED_PATTERN_KIND = -3;
+  private static final int REPEATED_PATTERN_KIND = -3;
 
-  private final static int ALTERNATIVE_PATTERN_KIND = -4;
+  private static final int ALTERNATIVE_PATTERN_KIND = -4;
 
-  private final static int OPTIONAL_PATTERN_KIND = -5;
+  private static final int OPTIONAL_PATTERN_KIND = -5;
 
-  private final static int REFERENCE_PATTERN_KIND = -6;
-  
-  private final static int IGNORE_KIND = -99;
+  private static final int REFERENCE_PATTERN_KIND = -6;
+
+  private static final int IGNORE_KIND = -99;
 
   private final String name;
 
@@ -57,7 +56,7 @@ public class CAstPattern {
 
   private final Map<String, CAstPattern> references;
 
-  public static class Segments extends TreeMap<String,Object> {
+  public static class Segments extends TreeMap<String, Object> {
 
     private static final long serialVersionUID = 4119719848336209576L;
 
@@ -73,7 +72,7 @@ public class CAstPattern {
       } else {
         Object o = get(name);
         if (o instanceof CAstNode) {
-          return Collections.singletonList((CAstNode)o);
+          return Collections.singletonList((CAstNode) o);
         } else {
           assert o instanceof List;
           return (List<CAstNode>) o;
@@ -141,42 +140,42 @@ public class CAstPattern {
 
   @Override
   public String toString() {
-    StringBuffer sb = new StringBuffer();
+    StringBuilder sb = new StringBuilder();
 
     if (name != null) {
-      sb.append("<").append(name).append(">");
+      sb.append('<').append(name).append('>');
     }
 
     if (value != null) {
       if (kind == REFERENCE_PATTERN_KIND) {
         sb.append("ref:").append(value);
       } else if (value instanceof Pattern) {
-        sb.append("/").append(value).append("/");
+        sb.append('/').append(value).append('/');
       } else {
         sb.append("literal:").append(value);
       }
     } else if (kind == CHILD_KIND) {
-      sb.append("*");
+      sb.append('*');
     } else if (kind == CHILDREN_KIND) {
       sb.append("**");
     } else if (kind == REPEATED_PATTERN_KIND) {
-      sb.append("@");
+      sb.append('@');
     } else if (kind == ALTERNATIVE_PATTERN_KIND) {
-      sb.append("|");
+      sb.append('|');
     } else if (kind == OPTIONAL_PATTERN_KIND) {
-      sb.append("?");
+      sb.append('?');
     } else {
       sb.append(CAstPrinter.kindAsString(kind));
     }
 
     if (children != null) {
-      sb.append("(");
+      sb.append('(');
       for (int i = 0; i < children.length; i++) {
         sb.append(children[i].toString());
         if (i == children.length - 1) {
-          sb.append(")");
+          sb.append(')');
         } else {
-          sb.append(",");
+          sb.append(',');
         }
       }
     }
@@ -191,94 +190,94 @@ public class CAstPattern {
       return false;
     } else if (i >= tree.getChildCount() && j < cs.length) {
       switch (cs[j].kind) {
-      case CHILDREN_KIND:
-      case OPTIONAL_PATTERN_KIND:
-      case REPEATED_PATTERN_KIND:
-        return matchChildren(tree, i, cs, j + 1, s);
+        case CHILDREN_KIND:
+        case OPTIONAL_PATTERN_KIND:
+        case REPEATED_PATTERN_KIND:
+          return matchChildren(tree, i, cs, j + 1, s);
 
-      default:
-        return false;
+        default:
+          return false;
       }
     } else {
-      if (cs[j].kind == CHILD_KIND) {
-
-        if (DEBUG_MATCH) {
-          System.err.println(("* matches " + CAstPrinter.print(tree.getChild(i))));
-        }
-
-        if (s != null && cs[j].name != null) {
-          s.add(cs[j].name, tree.getChild(i));
-        }
-        return matchChildren(tree, i + 1, cs, j + 1, s);
-
-      } else if (cs[j].kind == CHILDREN_KIND) {
-        if (tryMatchChildren(tree, i, cs, j + 1, s)) {
-
+      switch (cs[j].kind) {
+        case CHILD_KIND:
           if (DEBUG_MATCH) {
-            System.err.println("** matches nothing");
-          }
-
-          return true;
-
-        } else {
-
-          if (DEBUG_MATCH) {
-            System.err.println(("** matches " + CAstPrinter.print(tree.getChild(i))));
+            System.err.println(("* matches " + CAstPrinter.print(tree.getChild(i))));
           }
 
           if (s != null && cs[j].name != null) {
             s.add(cs[j].name, tree.getChild(i));
           }
+          return matchChildren(tree, i + 1, cs, j + 1, s);
 
-          return matchChildren(tree, i + 1, cs, j, s);
-        }
+        case CHILDREN_KIND:
+          if (tryMatchChildren(tree, i, cs, j + 1, s)) {
 
-      } else if (cs[j].kind == REPEATED_PATTERN_KIND) {
-        CAstPattern repeatedPattern = cs[j].children[0];
-        if (repeatedPattern.tryMatch(tree.getChild(i), s)) {
-          if (s != null && cs[j].name != null) {
-            s.add(cs[j].name, tree.getChild(i));
+            if (DEBUG_MATCH) {
+              System.err.println("** matches nothing");
+            }
+
+            return true;
+
+          } else {
+
+            if (DEBUG_MATCH) {
+              System.err.println(("** matches " + CAstPrinter.print(tree.getChild(i))));
+            }
+
+            if (s != null && cs[j].name != null) {
+              s.add(cs[j].name, tree.getChild(i));
+            }
+
+            return matchChildren(tree, i + 1, cs, j, s);
           }
 
-          if (DEBUG_MATCH) {
-            System.err.println((cs[j] + " matches " + CAstPrinter.print(tree.getChild(i))));
-          }
-
-          return matchChildren(tree, i + 1, cs, j, s);
-
-        } else {
-
-          if (DEBUG_MATCH) {
-            System.err.println((cs[j] + " matches nothing"));
-          }
-
-          return matchChildren(tree, i, cs, j + 1, s);
-        }
-
-      } else if (cs[j].kind == OPTIONAL_PATTERN_KIND) {
-        if (tryMatchChildren(tree, i, cs, j + 1, s)) {
-
-          if (DEBUG_MATCH) {
-            System.err.println((cs[j] + " matches nothing"));
-          }
-
-          return true;
-        } else {
-          CAstPattern optionalPattern = cs[j].children[0];
-          if (optionalPattern.tryMatch(tree.getChild(i), s)) {
+        case REPEATED_PATTERN_KIND:
+          CAstPattern repeatedPattern = cs[j].children[0];
+          if (repeatedPattern.tryMatch(tree.getChild(i), s)) {
+            if (s != null && cs[j].name != null) {
+              s.add(cs[j].name, tree.getChild(i));
+            }
 
             if (DEBUG_MATCH) {
               System.err.println((cs[j] + " matches " + CAstPrinter.print(tree.getChild(i))));
             }
 
-            return matchChildren(tree, i + 1, cs, j + 1, s);
-          } else {
-            return false;
-          }
-        }
+            return matchChildren(tree, i + 1, cs, j, s);
 
-      } else {
-        return cs[j].match(tree.getChild(i), s) && matchChildren(tree, i + 1, cs, j + 1, s);
+          } else {
+
+            if (DEBUG_MATCH) {
+              System.err.println((cs[j] + " matches nothing"));
+            }
+
+            return matchChildren(tree, i, cs, j + 1, s);
+          }
+
+        case OPTIONAL_PATTERN_KIND:
+          if (tryMatchChildren(tree, i, cs, j + 1, s)) {
+
+            if (DEBUG_MATCH) {
+              System.err.println((cs[j] + " matches nothing"));
+            }
+
+            return true;
+          } else {
+            CAstPattern optionalPattern = cs[j].children[0];
+            if (optionalPattern.tryMatch(tree.getChild(i), s)) {
+
+              if (DEBUG_MATCH) {
+                System.err.println((cs[j] + " matches " + CAstPrinter.print(tree.getChild(i))));
+              }
+
+              return matchChildren(tree, i + 1, cs, j + 1, s);
+            } else {
+              return false;
+            }
+          }
+
+        default:
+          return cs[j].match(tree.getChild(i), s) && matchChildren(tree, i + 1, cs, j + 1, s);
       }
     }
   }
@@ -288,61 +287,60 @@ public class CAstPattern {
       System.err.println(("matching " + this + " against " + CAstPrinter.print(tree)));
     }
 
-    if (kind == REFERENCE_PATTERN_KIND) {
-      return references.get(value).match(tree, s);
+    switch (kind) {
+      case REFERENCE_PATTERN_KIND:
+        return references.get(value).match(tree, s);
 
-    } else if (kind == ALTERNATIVE_PATTERN_KIND) {
-      for (int i = 0; i < children.length; i++) {
-        if (children[i].tryMatch(tree, s)) {
+      case ALTERNATIVE_PATTERN_KIND:
+        for (CAstPattern element : children) {
+          if (element.tryMatch(tree, s)) {
 
-          if (s != null && name != null)
-            s.add(name, tree);
+            if (s != null && name != null) s.add(name, tree);
 
-          return true;
+            return true;
+          }
         }
-      }
 
-      if (DEBUG_MATCH) {
-        System.err.println("match failed (a)");
-      }
-      return false;
-
-    } else {
-      if ((value == null) ? tree.getKind() != kind : 
-          (tree.getKind() != CAstNode.CONSTANT || 
-           (value instanceof Pattern 
-               ? !((Pattern)value).matcher(tree.getValue().toString()).matches()
-               : !value.equals(tree.getValue().toString())))) 
-      {
         if (DEBUG_MATCH) {
-          System.err.println("match failed (b)");
+          System.err.println("match failed (a)");
         }
-
         return false;
-      }
 
-      if (s != null && name != null)
-        s.add(name, tree);
+      default:
+        if ((value == null)
+            ? tree.getKind() != kind
+            : (tree.getKind() != CAstNode.CONSTANT
+                || (value instanceof Pattern
+                    ? !((Pattern) value).matcher(tree.getValue().toString()).matches()
+                    : !value.equals(tree.getValue().toString())))) {
+          if (DEBUG_MATCH) {
+            System.err.println("match failed (b)");
+          }
 
-      if (children == null || children.length == 0) {
-        if (DEBUG_MATCH && tree.getChildCount() != 0) {
-          System.err.println("match failed (c)");
+          return false;
         }
-        return tree.getChildCount() == 0;
-      } else {
-        return matchChildren(tree, 0, children, 0, s);
-      }
+
+        if (s != null && name != null) s.add(name, tree);
+
+        if (children == null || children.length == 0) {
+          if (DEBUG_MATCH && tree.getChildCount() != 0) {
+            System.err.println("match failed (c)");
+          }
+          return tree.getChildCount() == 0;
+        } else {
+          return matchChildren(tree, 0, children, 0, s);
+        }
     }
   }
 
-  private static boolean tryMatchChildren(CAstNode tree, int i, CAstPattern[] cs, int j, Segments s) {
+  private static boolean tryMatchChildren(
+      CAstNode tree, int i, CAstPattern[] cs, int j, Segments s) {
     if (s == null) {
       return matchChildren(tree, i, cs, j, s);
     } else {
       Segments ss = new Segments();
       boolean result = matchChildren(tree, i, cs, j, ss);
-      if (result)
-        s.addAll(ss);
+      if (result) s.addAll(ss);
       return result;
     }
   }
@@ -353,8 +351,7 @@ public class CAstPattern {
     } else {
       Segments ss = new Segments();
       boolean result = match(tree, ss);
-      if (result)
-        s.addAll(ss);
+      if (result) s.addAll(ss);
       return result;
     }
   }
@@ -381,21 +378,25 @@ public class CAstPattern {
   }
 
   public static Collection<Segments> findAll(final CAstPattern p, final CAstEntity e) {
-    return p.new Matcher().findAll(new Context() {
-      @Override
-      public CAstEntity top() {
-        return e;
-      }
-      @Override
-      public CAstSourcePositionMap getSourceMap() {
-        return e.getSourceMap();
-      }
-    }, e.getAST());
+    return p.new Matcher()
+        .findAll(
+            new Context() {
+              @Override
+              public CAstEntity top() {
+                return e;
+              }
+
+              @Override
+              public CAstSourcePositionMap getSourceMap() {
+                return e.getSourceMap();
+              }
+            },
+            e.getAST());
   }
-  
+
   public class Matcher extends CAstVisitor<Context> {
     private final Collection<Segments> result = HashSetFactory.make();
-    
+
     @Override
     public void leaveNode(CAstNode n, Context c, CAstVisitor<Context> visitor) {
       Segments s = match(CAstPattern.this, n);
@@ -405,11 +406,26 @@ public class CAstPattern {
     }
 
     public Collection<Segments> findAll(final Context c, final CAstNode top) {
-      visit(top, c, this);   
+      visit(top, c, this);
       return result;
     }
+
+    @Override
+    protected boolean doVisit(CAstNode n, Context context, CAstVisitor<Context> visitor) {
+      Segments s = match(CAstPattern.this, n);
+      if (s != null) {
+        result.add(s);
+      }
+      return true;
+    }
+
+    @Override
+    protected boolean doVisitAssignNodes(
+        CAstNode n, Context context, CAstNode v, CAstNode a, CAstVisitor<Context> visitor) {
+      return true;
+    }
   }
-    
+
   private static class Parser {
     private final Map<String, CAstPattern> namedPatterns = HashMapFactory.make();
 
@@ -482,11 +498,13 @@ public class CAstPattern {
         } while (patternString.startsWith("||", end));
         assert patternString.startsWith(")|", end) : patternString;
         end += 2;
-        result = new CAstPattern(name, ALTERNATIVE_PATTERN_KIND, alternatives.toArray(new CAstPattern[alternatives.size()]));
+        result =
+            new CAstPattern(
+                name, ALTERNATIVE_PATTERN_KIND, alternatives.toArray(new CAstPattern[0]));
 
       } else if (patternString.startsWith("@(", start)) {
         start += 2;
-        CAstPattern children[] = new CAstPattern[] { parse() };
+        CAstPattern children[] = new CAstPattern[] {parse()};
         assert patternString.startsWith(")@", end);
         end += 2;
 
@@ -498,7 +516,7 @@ public class CAstPattern {
 
       } else if (patternString.startsWith("?(", start)) {
         start += 2;
-        CAstPattern children[] = new CAstPattern[] { parse() };
+        CAstPattern children[] = new CAstPattern[] {parse()};
         assert patternString.startsWith(")?", end);
         end += 2;
 
@@ -534,7 +552,7 @@ public class CAstPattern {
           assert patternString.charAt(end) == ')';
           end++;
 
-          result = new CAstPattern(name, kind, children.toArray(new CAstPattern[children.size()]));
+          result = new CAstPattern(name, kind, children.toArray(new CAstPattern[0]));
         }
       }
 

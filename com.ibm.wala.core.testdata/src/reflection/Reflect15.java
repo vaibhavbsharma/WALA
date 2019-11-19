@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2013 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,19 +7,17 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package reflection;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 
-/**
- * Test of Class.getConstructors().
- */
+/** Test of Class.getConstructors(). */
 public class Reflect15 {
-  @SuppressWarnings("null")
-  public static void main(String[] args) throws ClassNotFoundException, IllegalArgumentException, InstantiationException,
-      IllegalAccessException, InvocationTargetException {
+  public static void main(String[] args)
+      throws ClassNotFoundException, IllegalArgumentException, InstantiationException,
+          IllegalAccessException, InvocationTargetException {
     Class<?> c = Class.forName("reflection.Helper");
     Constructor<?>[] ctors = c.getConstructors();
     Helper h = null;

@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2007 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,7 +7,7 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.ipa.callgraph.propagation;
 
 import com.ibm.wala.classLoader.IClass;
@@ -15,8 +15,8 @@ import com.ibm.wala.classLoader.NewSiteReference;
 import com.ibm.wala.ipa.callgraph.CGNode;
 
 /**
- * Represents an array with length zero. Useful for precision since such arrays
- * cannot have contents.
+ * Represents an array with length zero. Useful for precision since such arrays cannot have
+ * contents.
  */
 public final class ZeroLengthArrayInNode extends AllocationSiteInNode {
 
@@ -39,5 +39,4 @@ public final class ZeroLengthArrayInNode extends AllocationSiteInNode {
   public int hashCode() {
     return getNode().hashCode() * 8647 + getSite().hashCode();
   }
-
 }

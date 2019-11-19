@@ -1,4 +1,4 @@
-/******************************************************************************
+/*
  * Copyright (c) 2002 - 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,18 +7,17 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *****************************************************************************/
+ */
 /*
  * Created on Sep 28, 2005
  */
 package com.ibm.wala.cast.java.types;
 
+import com.ibm.wala.cast.tree.CAstType;
+import com.ibm.wala.util.collections.HashMapFactory;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
-
-import com.ibm.wala.cast.tree.CAstType;
-import com.ibm.wala.util.collections.HashMapFactory;
 
 public class JavaPrimitiveTypeMap {
   public static final Map<String, JavaPrimitiveType> primNameMap = HashMapFactory.make();
@@ -44,7 +43,7 @@ public class JavaPrimitiveTypeMap {
 
     @Override
     public Collection<CAstType> getSupertypes() {
-      return Collections.EMPTY_LIST;
+      return Collections.emptyList();
     }
   }
 

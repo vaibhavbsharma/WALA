@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2002 - 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,26 +7,22 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.model.java.lang.reflect;
 
-
-/**
- * A synthetic model of java.lang.reflect.Array native methods
- */
+/** A synthetic model of java.lang.reflect.Array native methods */
 public class Array {
 
-  /**
-   * A simple model of object-array copy
-   */
-  public static Object get(Object array, int index) throws IllegalArgumentException, ArrayIndexOutOfBoundsException {
+  /** A simple model of object-array copy */
+  public static Object get(Object array, int index)
+      throws IllegalArgumentException, ArrayIndexOutOfBoundsException {
 
     if (!array.getClass().isArray()) {
       throw new IllegalArgumentException();
     }
-    
+
     if (array instanceof Object[]) {
-      Object[] A = (Object[])array;
+      Object[] A = (Object[]) array;
       return A[index];
     } else if (array instanceof int[]) {
       int[] A = (int[]) array;

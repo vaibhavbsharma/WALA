@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2002,2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,16 +7,14 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.shrikeCT;
 
-/**
- * This class reads InnerClasses attributes.
- */
+import java.util.Arrays;
+
+/** This class reads InnerClasses attributes. */
 public final class InnerClassesReader extends AttributeReader {
-  /**
-   * Build a reader for the attribute 'iter'.
-   */
+  /** Build a reader for the attribute 'iter'. */
   public InnerClassesReader(ClassReader.AttrIterator iter) throws InvalidClassFileException {
     super(iter, "InnerClasses");
 
@@ -25,21 +23,15 @@ public final class InnerClassesReader extends AttributeReader {
     checkSizeEquals(attr + 8, 8 * count);
   }
 
-  /**
-   * @return the raw values that make up this attribute
-   */
+  /** @return the raw values that make up this attribute */
   public int[] getRawTable() {
     int count = cr.getUShort(attr + 6);
     int[] r = new int[count * 4];
-    for (int i = 0; i < r.length; i++) {
-      r[i] = cr.getUShort(attr + 8 + i * 2);
-    }
+    Arrays.setAll(r, i -> cr.getUShort(attr + 8 + i * 2));
     return r;
   }
 
-  /**
-   * @return the names of inner classes this attribute holds information about.
-   */
+  /** @return the names of inner classes this attribute holds information about. */
   public String[] getInnerClasses() throws InvalidClassFileException {
     int count = cr.getUShort(attr + 6);
     String[] r = new String[count];
@@ -51,9 +43,8 @@ public final class InnerClassesReader extends AttributeReader {
   }
 
   /**
-   * return the name of the outer class recorded as the enclosing class for a class named s. return null if not found.
-   * 
-   * @throws InvalidClassFileException
+   * return the name of the outer class recorded as the enclosing class for a class named s. return
+   * null if not found.
    */
   public String getOuterClass(String s) throws InvalidClassFileException {
     String[] inner = getInnerClasses();
@@ -70,9 +61,8 @@ public final class InnerClassesReader extends AttributeReader {
   }
 
   /**
-   * return the mask of flags recorded in the InnerClasses attribute for a class named s. return 0 if not found.
-   * 
-   * @throws InvalidClassFileException
+   * return the mask of flags recorded in the InnerClasses attribute for a class named s. return 0
+   * if not found.
    */
   public int getAccessFlags(String s) throws InvalidClassFileException {
     String[] inner = getInnerClasses();
@@ -83,5 +73,4 @@ public final class InnerClassesReader extends AttributeReader {
     }
     return 0;
   }
-
 }

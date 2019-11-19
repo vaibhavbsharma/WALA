@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2002 - 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,52 +7,40 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.util.collections;
 
+import com.ibm.wala.util.debug.UnimplementedError;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
-import com.ibm.wala.util.debug.UnimplementedError;
-
 /**
- * a debugging aid. This implementation complains if you stick an object in here which appears to use System.identityHashCode(), or
- * if it detects more than BAD_HC collisions in the Set (possibly indicated a bad hash function)
+ * a debugging aid. This implementation complains if you stick an object in here which appears to
+ * use System.identityHashCode(), or if it detects more than BAD_HC collisions in the Set (possibly
+ * indicated a bad hash function)
  */
 public class ParanoidHashSet<T> extends LinkedHashSet<T> {
   public static final long serialVersionUID = 30919839181133333L;
 
-  /**
-   * A mapping from Integer (hashcode) -&gt; Set of objects
-   */
+  /** A mapping from Integer (hashcode) -&gt; Set of objects */
   private final Map<Integer, Set<T>> hcFreq;
 
   private int nAdded = 0;
 
-  /**
-   * If a hash set contains more than this number of items with the same hash code, complain.
-   */
+  /** If a hash set contains more than this number of items with the same hash code, complain. */
   private final int BAD_HC = 3;
 
-  /**
-   * @param s
-   * @throws NullPointerException if s is null
-   */
+  /** @throws NullPointerException if s is null */
   public ParanoidHashSet(Collection<T> s) throws NullPointerException {
     super(s.size());
     hcFreq = HashMapFactory.make(s.size());
-    for (Iterator<T> it = s.iterator(); it.hasNext();) {
-      add(it.next());
-    }
+    this.addAll(s);
   }
 
-  /**
-   * 
-   */
+  /** */
   public ParanoidHashSet() {
     super();
     hcFreq = HashMapFactory.make();
@@ -85,11 +73,11 @@ public class ParanoidHashSet<T> extends LinkedHashSet<T> {
         hcFreq.put(hc, h);
       } else {
         if (s.size() == BAD_HC) {
-          for (Iterator<T> it = s.iterator(); it.hasNext();) {
-            Object o = it.next();
+          for (T t : s) {
+            Object o = t;
             System.err.println(o + " " + o.hashCode());
           }
-          assert false : "bad hc " + arg0.getClass() + " " + arg0;
+          assert false : "bad hc " + arg0.getClass() + ' ' + arg0;
         } else {
           s.add(arg0);
         }

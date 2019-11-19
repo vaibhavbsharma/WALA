@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2002 - 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,7 +7,7 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.ssa;
 
 import com.ibm.wala.classLoader.IMethod;
@@ -15,35 +15,26 @@ import com.ibm.wala.ipa.callgraph.Context;
 import com.ibm.wala.ipa.callgraph.impl.Everywhere;
 
 /**
- * A mapping from IMethod -> SSAOptions -> SoftReference -> Something
- * 
- * This doesn't work very well ... GCs don't do such a great job with SoftReferences ... revamp it.
+ * A mapping from IMethod -&gt; SSAOptions -&gt; SoftReference -&gt; Something
+ *
+ * <p>This doesn't work very well ... GCs don't do such a great job with SoftReferences ... revamp
+ * it.
  */
 public class SSACache {
 
-  /**
-   * used for debugging
-   */
+  /** used for debugging */
   private static final boolean DISABLE = false;
 
-  /**
-   * The factory that actually creates new IR objects
-   */
+  /** The factory that actually creates new IR objects */
   private final IRFactory<IMethod> factory;
 
-  /**
-   * A cache of SSA IRs
-   */
-  final private IAuxiliaryCache irCache;
+  /** A cache of SSA IRs */
+  private final IAuxiliaryCache irCache;
 
-  /**
-   * A cache of DefUse information
-   */
-  final private IAuxiliaryCache duCache;
+  /** A cache of DefUse information */
+  private final IAuxiliaryCache duCache;
 
-  /**
-   * @param factory a factory for creating IRs
-   */
+  /** @param factory a factory for creating IRs */
   public SSACache(IRFactory<IMethod> factory, IAuxiliaryCache irCache, IAuxiliaryCache duCache) {
     this.factory = factory;
     this.irCache = irCache;
@@ -108,7 +99,8 @@ public class SSACache {
   }
 
   /**
-   * @return {@link DefUse} information for m, built according to the specified options. null if unavailable
+   * @return {@link DefUse} information for m, built according to the specified options. null if
+   *     unavailable
    * @throws IllegalArgumentException if ir is null
    */
   public synchronized DefUse findOrCreateDU(IR ir, Context C) {
@@ -123,31 +115,23 @@ public class SSACache {
     return du;
   }
 
-  /**
-   * The existence of this is unfortunate.
-   */
+  /** The existence of this is unfortunate. */
   public void wipe() {
     irCache.wipe();
     duCache.wipe();
   }
 
-  /**
-   * Invalidate the cached IR for a <method,context> pair
-   */
+  /** Invalidate the cached IR for a &lt;method,context&gt; pair */
   public void invalidateIR(IMethod method, Context c) {
     irCache.invalidate(method, c);
   }
 
-  /**
-   * Invalidate the cached {@link DefUse} for a <method,context> pair
-   */
+  /** Invalidate the cached {@link DefUse} for a &lt;method,context&gt; pair */
   public void invalidateDU(IMethod method, Context c) {
     duCache.invalidate(method, c);
   }
 
-  /**
-   * Invalidate all cached information for a <method,context> pair
-   */
+  /** Invalidate all cached information for a &lt;method,context&gt; pair */
   public void invalidate(IMethod method, Context c) {
     invalidateIR(method, c);
     invalidateDU(method, c);

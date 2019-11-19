@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2002 - 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,12 +7,8 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.escape;
-
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Iterator;
 
 import com.ibm.wala.ssa.DefUse;
 import com.ibm.wala.ssa.IR;
@@ -21,23 +17,24 @@ import com.ibm.wala.ssa.SSACFG;
 import com.ibm.wala.ssa.SSACFG.BasicBlock;
 import com.ibm.wala.ssa.SSAInstruction;
 import com.ibm.wala.ssa.SSAReturnInstruction;
-import com.ibm.wala.util.Predicate;
 import com.ibm.wala.util.collections.HashSetFactory;
 import com.ibm.wala.util.collections.Iterator2Collection;
 import com.ibm.wala.util.debug.Assertions;
 import com.ibm.wala.util.graph.traverse.DFS;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.function.Predicate;
 
-/**
- * Intraprocedural SSA-based live range analysis. This is horribly inefficient.
- * 
- */
+/** Intraprocedural SSA-based live range analysis. This is horribly inefficient. */
 public class LocalLiveRangeAnalysis {
 
   /**
    * Is the variable with value number v live immediately after a particular instruction index?
-   * 
-   * Algorithm: returns true if there is a path from pc to some use of v that does not traverse the def of v
-   * 
+   *
+   * <p>Algorithm: returns true if there is a path from pc to some use of v that does not traverse
+   * the def of v
+   *
    * @param instructionIndex index of an instruction in the IR
    * @throws IllegalArgumentException if du is null
    */
@@ -45,7 +42,7 @@ public class LocalLiveRangeAnalysis {
     if (du == null) {
       throw new IllegalArgumentException("du is null");
     }
-    if (du.getNumberOfUses(v) == 0) {
+    if (du.isUnused(v)) {
       return false;
     }
     if (instructionIndex < 0) {
@@ -57,17 +54,15 @@ public class LocalLiveRangeAnalysis {
     final Collection<BasicBlock> uses = findBlocks(ir, du.getUses(v));
 
     // a filter which accepts everything but the block which defs v
-    Predicate notDef = new Predicate() {
-      @Override public boolean test(Object o) {
-        return (defBlock == null || !defBlock.equals(o));
-      }
-    };
+    Predicate<Object> notDef = o -> (defBlock == null || !defBlock.equals(o));
 
     if (defBlock != null && defBlock.equals(queryBlock)) {
       // for now, conservatively say it's live. fix this later if necessary.
       return true;
     } else {
-      Collection reached = DFS.getReachableNodes(ir.getControlFlowGraph(), Collections.singleton(queryBlock), notDef);
+      Collection<ISSABasicBlock> reached =
+          DFS.getReachableNodes(
+              ir.getControlFlowGraph(), Collections.singleton(queryBlock), notDef);
       uses.retainAll(reached);
       if (uses.isEmpty()) {
         return false;
@@ -93,16 +88,14 @@ public class LocalLiveRangeAnalysis {
     }
   }
 
-  /**
-   * @param statements Iterator<SSAInstruction>
-   */
+  /** @param statements {@code Iterator<SSAInstruction>} */
   private static Collection<BasicBlock> findBlocks(IR ir, Iterator<SSAInstruction> statements) {
     Collection<SSAInstruction> s = Iterator2Collection.toSet(statements);
     Collection<BasicBlock> result = HashSetFactory.make();
-    outer: for (Iterator it = ir.getControlFlowGraph().iterator(); it.hasNext();) {
-      SSACFG.BasicBlock b = (SSACFG.BasicBlock) it.next();
-      for (Iterator it2 = b.iterator(); it2.hasNext();) {
-        SSAInstruction x = (SSAInstruction) it2.next();
+    outer:
+    for (ISSABasicBlock issaBasicBlock : ir.getControlFlowGraph()) {
+      SSACFG.BasicBlock b = (SSACFG.BasicBlock) issaBasicBlock;
+      for (SSAInstruction x : b) {
         if (s.contains(x)) {
           result.add(b);
           continue outer;
@@ -117,17 +110,16 @@ public class LocalLiveRangeAnalysis {
 
   /**
    * This is horribly inefficient.
-   * 
+   *
    * @return the basic block which contains the instruction
    */
   private static SSACFG.BasicBlock findBlock(IR ir, SSAInstruction s) {
     if (s == null) {
       Assertions.UNREACHABLE();
     }
-    for (Iterator it = ir.getControlFlowGraph().iterator(); it.hasNext();) {
-      SSACFG.BasicBlock b = (SSACFG.BasicBlock) it.next();
-      for (Iterator it2 = b.iterator(); it2.hasNext();) {
-        SSAInstruction x = (SSAInstruction) it2.next();
+    for (ISSABasicBlock issaBasicBlock : ir.getControlFlowGraph()) {
+      SSACFG.BasicBlock b = (SSACFG.BasicBlock) issaBasicBlock;
+      for (SSAInstruction x : b) {
         if (s.equals(x)) {
           return b;
         }
@@ -139,12 +131,12 @@ public class LocalLiveRangeAnalysis {
 
   /**
    * This is horribly inefficient.
-   * 
+   *
    * @return the basic block which contains the ith instruction
    */
   private static ISSABasicBlock findBlock(IR ir, int i) {
-    for (Iterator it = ir.getControlFlowGraph().iterator(); it.hasNext();) {
-      SSACFG.BasicBlock b = (SSACFG.BasicBlock) it.next();
+    for (ISSABasicBlock issaBasicBlock : ir.getControlFlowGraph()) {
+      SSACFG.BasicBlock b = (SSACFG.BasicBlock) issaBasicBlock;
       if (i >= b.getFirstInstructionIndex() && i <= b.getLastInstructionIndex()) {
         return b;
       }
@@ -152,5 +144,4 @@ public class LocalLiveRangeAnalysis {
     Assertions.UNREACHABLE("no block for " + i + " in IR " + ir);
     return null;
   }
-
 }

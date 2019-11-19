@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2002,2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,14 +7,8 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.shrikeBT.analysis;
-
-import java.io.IOException;
-import java.io.Writer;
-import java.util.ArrayList;
-import java.util.BitSet;
-import java.util.List;
 
 import com.ibm.wala.shrikeBT.Constants;
 import com.ibm.wala.shrikeBT.DupInstruction;
@@ -30,10 +24,14 @@ import com.ibm.wala.shrikeBT.NewInstruction;
 import com.ibm.wala.shrikeBT.StoreInstruction;
 import com.ibm.wala.shrikeBT.SwapInstruction;
 import com.ibm.wala.shrikeBT.Util;
+import java.io.IOException;
+import java.io.Writer;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.BitSet;
+import java.util.List;
 
-/**
- * @author roca
- */
+/** @author roca */
 public class Analyzer {
 
   public static final String thisType = "THIS";
@@ -41,17 +39,17 @@ public class Analyzer {
   public static final String topType = "TOP";
 
   // inputs
-  final protected boolean isConstructor;
-  
-  final protected boolean isStatic;
+  protected final boolean isConstructor;
 
-  final protected String classType;
+  protected final boolean isStatic;
 
-  final protected String signature;
+  protected final String classType;
 
-  final protected IInstruction[] instructions;
+  protected final String signature;
 
-  final protected ExceptionHandler[][] handlers;
+  protected final IInstruction[] instructions;
+
+  protected final ExceptionHandler[][] handlers;
 
   protected ClassHierarchyProvider hierarchy;
 
@@ -73,12 +71,20 @@ public class Analyzer {
   protected int[] instToBC;
 
   protected String[][] varTypes;
-  
-  protected final static String[] noStrings = new String[0];
 
-  protected final static int[] noEdges = new int[0];
+  protected static final String[] noStrings = new String[0];
 
-  public Analyzer(boolean isConstructor, boolean isStatic, String classType, String signature, IInstruction[] instructions, ExceptionHandler[][] handlers, int[] instToBC, String[][] vars) {
+  protected static final int[] noEdges = new int[0];
+
+  public Analyzer(
+      boolean isConstructor,
+      boolean isStatic,
+      String classType,
+      String signature,
+      IInstruction[] instructions,
+      ExceptionHandler[][] handlers,
+      int[] instToBC,
+      String[][] vars) {
     if (instructions == null) {
       throw new IllegalArgumentException("null instructions");
     }
@@ -101,17 +107,17 @@ public class Analyzer {
   }
 
   /**
-   * Use class hierarchy information in 'h'. If this method is not called or h provides only partial hierarchy information, the
-   * verifier behaves optimistically.
+   * Use class hierarchy information in 'h'. If this method is not called or h provides only partial
+   * hierarchy information, the verifier behaves optimistically.
    */
-  final public void setClassHierarchy(ClassHierarchyProvider h) {
+  public final void setClassHierarchy(ClassHierarchyProvider h) {
     this.hierarchy = h;
   }
 
   private void addBackEdge(int from, int to) {
     int[] oldEdges = backEdges[from];
     if (oldEdges == null) {
-      backEdges[from] = new int[] { to };
+      backEdges[from] = new int[] {to};
     } else if (oldEdges[oldEdges.length - 1] < 0) {
       int left = 1;
       int right = oldEdges.length - 1;
@@ -120,8 +126,7 @@ public class Analyzer {
           if (oldEdges[left] < 0) {
             break;
           } else {
-            if (oldEdges[right] >= 0)
-              throw new Error("Failed binary search");
+            if (oldEdges[right] >= 0) throw new Error("Failed binary search");
             left = right;
             break;
           }
@@ -136,8 +141,7 @@ public class Analyzer {
       }
       oldEdges[left] = to;
     } else {
-      int[] newEdges = new int[oldEdges.length * 2];
-      System.arraycopy(oldEdges, 0, newEdges, 0, oldEdges.length);
+      int[] newEdges = Arrays.copyOf(oldEdges, oldEdges.length * 2);
       newEdges[oldEdges.length] = to;
       for (int i = oldEdges.length + 1; i < newEdges.length; i++) {
         newEdges[i] = -1;
@@ -146,7 +150,7 @@ public class Analyzer {
     }
   }
 
-  final public int[][] getBackEdges() {
+  public final int[][] getBackEdges() {
     if (backEdges != null) {
       return backEdges;
     }
@@ -156,12 +160,12 @@ public class Analyzer {
     for (int i = 0; i < instructions.length; i++) {
       IInstruction instr = instructions[i];
       int[] targets = instr.getBranchTargets();
-      for (int j = 0; j < targets.length; j++) {
-        addBackEdge(targets[j], i);
+      for (int target : targets) {
+        addBackEdge(target, i);
       }
       ExceptionHandler[] hs = handlers[i];
-      for (int j = 0; j < hs.length; j++) {
-        addBackEdge(hs[j].getHandler(), i);
+      for (ExceptionHandler element : hs) {
+        addBackEdge(element.getHandler(), i);
       }
     }
 
@@ -192,20 +196,20 @@ public class Analyzer {
       return t;
     }
   }
-  
-  final public boolean isSubtypeOf(String t1, String t2) {
+
+  public final boolean isSubtypeOf(String t1, String t2) {
     return ClassHierarchy.isSubtypeOf(hierarchy, patchType(t1), patchType(t2)) != ClassHierarchy.NO;
   }
 
   private static boolean isPrimitive(String type) {
     return type != null && (!type.startsWith("L") && !type.startsWith("["));
   }
-  
-  final public String findCommonSupertype(String t1, String t2) {
+
+  public final String findCommonSupertype(String t1, String t2) {
     if (String.valueOf(t1).equals(String.valueOf(t2))) {
       return t1;
     }
-    
+
     if (String.valueOf(t1).equals("L;") || String.valueOf(t2).equals("L;")) {
       if (String.valueOf(t1).equals("L;")) {
         return t2;
@@ -213,21 +217,21 @@ public class Analyzer {
         return t1;
       }
     }
-    
+
     if (t1 == thisType || t2 == thisType || t1 == topType || t2 == topType) {
       return topType;
     }
-    
+
     if (isPrimitive(t1) != isPrimitive(t2)) {
       return topType;
     }
-    
+
     String x = ClassHierarchy.findCommonSupertype(hierarchy, patchType(t1), patchType(t2));
 
     return x;
   }
 
-  final public BitSet getBasicBlockStarts() {
+  public final BitSet getBasicBlockStarts() {
     if (basicBlockStarts != null) {
       return basicBlockStarts;
     }
@@ -235,18 +239,17 @@ public class Analyzer {
     BitSet r = new BitSet(instructions.length);
 
     r.set(0);
-    for (int i = 0; i < instructions.length; i++) {
-      int[] targets = instructions[i].getBranchTargets();
+    for (IInstruction instruction : instructions) {
+      int[] targets = instruction.getBranchTargets();
 
-      for (int j = 0; j < targets.length; j++) {
-        r.set(targets[j]);
+      for (int target : targets) {
+        r.set(target);
       }
     }
-    for (int i = 0; i < handlers.length; i++) {
-      ExceptionHandler[] hs = handlers[i];
+    for (ExceptionHandler[] hs : handlers) {
       if (hs != null) {
-        for (int j = 0; j < hs.length; j++) {
-          r.set(hs[j].getHandler());
+        for (ExceptionHandler element : hs) {
+          r.set(element.getHandler());
         }
       }
     }
@@ -255,11 +258,12 @@ public class Analyzer {
     return r;
   }
 
-  final public IInstruction[] getInstructions() {
+  public final IInstruction[] getInstructions() {
     return instructions;
   }
 
-  private void getReachableRecursive(int from, BitSet reachable, boolean followHandlers, BitSet mask)
+  private void getReachableRecursive(
+      int from, BitSet reachable, boolean followHandlers, BitSet mask)
       throws IllegalArgumentException {
     if (from < 0) {
       throw new IllegalArgumentException("from < 0");
@@ -275,14 +279,14 @@ public class Analyzer {
 
       IInstruction instr = instructions[from];
       int[] targets = instr.getBranchTargets();
-      for (int i = 0; i < targets.length; i++) {
-        getReachableRecursive(targets[i], reachable, followHandlers, mask);
+      for (int target : targets) {
+        getReachableRecursive(target, reachable, followHandlers, mask);
       }
 
       if (followHandlers) {
         ExceptionHandler[] hs = handlers[from];
-        for (int i = 0; i < hs.length; i++) {
-          getReachableRecursive(hs[i].getHandler(), reachable, followHandlers, mask);
+        for (ExceptionHandler element : hs) {
+          getReachableRecursive(element.getHandler(), reachable, followHandlers, mask);
         }
       }
 
@@ -295,11 +299,12 @@ public class Analyzer {
     }
   }
 
-  final public BitSet getReachableFrom(int from) {
+  public final BitSet getReachableFrom(int from) {
     return getReachableFrom(from, true, null);
   }
 
-  final public void getReachableFromUpdate(int from, BitSet reachable, boolean followHandlers, BitSet mask) {
+  public final void getReachableFromUpdate(
+      int from, BitSet reachable, boolean followHandlers, BitSet mask) {
     if (reachable == null) {
       throw new IllegalArgumentException("reachable is null");
     }
@@ -307,7 +312,7 @@ public class Analyzer {
     getReachableRecursive(from, reachable, followHandlers, mask);
   }
 
-  final public BitSet getReachableFrom(int from, boolean followHandlers, BitSet mask) {
+  public final BitSet getReachableFrom(int from, boolean followHandlers, BitSet mask) {
     BitSet reachable = new BitSet();
     getReachableRecursive(from, reachable, followHandlers, mask);
     return reachable;
@@ -324,8 +329,8 @@ public class Analyzer {
       reaching.set(to);
 
       int[] targets = backEdges[to];
-      for (int i = 0; i < targets.length; i++) {
-        getReachingRecursive(targets[i], reaching, mask);
+      for (int target : targets) {
+        getReachingRecursive(target, reaching, mask);
       }
 
       if (to > 0 && instructions[to - 1].isFallThrough()) {
@@ -339,8 +344,8 @@ public class Analyzer {
 
   private void getReachingBase(int to, BitSet reaching, BitSet mask) {
     int[] targets = backEdges[to];
-    for (int i = 0; i < targets.length; i++) {
-      getReachingRecursive(targets[i], reaching, mask);
+    for (int target : targets) {
+      getReachingRecursive(target, reaching, mask);
     }
 
     if (to > 0 && instructions[to - 1].isFallThrough()) {
@@ -348,7 +353,7 @@ public class Analyzer {
     }
   }
 
-  final public void getReachingToUpdate(int to, BitSet reaching, BitSet mask) {
+  public final void getReachingToUpdate(int to, BitSet reaching, BitSet mask) {
     if (reaching == null) {
       throw new IllegalArgumentException("reaching is null");
     }
@@ -390,12 +395,12 @@ public class Analyzer {
       }
 
       int[] targets = instr.getBranchTargets();
-      for (int j = 0; j < targets.length; j++) {
-        computeStackSizesAt(stackSizes, targets[j], size);
+      for (int target : targets) {
+        computeStackSizesAt(stackSizes, target, size);
       }
       ExceptionHandler[] hs = handlers[i];
-      for (int j = 0; j < hs.length; j++) {
-        computeStackSizesAt(stackSizes, hs[j].getHandler(), 1);
+      for (ExceptionHandler element : hs) {
+        computeStackSizesAt(stackSizes, element.getHandler(), 1);
       }
 
       if (!instr.isFallThrough()) {
@@ -405,16 +410,14 @@ public class Analyzer {
     }
   }
 
-  /**
-   * This exception is thrown by verify() when it fails.
-   */
+  /** This exception is thrown by verify() when it fails. */
   public static final class FailureException extends Exception {
 
     private static final long serialVersionUID = -7663520961403117526L;
 
-    final private int offset;
+    private final int offset;
 
-    final private String reason;
+    private final String reason;
 
     private List<PathElement> path;
 
@@ -425,23 +428,19 @@ public class Analyzer {
       this.path = path;
     }
 
-    /**
-     * @return the index of the Instruction which failed to verify
-     */
+    /** @return the index of the Instruction which failed to verify */
     public int getOffset() {
       return offset;
     }
 
-    /**
-     * @return a description of the reason why verification failed
-     */
+    /** @return a description of the reason why verification failed */
     public String getReason() {
       return reason;
     }
 
     /**
-     * @return a list of PathElements describing how the type that caused the error was propagated from its origin to the point of
-     *         the error
+     * @return a list of PathElements describing how the type that caused the error was propagated
+     *     from its origin to the point of the error
      */
     public List<PathElement> getPath() {
       return path;
@@ -451,13 +450,10 @@ public class Analyzer {
       this.path = path;
     }
 
-    /**
-     * Print the path to the given stream, if there is one.
-     */
+    /** Print the path to the given stream, if there is one. */
     public void printPath(Writer w) throws IOException {
       if (path != null) {
-        for (int i = 0; i < path.size(); i++) {
-          PathElement elem = path.get(i);
+        for (PathElement elem : path) {
           String[] stack = elem.stack;
           String[] locals = elem.locals;
           w.write("Offset " + elem.index + ": [");
@@ -493,23 +489,17 @@ public class Analyzer {
       this.index = index;
     }
 
-    /**
-     * @return the bytecode offset of the instruction causing a value transfer.
-     */
+    /** @return the bytecode offset of the instruction causing a value transfer. */
     public int getIndex() {
       return index;
     }
 
-    /**
-     * @return the types of the local variabls at the instruction.
-     */
+    /** @return the types of the local variabls at the instruction. */
     public String[] getLocals() {
       return locals;
     }
 
-    /**
-     * @return the types of the working stack at the instruction.
-     */
+    /** @return the types of the working stack at the instruction. */
     public String[] getStack() {
       return stack;
     }
@@ -525,18 +515,25 @@ public class Analyzer {
     }
   }
 
-  private boolean mergeTypes(int i, String[] curStack, int curStackSize, String[] curLocals, int curLocalsSize,
-      List<PathElement> path) throws FailureException {
+  private boolean mergeTypes(
+      int i,
+      String[] curStack,
+      int curStackSize,
+      String[] curLocals,
+      int curLocalsSize,
+      List<PathElement> path)
+      throws FailureException {
     boolean a = mergeStackTypes(i, curStack, curStackSize, path);
     boolean b = mergeLocalTypes(i, curLocals, curLocalsSize);
-    return a||b;
+    return a || b;
   }
-  
+
   private static boolean longType(String type) {
     return Constants.TYPE_long.equals(type) || Constants.TYPE_double.equals(type);
   }
-  
-  private boolean mergeStackTypes(int i, String[] curStack, int curStackSize, List<PathElement> path) throws FailureException {
+
+  private boolean mergeStackTypes(
+      int i, String[] curStack, int curStackSize, List<PathElement> path) throws FailureException {
     boolean changed = false;
 
     if (stacks[i] == null) {
@@ -545,13 +542,15 @@ public class Analyzer {
     } else {
       String[] st = stacks[i];
       if (st.length != curStackSize) {
-        throw new FailureException(i, "Stack size mismatch: " + st.length + ", " + curStackSize, path);
+        throw new FailureException(
+            i, "Stack size mismatch: " + st.length + ", " + curStackSize, path);
       }
       for (int j = 0; j < curStackSize; j++) {
         String t = findCommonSupertype(st[j], curStack[j]);
         if (t != st[j]) {
           if (t == null) {
-            throw new FailureException(i, "Stack type mismatch at " + j + " (" + st[j] + " vs " + curStack[j] + ")", path);
+            throw new FailureException(
+                i, "Stack type mismatch at " + j + " (" + st[j] + " vs " + curStack[j] + ')', path);
           }
           st[j] = t;
           changed = true;
@@ -583,13 +582,12 @@ public class Analyzer {
   }
 
   public static String stripSharp(String type) {
-    return type.substring(type.lastIndexOf('#')+1);
+    return type.substring(type.lastIndexOf('#') + 1);
   }
-  
-  /**
-   * A PathElement describes a point where a value is moved from one location to another.
-   */
-  private void computeTypes(int i, TypeVisitor visitor, BitSet makeTypesAt, List<PathElement> path) throws FailureException {
+
+  /** A PathElement describes a point where a value is moved from one location to another. */
+  private void computeTypes(int i, TypeVisitor visitor, BitSet makeTypesAt, List<PathElement> path)
+      throws FailureException {
     final String[] curStack = new String[maxStack];
     final String[] curLocals = new String[maxLocals];
 
@@ -601,57 +599,63 @@ public class Analyzer {
       int curStackSize = stacks[i].length;
       System.arraycopy(stacks[i], 0, curStack, 0, curStackSize);
 
-      final int[] curLocalsSize = { locals[i].length };
+      final int[] curLocalsSize = {locals[i].length};
       System.arraycopy(locals[i], 0, curLocals, 0, curLocalsSize[0]);
 
-      IInstruction.Visitor localsUpdate = new IInstruction.Visitor() {
-        
-        @Override
-        public void visitInvoke(IInvokeInstruction instruction) {
-          if (instruction.getInvocationCode() == Dispatch.SPECIAL) {
-            if (instruction.getMethodName().equals("<init>")) {
-              int sz = Util.getParamsTypes(instruction.getClassType(), instruction.getMethodSignature()).length;
-                
-              if (isConstructor) {
-                if (thisType.equals(curStack[ sz-1 ])) {
-                  for(int i = 0; i < curLocals.length; i++) {
-                    if (thisType.equals(curLocals[i])) {
-                      curLocals[i] = classType;
+      IInstruction.Visitor localsUpdate =
+          new IInstruction.Visitor() {
+
+            @Override
+            public void visitInvoke(IInvokeInstruction instruction) {
+              if (instruction.getInvocationCode() == Dispatch.SPECIAL) {
+                if (instruction.getMethodName().equals("<init>")) {
+                  int sz =
+                      Util.getParamsTypes(
+                              instruction.getClassType(), instruction.getMethodSignature())
+                          .length;
+
+                  if (isConstructor) {
+                    if (thisType.equals(curStack[sz - 1])) {
+                      for (int i = 0; i < curLocals.length; i++) {
+                        if (thisType.equals(curLocals[i])) {
+                          curLocals[i] = classType;
+                        }
+                      }
+                      for (int i = 0; i < curStack.length; i++) {
+                        if (thisType.equals(curStack[i])) {
+                          curStack[i] = classType;
+                        }
+                      }
                     }
                   }
-                  for(int i = 0; i < curStack.length; i++) {
-                    if (thisType.equals(curStack[i])) {
-                      curStack[i] = classType;
-                    }
+                  if (curStack.length > sz
+                      && curStack[sz] != null
+                      && curStack[sz].startsWith("#")) {
+                    curStack[sz] = stripSharp(curStack[sz]);
                   }
                 }
               }
-              if (curStack.length > sz && curStack[sz] != null && curStack[sz].startsWith("#")) {
-                curStack[sz] = stripSharp(curStack[sz]);
+            }
+
+            @Override
+            public void visitLocalLoad(ILoadInstruction instruction) {
+              String t = curLocals[instruction.getVarIndex()];
+              curStack[0] = t;
+            }
+
+            @Override
+            public void visitLocalStore(IStoreInstruction instruction) {
+              int index = instruction.getVarIndex();
+              String t = curStack[0];
+              curLocals[index] = t;
+              if (longType(t) && curLocals.length > index + 1) {
+                curLocals[index + 1] = null;
+              }
+              if (index >= curLocalsSize[0]) {
+                curLocalsSize[0] = index + (longType(t) && curLocals.length > index + 1 ? 2 : 1);
               }
             }
-          }
-        }
-
-        @Override
-        public void visitLocalLoad(ILoadInstruction instruction) {
-          String t = curLocals[instruction.getVarIndex()];
-          curStack[0] = t;
-        }
-
-        @Override
-        public void visitLocalStore(IStoreInstruction instruction) {
-          int index = instruction.getVarIndex();
-          String t = curStack[0];
-          curLocals[index] = t;
-          if (longType(t) && curLocals.length > index+1) {
-            curLocals[index+1] = null;
-          }
-          if (index >= curLocalsSize[0]) {
-            curLocalsSize[0] = index + (longType(t) && curLocals.length > index+1? 2: 1);
-          }
-        }
-      };
+          };
 
       boolean restart = false;
       while (true) {
@@ -682,9 +686,10 @@ public class Analyzer {
           curStack[0] = curStack[1];
           curStack[1] = s;
         } else {
+          @SuppressWarnings("NonConstantStringShouldBeStringBuffer")
           String pushed = instr.getPushedType(curStack);
-          if (instr instanceof NewInstruction && ! pushed.startsWith("[")) {
-            pushed = "#" + instToBC[i] + "#" + pushed;
+          if (instr instanceof NewInstruction && !pushed.startsWith("[")) {
+            pushed = "#" + instToBC[i] + '#' + pushed;
           }
           if (pushed != null) {
             System.arraycopy(curStack, popped, curStack, 1, curStackSize - popped);
@@ -695,46 +700,49 @@ public class Analyzer {
             instr.visit(localsUpdate); // visit localStore before popping
             System.arraycopy(curStack, popped, curStack, 0, curStackSize - popped);
             curStackSize -= popped;
-            
+
             if (varTypes != null) {
-            if (instr instanceof IStoreInstruction) {
-              int local = ((IStoreInstruction)instr).getVarIndex();
-              if (Constants.TYPE_null.equals(curLocals[local])) {
-                for(int idx : new int[]{i, i+1}) {
-                  int bc = instToBC[idx];
-                  if (bc == 667 && local == 16) {
-                    System.err.println("got here");
-                  }
-                  if (bc != -1 && varTypes != null && varTypes.length > bc && varTypes[bc] != null) {
-                    if (varTypes[bc].length > local && varTypes[bc][local] != null) {
-                      String declaredType = varTypes[bc][local];
-                      curLocals[local] = declaredType;
+              if (instr instanceof IStoreInstruction) {
+                int local = ((IStoreInstruction) instr).getVarIndex();
+                if (Constants.TYPE_null.equals(curLocals[local])) {
+                  for (int idx : new int[] {i, i + 1}) {
+                    int bc = instToBC[idx];
+                    if (bc == 667 && local == 16) {
+                      System.err.println("got here");
+                    }
+                    if (bc != -1
+                        && varTypes != null
+                        && varTypes.length > bc
+                        && varTypes[bc] != null) {
+                      if (varTypes[bc].length > local && varTypes[bc][local] != null) {
+                        String declaredType = varTypes[bc][local];
+                        curLocals[local] = declaredType;
+                      }
                     }
                   }
                 }
               }
             }
-            }
           }
         }
 
         ExceptionHandler[] handler = handlers[i];
-        for(int h = 0; h < handler.length; h++) {
-          int target = handler[h].getHandler();
-          String cls = handler[h].getCatchClass();
+        for (ExceptionHandler element : handler) {
+          int target = element.getHandler();
+          String cls = element.getCatchClass();
           if (cls == null) {
             cls = "Ljava/lang/Throwable;";
           }
-          String[] catchStack = new String[]{ cls };
-          if (mergeTypes(target, catchStack, 1, curLocals, curLocalsSize[0], path)) { 
-            computeTypes(target, visitor, makeTypesAt, path);            
+          String[] catchStack = new String[] {cls};
+          if (mergeTypes(target, catchStack, 1, curLocals, curLocalsSize[0], path)) {
+            computeTypes(target, visitor, makeTypesAt, path);
           }
         }
-        
+
         int[] targets = instr.getBranchTargets();
-        for (int j = 0; j < targets.length; j++) {
-          if (mergeTypes(targets[j], curStack, curStackSize, curLocals, curLocalsSize[0], path)) {
-            computeTypes(targets[j], visitor, makeTypesAt, path);
+        for (int target : targets) {
+          if (mergeTypes(target, curStack, curStackSize, curLocals, curLocalsSize[0], path)) {
+            computeTypes(target, visitor, makeTypesAt, path);
           }
         }
 
@@ -770,9 +778,7 @@ public class Analyzer {
 
     stackSizes = new int[instructions.length];
 
-    for (int i = 0; i < stackSizes.length; i++) {
-      stackSizes[i] = -1;
-    }
+    Arrays.fill(stackSizes, -1);
     computeStackSizesAt(stackSizes, 0, 0);
 
     return stackSizes;
@@ -780,8 +786,7 @@ public class Analyzer {
 
   private void computeMaxLocals() {
     maxLocals = locals[0].length;
-    for (int i = 0; i < instructions.length; i++) {
-      IInstruction instr = instructions[i];
+    for (IInstruction instr : instructions) {
       if (instr instanceof LoadInstruction) {
         maxLocals = Math.max(maxLocals, ((LoadInstruction) instr).getVarIndex() + 1);
       } else if (instr instanceof StoreInstruction) {
@@ -790,7 +795,7 @@ public class Analyzer {
     }
   }
 
-  final protected void initTypeInfo() throws FailureException {
+  protected final void initTypeInfo() throws FailureException {
     stacks = new String[instructions.length][];
     locals = new String[instructions.length][];
 
@@ -800,11 +805,11 @@ public class Analyzer {
     } else {
       thisType = classType;
     }
-    
+
     stacks[0] = noStrings;
     locals[0] = Util.getParamsTypesInLocals(isStatic ? null : thisType, signature);
     if (isConstructor) {
-      for(int i = 0; i < locals[0].length; i++) {
+      for (int i = 0; i < locals[0].length; i++) {
         if (classType.equals(locals[0][i])) {
           locals[0][i] = thisType;
         }
@@ -812,50 +817,69 @@ public class Analyzer {
     }
     int[] stackSizes = getStackSizes();
     maxStack = 0;
-    for (int i = 0; i < stackSizes.length; i++) {
-      maxStack = Math.max(maxStack, stackSizes[i]);
+    for (int stackSize : stackSizes) {
+      maxStack = Math.max(maxStack, stackSize);
     }
     computeMaxLocals();
   }
 
   /**
    * Verify the method and compute types at every program point.
-   * 
+   *
    * @throws FailureException the method contains invalid bytecode
    */
-  final public void computeTypes(TypeVisitor v, BitSet makeTypesAt, boolean wantPath) throws FailureException {
+  public final void computeTypes(TypeVisitor v, BitSet makeTypesAt, boolean wantPath)
+      throws FailureException {
     initTypeInfo();
-    computeTypes(0, v, makeTypesAt, wantPath ? new ArrayList<PathElement>() : null);
+    computeTypes(0, v, makeTypesAt, wantPath ? new ArrayList<>() : null);
   }
 
-  public abstract class TypeVisitor extends IInstruction.Visitor {
-    public abstract void setState(int index, List<PathElement> path, String[] curStack, String[] curLocals);
+  public abstract static class TypeVisitor extends IInstruction.Visitor {
+    public abstract void setState(
+        int index, List<PathElement> path, String[] curStack, String[] curLocals);
 
     public abstract boolean shouldContinue();
   }
 
   /**
-   * @return an array indexed by instruction index; each entry is an array of Strings giving the types of the locals at that
-   *         instruction.
+   * @return an array indexed by instruction index; each entry is an array of Strings giving the
+   *     types of the locals at that instruction.
    */
-  final public String[][] getLocalTypes() {
+  public final String[][] getLocalTypes() {
     return locals;
   }
 
   /**
-   * @return an array indexed by instruction index; each entry is an array of Strings giving the types of the stack elements at that
-   *         instruction. The top of the stack is the last element of the array.
+   * @return an array indexed by instruction index; each entry is an array of Strings giving the
+   *     types of the stack elements at that instruction. The top of the stack is the last element
+   *     of the array.
    */
-  final public String[][] getStackTypes() {
+  public final String[][] getStackTypes() {
     return stacks;
   }
 
   protected Analyzer(MethodData info) {
-    this(info.getName().equals("<init>"), info.getIsStatic(), info.getClassType(), info.getSignature(), info.getInstructions(), info.getHandlers(), info.getInstructionsToBytecodes(), null);
+    this(
+        info.getName().equals("<init>"),
+        info.getIsStatic(),
+        info.getClassType(),
+        info.getSignature(),
+        info.getInstructions(),
+        info.getHandlers(),
+        info.getInstructionsToBytecodes(),
+        null);
   }
 
   protected Analyzer(MethodData info, int[] instToBC, String[][] vars) {
-    this(info.getName().equals("<init>"), info.getIsStatic(), info.getClassType(), info.getSignature(), info.getInstructions(), info.getHandlers(), instToBC, vars);
+    this(
+        info.getName().equals("<init>"),
+        info.getIsStatic(),
+        info.getClassType(),
+        info.getSignature(),
+        info.getInstructions(),
+        info.getHandlers(),
+        instToBC,
+        vars);
   }
 
   public static Analyzer createAnalyzer(MethodData info) {
@@ -864,5 +888,4 @@ public class Analyzer {
     }
     return new Analyzer(info);
   }
-
 }

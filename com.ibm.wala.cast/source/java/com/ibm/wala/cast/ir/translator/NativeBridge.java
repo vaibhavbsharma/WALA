@@ -1,4 +1,4 @@
-/******************************************************************************
+/*
  * Copyright (c) 2002 - 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,14 +7,14 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *****************************************************************************/
+ */
 package com.ibm.wala.cast.ir.translator;
 
 import com.ibm.wala.cast.tree.CAst;
 
 /**
- * superclass for CAst parsers / translators making use of native code. performs
- * initialization of the core CAst native library.
+ * superclass for CAst parsers / translators making use of native code. performs initialization of
+ * the core CAst native library.
  */
 public abstract class NativeBridge {
 
@@ -23,5 +23,4 @@ public abstract class NativeBridge {
   protected NativeBridge(CAst Ast) {
     this.Ast = Ast;
   }
-
 }

@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2013 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,18 +7,16 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.cast.js.util;
-
-import java.util.Iterator;
 
 import com.ibm.wala.cast.js.ssa.PrototypeLookup;
 import com.ibm.wala.ssa.DefUse;
 import com.ibm.wala.ssa.IR;
 import com.ibm.wala.ssa.SSAInstruction;
 import com.ibm.wala.ssa.SSAPhiInstruction;
+import com.ibm.wala.util.collections.Iterator2Iterable;
 import com.ibm.wala.util.intset.IntSet;
-import com.ibm.wala.util.intset.IntSetAction;
 import com.ibm.wala.util.intset.IntSetUtil;
 import com.ibm.wala.util.intset.MutableIntSet;
 
@@ -30,32 +28,29 @@ public class Util {
     if (originalArgsVn == -1) {
       return result;
     }
-    
+
     result.add(originalArgsVn);
-    int size; 
+    int size;
     do {
       size = result.size();
-      result.foreach(new IntSetAction() {
-        @Override
-        public void act(int vn) {
-          for(Iterator<SSAInstruction> insts = du.getUses(vn); insts.hasNext(); ) {
-            SSAInstruction inst = insts.next();
-            if (inst instanceof PrototypeLookup || inst instanceof SSAPhiInstruction) {
-              result.add(inst.getDef());
+      result.foreach(
+          vn -> {
+            for (SSAInstruction inst : Iterator2Iterable.make(du.getUses(vn))) {
+              if (inst instanceof PrototypeLookup || inst instanceof SSAPhiInstruction) {
+                result.add(inst.getDef());
+              }
             }
-          }
-        }
-      });
+          });
     } while (size != result.size());
-    
+
     return result;
   }
-  
+
   public static int getArgumentsArrayVn(IR ir) {
-    for(int i = 0; i < ir.getInstructions().length; i++) {
+    for (int i = 0; i < ir.getInstructions().length; i++) {
       SSAInstruction inst = ir.getInstructions()[i];
       if (inst != null) {
-        for(int v = 0; v < inst.getNumberOfUses(); v++) {
+        for (int v = 0; v < inst.getNumberOfUses(); v++) {
           String[] names = ir.getLocalNames(i, inst.getUse(v));
           if (names != null && names.length == 1 && "arguments".equals(names[0])) {
             return inst.getUse(v);
@@ -63,9 +58,7 @@ public class Util {
         }
       }
     }
-    
+
     return -1;
   }
-  
-
 }

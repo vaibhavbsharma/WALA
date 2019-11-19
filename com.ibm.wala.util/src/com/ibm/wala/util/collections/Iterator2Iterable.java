@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2007 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,14 +7,12 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.util.collections;
 
 import java.util.Iterator;
 
-/**
- * Converts an {@link Iterator} to an {@link Iterable}.
- */
+/** Converts an {@link Iterator} to an {@link Iterable}. */
 public class Iterator2Iterable<T> implements Iterable<T> {
 
   private final Iterator<T> iter;
@@ -31,5 +29,4 @@ public class Iterator2Iterable<T> implements Iterable<T> {
   public Iterator<T> iterator() {
     return iter;
   }
-
 }

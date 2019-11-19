@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2002 - 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,7 +7,7 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 
 package com.ibm.wala.ipa.callgraph.propagation.rta;
 
@@ -17,9 +17,7 @@ import com.ibm.wala.types.Selector;
 import com.ibm.wala.util.debug.Assertions;
 import com.ibm.wala.util.debug.UnimplementedError;
 
-/**
- * This RTA implementation tracks a single set of Classes for each Selector
- */
+/** This RTA implementation tracks a single set of Classes for each Selector */
 public class RTASelectorKey implements PointerKey {
 
   private final Selector selector;
@@ -58,5 +56,4 @@ public class RTASelectorKey implements PointerKey {
     Assertions.UNREACHABLE();
     return null;
   }
-
 }

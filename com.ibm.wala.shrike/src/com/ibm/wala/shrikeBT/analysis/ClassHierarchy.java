@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2002,2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,58 +7,53 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.shrikeBT.analysis;
 
+import com.ibm.wala.shrikeBT.Constants;
 import java.util.HashSet;
 import java.util.Iterator;
 
-import com.ibm.wala.shrikeBT.Constants;
-
 /**
- * This class takes the raw information from a ClassHierarchyProvider and computes type operations (subtype check, type union). All
- * operations are static.
- * 
- * Because ClassHierarchyProvider sometimes only provides partial information, these routines sometimes answer "don't know".
+ * This class takes the raw information from a ClassHierarchyProvider and computes type operations
+ * (subtype check, type union). All operations are static.
+ *
+ * <p>Because ClassHierarchyProvider sometimes only provides partial information, these routines
+ * sometimes answer "don't know".
  */
 public final class ClassHierarchy {
-  private ClassHierarchy() {
-  }
+  private ClassHierarchy() {}
 
-  /**
-   * Equals Constants.NO
-   */
+  /** Equals Constants.NO */
   public static final int NO = Constants.NO;
 
-  /**
-   * Equals Constants.YES
-   */
+  /** Equals Constants.YES */
   public static final int YES = Constants.YES;
 
-  /**
-   * Equals Constants.MAYBE
-   */
+  /** Equals Constants.MAYBE */
   public static final int MAYBE = Constants.MAYBE;
 
-  private static int checkSuperinterfacesContain(ClassHierarchyProvider hierarchy, String t1, String t2, HashSet<String> visited) {
+  private static int checkSuperinterfacesContain(
+      ClassHierarchyProvider hierarchy, String t1, String t2, HashSet<String> visited) {
     String[] ifaces = hierarchy.getSuperInterfaces(t1);
     if (ifaces == null) {
       return MAYBE;
     }
 
     int r = NO;
-    for (int i = 0; i < ifaces.length; i++) {
-      String iface = ifaces[i];
-      if (!visited.contains(iface)) {
-        visited.add(iface);
+    for (String iface2 : ifaces) {
+      String iface = iface2;
+      if (visited.add(iface)) {
         if (iface.equals(t2)) {
           return YES;
         } else {
           int v = checkSuperinterfacesContain(hierarchy, iface, t2, visited);
-          if (v == YES) {
-            return YES;
-          } else if (v == MAYBE) {
-            r = MAYBE;
+          switch (v) {
+            case YES:
+              return YES;
+            case MAYBE:
+              r = MAYBE;
+              break;
           }
         }
       }
@@ -66,7 +61,8 @@ public final class ClassHierarchy {
     return r;
   }
 
-  private static int checkSupertypesContain(ClassHierarchyProvider hierarchy, String t1, String t2) {
+  private static int checkSupertypesContain(
+      ClassHierarchyProvider hierarchy, String t1, String t2) {
     int r = NO;
 
     String c = t1;
@@ -91,10 +87,12 @@ public final class ClassHierarchy {
 
       for (c = t1; c != null; c = hierarchy.getSuperClass(c)) {
         int v = checkSuperinterfacesContain(hierarchy, c, t2, visited);
-        if (v == YES) {
-          return YES;
-        } else if (v == MAYBE) {
-          r = MAYBE;
+        switch (v) {
+          case YES:
+            return YES;
+          case MAYBE:
+            r = MAYBE;
+            break;
         }
       }
     }
@@ -102,7 +100,8 @@ public final class ClassHierarchy {
     return r;
   }
 
-  private static int checkSubtypesContain(ClassHierarchyProvider hierarchy, String t1, String t2, HashSet<String> visited) {
+  private static int checkSubtypesContain(
+      ClassHierarchyProvider hierarchy, String t1, String t2, HashSet<String> visited) {
     // No interface is a subclass of a real class
     if (hierarchy.isInterface(t1) == NO && hierarchy.isInterface(t2) == YES) {
       return NO;
@@ -114,18 +113,19 @@ public final class ClassHierarchy {
     }
 
     int r = NO;
-    for (int i = 0; i < subtypes.length; i++) {
-      String subt = subtypes[i];
-      if (!visited.contains(subt)) {
-        visited.add(subt);
+    for (String subtype : subtypes) {
+      String subt = subtype;
+      if (visited.add(subt)) {
         if (subt.equals(t2)) {
           return YES;
         } else {
           int v = checkSubtypesContain(hierarchy, subt, t2, visited);
-          if (v == YES) {
-            return YES;
-          } else if (v == MAYBE) {
-            r = MAYBE;
+          switch (v) {
+            case YES:
+              return YES;
+            case MAYBE:
+              r = MAYBE;
+              break;
           }
         }
       }
@@ -133,13 +133,14 @@ public final class ClassHierarchy {
     return r;
   }
 
-  private static int checkSubtypeOfHierarchy(ClassHierarchyProvider hierarchy, String t1, String t2) {
+  private static int checkSubtypeOfHierarchy(
+      ClassHierarchyProvider hierarchy, String t1, String t2) {
     if (t2.equals(Constants.TYPE_Object)) {
       return YES;
     } else {
-       int v = checkSupertypesContain(hierarchy, t1, t2);
+      int v = checkSupertypesContain(hierarchy, t1, t2);
       if (v == MAYBE) {
-        v = checkSubtypesContain(hierarchy, t2, t1, new HashSet<String>());
+        v = checkSubtypesContain(hierarchy, t2, t1, new HashSet<>());
       }
       return v;
     }
@@ -147,7 +148,7 @@ public final class ClassHierarchy {
 
   /**
    * Perform subtype check.
-   * 
+   *
    * @param hierarchy the hierarchy information to use for the decision
    * @param t1 a type in JVM format
    * @param t2 a type in JVM format
@@ -162,41 +163,42 @@ public final class ClassHierarchy {
       return MAYBE;
     } else {
       switch (t1.charAt(0)) {
-      case 'L':
-        if (t1.equals(Constants.TYPE_null)) {
-          return YES;
-        } else if (t2.startsWith("[")) {
+        case 'L':
+          if (t1.equals(Constants.TYPE_null)) {
+            return YES;
+          } else if (t2.startsWith("[")) {
+            return NO;
+          } else if (hierarchy == null) {
+            return MAYBE;
+          } else {
+            return checkSubtypeOfHierarchy(hierarchy, t1, t2);
+          }
+        case '[':
+          if (t2.equals(Constants.TYPE_Object)
+              || t2.equals("Ljava/io/Serializable;")
+              || t2.equals("Ljava/lang/Cloneable;")) {
+            return YES;
+          } else if (t2.startsWith("[")) {
+            return isSubtypeOf(hierarchy, t1.substring(1), t2.substring(1));
+          } else {
+            return NO;
+          }
+        default:
           return NO;
-        } else if (hierarchy == null) {
-          return MAYBE;
-        } else {
-          return checkSubtypeOfHierarchy(hierarchy, t1, t2);
-        }
-      case '[':
-        if (t2.equals(Constants.TYPE_Object) || t2.equals("Ljava/io/Serializable;") || t2.equals("Ljava/lang/Cloneable;")) {
-          return YES;
-        } else if (t2.startsWith("[")) {
-          return isSubtypeOf(hierarchy, t1.substring(1), t2.substring(1));
-        } else {
-          return NO;
-        }
-      default:
-        return NO;
       }
     }
   }
 
-  private static boolean insertSuperInterfaces(ClassHierarchyProvider hierarchy, String t, HashSet<String> supers) {
+  private static boolean insertSuperInterfaces(
+      ClassHierarchyProvider hierarchy, String t, HashSet<String> supers) {
     String[] ifaces = hierarchy.getSuperInterfaces(t);
     if (ifaces == null) {
       return false;
     } else {
       boolean r = true;
-      for (int i = 0; i < ifaces.length; i++) {
-        String iface = ifaces[i];
-        if (!supers.contains(iface)) {
-          supers.add(iface);
-          if (!insertSuperInterfaces(hierarchy, ifaces[i], supers)) {
+      for (String iface : ifaces) {
+        if (supers.add(iface)) {
+          if (!insertSuperInterfaces(hierarchy, iface, supers)) {
             r = false;
           }
         }
@@ -205,7 +207,8 @@ public final class ClassHierarchy {
     }
   }
 
-  private static boolean insertSuperClasses(ClassHierarchyProvider hierarchy, String t, HashSet<String> supers) {
+  private static boolean insertSuperClasses(
+      ClassHierarchyProvider hierarchy, String t, HashSet<String> supers) {
     String last = t;
 
     for (String c = t; c != null; c = hierarchy.getSuperClass(c)) {
@@ -216,7 +219,8 @@ public final class ClassHierarchy {
     return last.equals(Constants.TYPE_Object);
   }
 
-  private static boolean insertSuperClassInterfaces(ClassHierarchyProvider hierarchy, String t, HashSet<String> supers) {
+  private static boolean insertSuperClassInterfaces(
+      ClassHierarchyProvider hierarchy, String t, HashSet<String> supers) {
     boolean r = true;
 
     for (String c = t; c != null; c = hierarchy.getSuperClass(c)) {
@@ -228,8 +232,8 @@ public final class ClassHierarchy {
     return r;
   }
 
-  private static boolean collectDominatingSuperClasses(ClassHierarchyProvider hierarchy, String t, HashSet<String> matches,
-      HashSet<String> supers) {
+  private static boolean collectDominatingSuperClasses(
+      ClassHierarchyProvider hierarchy, String t, HashSet<String> matches, HashSet<String> supers) {
     String last = t;
 
     for (String c = t; c != null; c = hierarchy.getSuperClass(c)) {
@@ -243,18 +247,16 @@ public final class ClassHierarchy {
     return last.equals(Constants.TYPE_Object);
   }
 
-  private static boolean collectDominatingSuperInterfacesFromClass(ClassHierarchyProvider hierarchy, String t,
-      HashSet<String> supers) {
+  private static boolean collectDominatingSuperInterfacesFromClass(
+      ClassHierarchyProvider hierarchy, String t, HashSet<String> supers) {
     String[] ifaces = hierarchy.getSuperInterfaces(t);
     if (ifaces == null) {
       return false;
     } else {
       boolean r = true;
-      for (int i = 0; i < ifaces.length; i++) {
-        String iface = ifaces[i];
-        if (!supers.contains(iface)) {
-          supers.add(iface);
-          if (!insertSuperInterfaces(hierarchy, ifaces[i], supers)) {
+      for (String iface : ifaces) {
+        if (supers.add(iface)) {
+          if (!insertSuperInterfaces(hierarchy, iface, supers)) {
             r = false;
           }
         }
@@ -263,7 +265,8 @@ public final class ClassHierarchy {
     }
   }
 
-  private static boolean collectDominatingSuperInterfaces(ClassHierarchyProvider hierarchy, String t, HashSet<String> supers) {
+  private static boolean collectDominatingSuperInterfaces(
+      ClassHierarchyProvider hierarchy, String t, HashSet<String> supers) {
     boolean r = true;
 
     for (String c = t; c != null && !supers.contains(c); c = hierarchy.getSuperClass(c)) {
@@ -275,7 +278,8 @@ public final class ClassHierarchy {
     return r;
   }
 
-  private static String findCommonSupertypeHierarchy(ClassHierarchyProvider hierarchy, String t1, String t2) {    
+  private static String findCommonSupertypeHierarchy(
+      ClassHierarchyProvider hierarchy, String t1, String t2) {
     if (isSubtypeOf(hierarchy, t1, t2) == YES) {
       return t2;
     } else if (isSubtypeOf(hierarchy, t2, t1) == YES) {
@@ -314,12 +318,11 @@ public final class ClassHierarchy {
       return "";
     }
 
-    for (Iterator<String> iter = t2Supers.iterator(); iter.hasNext();) {
+    for (Iterator<String> iter = t2Supers.iterator(); iter.hasNext(); ) {
       String element = iter.next();
       boolean subsumed = false;
 
-      for (Iterator<String> iterator = t2Supers.iterator(); iterator.hasNext();) {
-        String element2 = iterator.next();
+      for (String element2 : t2Supers) {
         if (element != element2 && isSubtypeOf(hierarchy, element2, element) == YES) {
           subsumed = true;
           break;
@@ -343,12 +346,12 @@ public final class ClassHierarchy {
 
   /**
    * Compute the most specific common supertype.
-   * 
+   *
    * @param hierarchy the hierarchy information to use for the decision
    * @param t1 a type in JVM format
    * @param t2 a type in JVM format
-   * @return the most specific common supertype of t1 and t2, or TYPE_unknown if it cannot be determined or cannot be represented as
-   *         a Java type, or null if there is no common supertype
+   * @return the most specific common supertype of t1 and t2, or TYPE_unknown if it cannot be
+   *     determined or cannot be represented as a Java type, or null if there is no common supertype
    */
   public static String findCommonSupertype(ClassHierarchyProvider hierarchy, String t1, String t2) {
     if (t1 == null || t2 == null) {
@@ -365,42 +368,46 @@ public final class ClassHierarchy {
       }
 
       switch (t1.charAt(0)) {
-      case 'L':
-        // two non-array types
-        // if either one is constant null, return the other one
-        if (t1.equals(Constants.TYPE_null)) {
-          return t2;
-        } else if (t2.equals(Constants.TYPE_null)) {
-          return t1;
-        } else if (hierarchy == null) {
-          // don't have a class hierarchy
-          return Constants.TYPE_unknown;
-        } else {
-          return findCommonSupertypeHierarchy(hierarchy, t1, t2);
-        }
-      case '[': {
-        char ch2 = t2.charAt(0);
-        if (ch2 == '[') {
-          char ch1_1 = t1.charAt(1);
-          if (ch1_1 == '[' || ch1_1 == 'L') {
-            return "[" + findCommonSupertype(hierarchy, t1.substring(1), t2.substring(1));
-          } else {
-            return Constants.TYPE_Object;
-          }
-        } else if (ch2 == 'L') {
-          if (t2.equals(Constants.TYPE_null)) {
-            return t1;
-          } else if (t2.equals("Ljava/io/Serializable;") || t2.equals("Ljava/lang/Cloneable;")) {
+        case 'L':
+          // two non-array types
+          // if either one is constant null, return the other one
+          if (t1.equals(Constants.TYPE_null)) {
             return t2;
+          } else if (t2.equals(Constants.TYPE_null)) {
+            return t1;
+          } else if (hierarchy == null) {
+            // don't have a class hierarchy
+            return Constants.TYPE_unknown;
           } else {
-            return Constants.TYPE_Object;
+            return findCommonSupertypeHierarchy(hierarchy, t1, t2);
           }
-        } else {
+        case '[':
+          {
+            char ch2 = t2.charAt(0);
+            switch (ch2) {
+              case '[':
+                char ch1_1 = t1.charAt(1);
+                if (ch1_1 == '[' || ch1_1 == 'L') {
+                  return '[' + findCommonSupertype(hierarchy, t1.substring(1), t2.substring(1));
+                } else {
+                  return Constants.TYPE_Object;
+                }
+              case 'L':
+                switch (t2) {
+                  case Constants.TYPE_null:
+                    return t1;
+                  case "Ljava/io/Serializable;":
+                  case "Ljava/lang/Cloneable;":
+                    return t2;
+                  default:
+                    return Constants.TYPE_Object;
+                }
+              default:
+                return null;
+            }
+          }
+        default:
           return null;
-        }
-      }
-      default:
-        return null;
       }
     }
   }

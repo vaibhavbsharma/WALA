@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2002 - 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,7 +7,7 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.ipa.callgraph.propagation.cfa;
 
 import com.ibm.wala.cfg.ControlFlowGraph;
@@ -21,18 +21,15 @@ import com.ibm.wala.ssa.IRView;
 import com.ibm.wala.ssa.ISSABasicBlock;
 import com.ibm.wala.ssa.SSAInstruction;
 
-/**
- * An {@link SSAContextInterpreter} that first checks with A, then defaults to B.
- */
-public class DelegatingSSAContextInterpreter extends DelegatingRTAContextInterpreter implements SSAContextInterpreter {
+/** An {@link SSAContextInterpreter} that first checks with A, then defaults to B. */
+public class DelegatingSSAContextInterpreter extends DelegatingRTAContextInterpreter
+    implements SSAContextInterpreter {
 
   private final SSAContextInterpreter A;
 
   private final SSAContextInterpreter B;
 
-  /**
-   * neither A nor B should be null.
-   */
+  /** neither A nor B should be null. */
   public DelegatingSSAContextInterpreter(SSAContextInterpreter A, SSAContextInterpreter B) {
     super(A, B);
     this.A = A;

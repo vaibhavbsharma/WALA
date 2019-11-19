@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2002 - 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,16 +7,14 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.util.collections;
 
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
-/**
- * An iterator that reverses an input iterator. Not very efficient.
- */
+/** An iterator that reverses an input iterator. Not very efficient. */
 public class ReverseIterator<T> implements Iterator<T> {
 
   final ArrayList<T> list = new ArrayList<>();
@@ -24,9 +22,8 @@ public class ReverseIterator<T> implements Iterator<T> {
   int nextIndex;
 
   /**
-   * @param other
-   *          the iterator to reverse
-   * @throws IllegalArgumentException  if other == null
+   * @param other the iterator to reverse
+   * @throws IllegalArgumentException if other == null
    */
   private ReverseIterator(Iterator<T> other) throws IllegalArgumentException {
     if (other == null) {
@@ -59,5 +56,4 @@ public class ReverseIterator<T> implements Iterator<T> {
   public static <T> Iterator<T> reverse(Iterator<T> it) {
     return new ReverseIterator<>(it);
   }
-
 }

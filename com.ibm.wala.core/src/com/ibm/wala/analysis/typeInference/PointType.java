@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2002 - 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,23 +7,19 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.analysis.typeInference;
 
 import com.ibm.wala.classLoader.IClass;
 import com.ibm.wala.types.TypeReference;
 import com.ibm.wala.util.debug.Assertions;
 
-/**
- * Represents a single concrete type.
- */
+/** Represents a single concrete type. */
 public class PointType extends TypeAbstraction {
 
   private final IClass type;
 
-  /**
-   * @throws IllegalArgumentException if type is null
-   */
+  /** @throws IllegalArgumentException if type is null */
   public PointType(IClass type) {
     if (type == null) {
       throw new IllegalArgumentException("type is null");
@@ -45,7 +41,8 @@ public class PointType extends TypeAbstraction {
           // give up on arrays. We don't care anyway.
           return new ConeType(type.getClassHierarchy().getRootClass());
         } else {
-          return new ConeType(type.getClassHierarchy().getLeastCommonSuperclass(this.type, other.type));
+          return new ConeType(
+              type.getClassHierarchy().getLeastCommonSuperclass(this.type, other.type));
         }
       } else if (rhs instanceof ConeType) {
         ConeType other = (ConeType) rhs;
@@ -98,7 +95,7 @@ public class PointType extends TypeAbstraction {
     }
     PointType other = (PointType) obj;
     if (!type.getClassHierarchy().equals(other.type.getClassHierarchy())) {
-      Assertions.UNREACHABLE("different chas " + this + " " + other);
+      Assertions.UNREACHABLE("different chas " + this + ' ' + other);
     }
     return type.equals(other.type);
   }

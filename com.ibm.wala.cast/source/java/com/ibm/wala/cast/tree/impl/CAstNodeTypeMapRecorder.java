@@ -1,4 +1,4 @@
-/******************************************************************************
+/*
  * Copyright (c) 2002 - 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,24 +7,21 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *****************************************************************************/
+ */
 /*
  * Created on Oct 10, 2005
  */
 package com.ibm.wala.cast.tree.impl;
 
-import java.util.Collection;
-import java.util.HashMap;
-
 import com.ibm.wala.cast.tree.CAstNode;
 import com.ibm.wala.cast.tree.CAstNodeTypeMap;
 import com.ibm.wala.cast.tree.CAstType;
+import java.util.Collection;
+import java.util.HashMap;
 
-public class CAstNodeTypeMapRecorder 
-    extends HashMap <CAstNode,CAstType>
-    implements CAstNodeTypeMap
-{
-  private static final long serialVersionUID= 7812144102027916961L;
+public class CAstNodeTypeMapRecorder extends HashMap<CAstNode, CAstType>
+    implements CAstNodeTypeMap {
+  private static final long serialVersionUID = 7812144102027916961L;
 
   @Override
   public CAstType getNodeType(CAstNode node) {
@@ -41,7 +38,7 @@ public class CAstNodeTypeMapRecorder
   }
 
   public void addAll(CAstNodeTypeMap other) {
-    for(CAstNode o : other.getMappedNodes()) {
+    for (CAstNode o : other.getMappedNodes()) {
       put(o, other.getNodeType(o));
     }
   }

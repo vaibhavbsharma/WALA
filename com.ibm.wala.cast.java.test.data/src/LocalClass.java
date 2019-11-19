@@ -1,4 +1,4 @@
-/******************************************************************************
+/*
  * Copyright (c) 2002 - 2008 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,16 +7,16 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *****************************************************************************/
+ */
 public class LocalClass {
     public static void main(String[] args) {
-	final Integer base = new Integer(6);
+	final Integer base = 6;
 
 	class Foo {
 	    int value;
 	    public Foo(int v) { value= v; }
 	    public int getValue() { return value; }
-	    public int getValueBase() { return value - base.intValue(); }
+	    public int getValueBase() { return value - base; }
 	}
 	Foo f= new Foo(3);
 
@@ -27,13 +27,13 @@ public class LocalClass {
     }
 
     public void method() {
-	final Integer base = new Integer(6);
+	final Integer base = 6;
 
 	class Foo {
 	    int value;
 	    public Foo(int v) { value= v; }
 	    public int getValue() { return value; }
-	    public int getValueBase() { return value - base.intValue(); }
+	    public int getValueBase() { return value - base; }
 	}
 	Foo f= new Foo(3);
 

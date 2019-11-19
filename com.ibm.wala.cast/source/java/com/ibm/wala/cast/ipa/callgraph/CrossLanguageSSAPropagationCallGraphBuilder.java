@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2013 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,11 +7,12 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.cast.ipa.callgraph;
 
 import com.ibm.wala.cast.ipa.callgraph.AstSSAPropagationCallGraphBuilder.AstPointerAnalysisImpl.AstImplicitPointsToSetVisitor;
 import com.ibm.wala.cast.util.TargetLanguageSelector;
+import com.ibm.wala.classLoader.IMethod;
 import com.ibm.wala.ipa.callgraph.AnalysisOptions;
 import com.ibm.wala.ipa.callgraph.CGNode;
 import com.ibm.wala.ipa.callgraph.CallGraph;
@@ -26,11 +27,11 @@ import com.ibm.wala.ipa.callgraph.propagation.PointerKeyFactory;
 import com.ibm.wala.ipa.callgraph.propagation.PointsToMap;
 import com.ibm.wala.ipa.callgraph.propagation.PropagationCallGraphBuilder;
 import com.ibm.wala.ipa.callgraph.propagation.PropagationSystem;
-import com.ibm.wala.ipa.cha.IClassHierarchy;
 import com.ibm.wala.util.intset.MutableMapping;
 import com.ibm.wala.util.strings.Atom;
 
-public abstract class CrossLanguageSSAPropagationCallGraphBuilder extends AstSSAPropagationCallGraphBuilder {
+public abstract class CrossLanguageSSAPropagationCallGraphBuilder
+    extends AstSSAPropagationCallGraphBuilder {
 
   private final TargetLanguageSelector<ConstraintVisitor, CGNode> visitors;
 
@@ -38,23 +39,29 @@ public abstract class CrossLanguageSSAPropagationCallGraphBuilder extends AstSSA
 
   protected abstract TargetLanguageSelector<ConstraintVisitor, CGNode> makeMainVisitorSelector();
 
-  protected abstract TargetLanguageSelector<InterestingVisitor, Integer> makeInterestingVisitorSelector();
+  protected abstract TargetLanguageSelector<InterestingVisitor, Integer>
+      makeInterestingVisitorSelector();
 
-  protected abstract TargetLanguageSelector<AstImplicitPointsToSetVisitor, LocalPointerKey> makeImplicitVisitorSelector(
-      CrossLanguagePointerAnalysisImpl analysis);
+  protected abstract TargetLanguageSelector<AstImplicitPointsToSetVisitor, LocalPointerKey>
+      makeImplicitVisitorSelector(CrossLanguagePointerAnalysisImpl analysis);
 
-  protected abstract TargetLanguageSelector<AbstractRootMethod, CrossLanguageCallGraph> makeRootNodeSelector();
+  protected abstract TargetLanguageSelector<AbstractRootMethod, CrossLanguageCallGraph>
+      makeRootNodeSelector();
 
-  protected CrossLanguageSSAPropagationCallGraphBuilder(IClassHierarchy cha, AnalysisOptions options, IAnalysisCacheView cache,
+  protected CrossLanguageSSAPropagationCallGraphBuilder(
+      IMethod fakeRootClass,
+      AnalysisOptions options,
+      IAnalysisCacheView cache,
       PointerKeyFactory pointerKeyFactory) {
-    super(cha, options, cache, pointerKeyFactory);
+    super(fakeRootClass, options, cache, pointerKeyFactory);
     visitors = makeMainVisitorSelector();
     interesting = makeInterestingVisitorSelector();
   }
 
   @Override
-  protected ExplicitCallGraph createEmptyCallGraph(IClassHierarchy cha, AnalysisOptions options) {
-    return new CrossLanguageCallGraph(makeRootNodeSelector(), cha, options, getAnalysisCache());
+  protected ExplicitCallGraph createEmptyCallGraph(IMethod fakeRootClass, AnalysisOptions options) {
+    return new CrossLanguageCallGraph(
+        makeRootNodeSelector(), fakeRootClass, options, getAnalysisCache());
   }
 
   protected static Atom getLanguage(CGNode node) {
@@ -63,7 +70,7 @@ public abstract class CrossLanguageSSAPropagationCallGraphBuilder extends AstSSA
 
   @Override
   protected InterestingVisitor makeInterestingVisitor(CGNode node, int vn) {
-    return interesting.get(getLanguage(node), new Integer(vn));
+    return interesting.get(getLanguage(node), vn);
   }
 
   @Override
@@ -77,17 +84,27 @@ public abstract class CrossLanguageSSAPropagationCallGraphBuilder extends AstSSA
       @Override
       public PointerAnalysis<InstanceKey> makePointerAnalysis(PropagationCallGraphBuilder builder) {
         assert builder == CrossLanguageSSAPropagationCallGraphBuilder.this;
-        return new CrossLanguagePointerAnalysisImpl(CrossLanguageSSAPropagationCallGraphBuilder.this, cg, pointsToMap,
-            instanceKeys, pointerKeyFactory, instanceKeyFactory);
+        return new CrossLanguagePointerAnalysisImpl(
+            CrossLanguageSSAPropagationCallGraphBuilder.this,
+            cg,
+            pointsToMap,
+            instanceKeys,
+            pointerKeyFactory,
+            instanceKeyFactory);
       }
     };
   }
 
   protected static class CrossLanguagePointerAnalysisImpl extends AstPointerAnalysisImpl {
-    private final TargetLanguageSelector<AstImplicitPointsToSetVisitor, LocalPointerKey> implicitVisitors;
+    private final TargetLanguageSelector<AstImplicitPointsToSetVisitor, LocalPointerKey>
+        implicitVisitors;
 
-    protected CrossLanguagePointerAnalysisImpl(CrossLanguageSSAPropagationCallGraphBuilder builder, CallGraph cg,
-        PointsToMap pointsToMap, MutableMapping<InstanceKey> instanceKeys, PointerKeyFactory pointerKeys,
+    protected CrossLanguagePointerAnalysisImpl(
+        CrossLanguageSSAPropagationCallGraphBuilder builder,
+        CallGraph cg,
+        PointsToMap pointsToMap,
+        MutableMapping<InstanceKey> instanceKeys,
+        PointerKeyFactory pointerKeys,
         InstanceKeyFactory iKeyFactory) {
       super(builder, cg, pointsToMap, instanceKeys, pointerKeys, iKeyFactory);
       this.implicitVisitors = builder.makeImplicitVisitorSelector(this);
@@ -105,5 +122,4 @@ public abstract class CrossLanguageSSAPropagationCallGraphBuilder extends AstSSA
       markDiscovered(root);
     }
   }
-
 }

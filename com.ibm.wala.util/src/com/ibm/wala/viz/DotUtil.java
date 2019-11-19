@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2002 - 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,9 +7,13 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.viz;
 
+import com.ibm.wala.util.WalaException;
+import com.ibm.wala.util.collections.Iterator2Collection;
+import com.ibm.wala.util.collections.Iterator2Iterable;
+import com.ibm.wala.util.graph.Graph;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.IOException;
@@ -18,21 +22,11 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Iterator;
 
-import com.ibm.wala.util.WalaException;
-import com.ibm.wala.util.collections.Iterator2Collection;
-import com.ibm.wala.util.graph.Graph;
-
-/**
- * utilities for interfacing with DOT
- */
+/** utilities for interfacing with DOT */
 public class DotUtil {
 
-  /**
-   * possible output formats for dot
-   * 
-   */
+  /** possible output formats for dot */
   public static enum DotOutputType {
     PS("ps"),
     SVG("svg"),
@@ -47,8 +41,8 @@ public class DotUtil {
   }
 
   private static DotOutputType outputType = DotOutputType.PDF;
-  
-  private static int fontSize = 10;
+
+  private static int fontSize = 6;
   private static String fontColor = "black";
   private static String fontName = "Arial";
 
@@ -64,24 +58,24 @@ public class DotUtil {
     return "-T" + outputType.suffix;
   }
 
-  /**
-   * Some versions of dot appear to croak on long labels. Reduce this if so.
-   */
-  private final static int MAX_LABEL_LENGTH = Integer.MAX_VALUE;
+  /** Some versions of dot appear to croak on long labels. Reduce this if so. */
+  private static final int MAX_LABEL_LENGTH = Integer.MAX_VALUE;
 
-
-  /**
-   * @param <T> the type of a graph node
-   */
-  public static <T> void dotify(Graph<T> g, NodeDecorator<T> labels, String dotFile, String outputFile, String dotExe)
-    throws WalaException {
+  /** @param <T> the type of a graph node */
+  public static <T> void dotify(
+      Graph<T> g, NodeDecorator<T> labels, String dotFile, String outputFile, String dotExe)
+      throws WalaException {
     dotify(g, labels, null, dotFile, outputFile, dotExe);
   }
 
-  /**
-   * @param <T> the type of a graph node
-   */
-  public static <T> void dotify(Graph<T> g, NodeDecorator<T> labels, String title, String dotFile, String outputFile, String dotExe)
+  /** @param <T> the type of a graph node */
+  public static <T> void dotify(
+      Graph<T> g,
+      NodeDecorator<T> labels,
+      String title,
+      String dotFile,
+      String outputFile,
+      String dotExe)
       throws WalaException {
     if (g == null) {
       throw new IllegalArgumentException("g is null");
@@ -96,7 +90,9 @@ public class DotUtil {
     if (dotFile == null) {
       throw new IllegalArgumentException("dotFile is null");
     }
-    String[] cmdarray = { dotExe, outputTypeCmdLineParam(), "-o", outputFile, "-v", dotFile.getAbsolutePath() };
+    String[] cmdarray = {
+      dotExe, outputTypeCmdLineParam(), "-o", outputFile, "-v", dotFile.getAbsolutePath()
+    };
     System.out.println("spawning process " + Arrays.toString(cmdarray));
     BufferedInputStream output = null;
     BufferedInputStream error = null;
@@ -153,12 +149,13 @@ public class DotUtil {
     }
   }
 
-  public static <T> File writeDotFile(Graph<T> g, NodeDecorator<T> labels, String title, String dotfile) throws WalaException {
+  public static <T> File writeDotFile(
+      Graph<T> g, NodeDecorator<T> labels, String title, String dotfile) throws WalaException {
 
     if (g == null) {
       throw new IllegalArgumentException("g is null");
     }
-    StringBuffer dotStringBuffer = dotOutput(g, labels, title);
+    StringBuilder dotStringBuffer = dotOutput(g, labels, title);
 
     // retrieve the filename parameter to this component, a String
     if (dotfile == null) {
@@ -176,27 +173,28 @@ public class DotUtil {
     }
   }
 
-  /**
-   * @return StringBuffer holding dot output representing G
-   * @throws WalaException
-   */
-  public static <T> StringBuffer dotOutput(Graph<T> g, NodeDecorator<T> labels, String title) throws WalaException {
-    StringBuffer result = new StringBuffer("digraph \"DirectedGraph\" {\n");
+  /** @return StringBuffer holding dot output representing G */
+  public static <T> StringBuilder dotOutput(Graph<T> g, NodeDecorator<T> labels, String title)
+      throws WalaException {
+    StringBuilder result = new StringBuilder("digraph \"DirectedGraph\" {\n");
 
     if (title != null) {
-      result.append("graph [label = \""+title+"\", labelloc=t, concentrate = true];");
+      result
+          .append("graph [label = \"")
+          .append(title)
+          .append("\", labelloc=t, concentrate = true];");
     } else {
       result.append("graph [concentrate = true];");
     }
-    
+
     String rankdir = getRankDir();
     if (rankdir != null) {
-      result.append("rankdir=" + rankdir + ";");
+      result.append("rankdir=").append(rankdir).append(';');
     }
     String fontsizeStr = "fontsize=" + fontSize;
-    String fontcolorStr = (fontColor != null) ? ",fontcolor="+fontColor : "";
-    String fontnameStr = (fontName != null) ? ",fontname="+fontName : "";
-         
+    String fontcolorStr = (fontColor != null) ? ",fontcolor=" + fontColor : "";
+    String fontnameStr = (fontName != null) ? ",fontname=" + fontName : "";
+
     result.append("center=true;");
     result.append(fontsizeStr);
     result.append(";node [ color=blue,shape=\"box\"");
@@ -213,11 +211,9 @@ public class DotUtil {
 
     outputNodes(labels, result, dotNodes);
 
-    for (Iterator<? extends T> it = g.iterator(); it.hasNext();) {
-      T n = it.next();
-      for (Iterator<? extends T> it2 = g.getSuccNodes(n); it2.hasNext();) {
-        T s = it2.next();
-        result.append(" ");
+    for (T n : g) {
+      for (T s : Iterator2Iterable.make(g.getSuccNodes(n))) {
+        result.append(' ');
         result.append(getPort(n, labels));
         result.append(" -> ");
         result.append(getPort(s, labels));
@@ -229,23 +225,23 @@ public class DotUtil {
     return result;
   }
 
-  private static <T> void outputNodes(NodeDecorator<T> labels, StringBuffer result, Collection<T> dotNodes) throws WalaException {
-    for (Iterator<T> it = dotNodes.iterator(); it.hasNext();) {
-      outputNode(labels, result, it.next());
+  private static <T> void outputNodes(
+      NodeDecorator<T> labels, StringBuilder result, Collection<T> dotNodes) throws WalaException {
+    for (T t : dotNodes) {
+      outputNode(labels, result, t);
     }
   }
 
-  private static <T> void outputNode(NodeDecorator<T> labels, StringBuffer result, T n) throws WalaException {
+  private static <T> void outputNode(NodeDecorator<T> labels, StringBuilder result, T n)
+      throws WalaException {
     result.append("   ");
-    result.append("\"");
+    result.append('\"');
     result.append(getLabel(n, labels));
-    result.append("\"");
+    result.append('\"');
     result.append(decorateNode(n, labels));
   }
 
-  /**
-   * Compute the nodes to visualize
-   */
+  /** Compute the nodes to visualize */
   private static <T> Collection<T> computeDotNodes(Graph<T> g) {
     return Iterator2Collection.toSet(g.iterator());
   }
@@ -259,11 +255,7 @@ public class DotUtil {
    * @param d decorating master
    */
   private static <T> String decorateNode(T n, NodeDecorator<T> d) throws WalaException {
-    StringBuffer result = new StringBuffer();
-    result.append(" [ label=\"");
-    result.append(getLabel(n, d));
-    result.append("\"]\n");
-    return result.toString();
+    return " [ label=\"" + getLabel(n, d) + "\"]\n";
   }
 
   private static <T> String getLabel(T n, NodeDecorator<T> d) throws WalaException {
@@ -281,8 +273,7 @@ public class DotUtil {
   }
 
   private static <T> String getPort(T n, NodeDecorator<T> d) throws WalaException {
-    return "\"" + getLabel(n, d) + "\"";
-
+    return '"' + getLabel(n, d) + '"';
   }
 
   public static int getFontSize() {
@@ -292,5 +283,4 @@ public class DotUtil {
   public static void setFontSize(int fontSize) {
     DotUtil.fontSize = fontSize;
   }
-
 }

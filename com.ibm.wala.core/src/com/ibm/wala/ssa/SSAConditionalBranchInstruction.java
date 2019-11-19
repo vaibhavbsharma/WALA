@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2002 - 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,16 +7,14 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.ssa;
 
 import com.ibm.wala.shrikeBT.IConditionalBranchInstruction;
 import com.ibm.wala.shrikeBT.IConditionalBranchInstruction.IOperator;
 import com.ibm.wala.types.TypeReference;
 
-/**
- * A conditional branch instruction, which tests two values according to some {@link IOperator}.
- */
+/** A conditional branch instruction, which tests two values according to some {@link IOperator}. */
 public class SSAConditionalBranchInstruction extends SSAInstruction {
   private final IConditionalBranchInstruction.IOperator operator;
 
@@ -26,9 +24,15 @@ public class SSAConditionalBranchInstruction extends SSAInstruction {
 
   private final TypeReference type;
 
-  final private int target;
+  private final int target;
 
-  public SSAConditionalBranchInstruction(int iindex, IConditionalBranchInstruction.IOperator operator, TypeReference type, int val1, int val2, int target)
+  public SSAConditionalBranchInstruction(
+      int iindex,
+      IConditionalBranchInstruction.IOperator operator,
+      TypeReference type,
+      int val1,
+      int val2,
+      int target)
       throws IllegalArgumentException {
     super(iindex);
     this.target = target;
@@ -49,27 +53,36 @@ public class SSAConditionalBranchInstruction extends SSAInstruction {
   }
 
   @Override
-  public SSAInstruction copyForSSA(SSAInstructionFactory insts, int[] defs, int[] uses) throws IllegalArgumentException {
+  public SSAInstruction copyForSSA(SSAInstructionFactory insts, int[] defs, int[] uses)
+      throws IllegalArgumentException {
     if (uses != null && uses.length < 2) {
       throw new IllegalArgumentException("(uses != null) and (uses.length < 2)");
     }
-    return insts.ConditionalBranchInstruction(iindex, operator, type, uses == null ? val1 : uses[0], uses == null ? val2 : uses[1], target);
+    return insts.ConditionalBranchInstruction(
+        iIndex(),
+        operator,
+        type,
+        uses == null ? val1 : uses[0],
+        uses == null ? val2 : uses[1],
+        target);
   }
 
   public IConditionalBranchInstruction.IOperator getOperator() {
     return operator;
   }
 
-
   @Override
   public String toString(SymbolTable symbolTable) {
-    return "conditional branch(" + operator + ", to iindex=" + target + ") " + getValueString(symbolTable, val1) + "," + getValueString(symbolTable, val2);
+    return "conditional branch("
+        + operator
+        + ", to iindex="
+        + target
+        + ") "
+        + getValueString(symbolTable, val1)
+        + ','
+        + getValueString(symbolTable, val2);
   }
 
-  /**
-   * @see com.ibm.wala.ssa.SSAInstruction#visit(IVisitor)
-   * @throws IllegalArgumentException if v is null
-   */
   @Override
   public void visit(IVisitor v) {
     if (v == null) {
@@ -78,17 +91,11 @@ public class SSAConditionalBranchInstruction extends SSAInstruction {
     v.visitConditionalBranch(this);
   }
 
-  /**
-   * @see com.ibm.wala.ssa.SSAInstruction#getNumberOfUses()
-   */
   @Override
   public int getNumberOfUses() {
     return 2;
   }
 
-  /**
-   * @see com.ibm.wala.ssa.SSAInstruction#getUse(int)
-   */
   @Override
   public int getUse(int j) {
     assert j <= 1;
@@ -119,5 +126,4 @@ public class SSAConditionalBranchInstruction extends SSAInstruction {
   public boolean isFallThrough() {
     return true;
   }
-
 }

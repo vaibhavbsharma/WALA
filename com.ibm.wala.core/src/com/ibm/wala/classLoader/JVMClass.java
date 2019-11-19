@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2007 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,7 +7,7 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.classLoader;
 
 import com.ibm.wala.ipa.cha.IClassHierarchy;
@@ -17,8 +17,9 @@ import com.ibm.wala.types.MethodReference;
 import com.ibm.wala.util.debug.Assertions;
 
 /**
- * Note that classes from JVML have some features that are not present in all "bytecode" languages currently supported.
- * 
+ * Note that classes from JVML have some features that are not present in all "bytecode" languages
+ * currently supported.
+ *
  * @param <T> type of classloader which loads this format of class.
  */
 public abstract class JVMClass<T extends IClassLoader> extends BytecodeClass<T> {
@@ -27,9 +28,7 @@ public abstract class JVMClass<T extends IClassLoader> extends BytecodeClass<T> 
     super(loader, cha);
   }
 
-  /**
-   * JVM-level modifiers; cached here for efficiency
-   */
+  /** JVM-level modifiers; cached here for efficiency */
   protected int modifiers;
 
   @Override
@@ -53,7 +52,6 @@ public abstract class JVMClass<T extends IClassLoader> extends BytecodeClass<T> 
   public boolean isInterface() {
     boolean result = ((modifiers & Constants.ACC_INTERFACE) != 0);
     return result;
-
   }
 
   /*
@@ -65,9 +63,16 @@ public abstract class JVMClass<T extends IClassLoader> extends BytecodeClass<T> 
     return result;
   }
 
-  /**
-   * @see com.ibm.wala.classLoader.IClass#getClassInitializer()
+  /*
+   * @see com.ibm.wala.classLoader.IClass#isSynthetic()
    */
+  @Override
+  public boolean isSynthetic() {
+    boolean result = ((modifiers & Constants.ACC_SYNTHETIC) != 0);
+    return result;
+  }
+
+  /** @see com.ibm.wala.classLoader.IClass#getClassInitializer() */
   @Override
   public IMethod getClassInitializer() {
     try {
@@ -78,5 +83,4 @@ public abstract class JVMClass<T extends IClassLoader> extends BytecodeClass<T> 
     }
     return methodMap.get(MethodReference.clinitSelector);
   }
-
 }

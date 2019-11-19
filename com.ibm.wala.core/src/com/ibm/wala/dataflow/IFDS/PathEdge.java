@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2002 - 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,13 +7,12 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.dataflow.IFDS;
 
-
 /**
- * an individual edge <entry, d1> -> <target, d2>
- * 
+ * an individual edge &lt;entry, d1&gt; -&gt; &lt;target, d2&gt;
+ *
  * @param <T> node type in the supergraph
  */
 public final class PathEdge<T> {
@@ -30,9 +29,9 @@ public final class PathEdge<T> {
     if (n == null) {
       throw new IllegalArgumentException("null n");
     }
-    return new PathEdge<T>(s_p, d1, n, d2);
+    return new PathEdge<>(s_p, d1, n, d2);
   }
-  
+
   private PathEdge(T s_p, int d1, T n, int d2) {
     this.entry = s_p;
     this.d1 = d1;
@@ -42,17 +41,7 @@ public final class PathEdge<T> {
 
   @Override
   public String toString() {
-    StringBuffer result = new StringBuffer();
-    result.append("<");
-    result.append(entry.toString());
-    result.append(",");
-    result.append(d1);
-    result.append("> -> <");
-    result.append(target.toString());
-    result.append(",");
-    result.append(d2);
-    result.append(">");
-    return result.toString();
+    return '<' + entry.toString() + ',' + d1 + "> -> <" + target + ',' + d2 + '>';
   }
 
   @Override
@@ -68,27 +57,18 @@ public final class PathEdge<T> {
 
   @Override
   public boolean equals(Object obj) {
-    if (this == obj)
-      return true;
-    if (obj == null)
-      return false;
-    if (getClass() != obj.getClass())
-      return false;
-    final PathEdge other = (PathEdge) obj;
-    if (d1 != other.d1)
-      return false;
-    if (d2 != other.d2)
-      return false;
+    if (this == obj) return true;
+    if (obj == null) return false;
+    if (getClass() != obj.getClass()) return false;
+    final PathEdge<?> other = (PathEdge<?>) obj;
+    if (d1 != other.d1) return false;
+    if (d2 != other.d2) return false;
     if (target == null) {
-      if (other.target != null)
-        return false;
-    } else if (!target.equals(other.target))
-      return false;
+      if (other.target != null) return false;
+    } else if (!target.equals(other.target)) return false;
     if (entry == null) {
-      if (other.entry != null)
-        return false;
-    } else if (!entry.equals(other.entry))
-      return false;
+      if (other.entry != null) return false;
+    } else if (!entry.equals(other.entry)) return false;
     return true;
   }
 

@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2002 - 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,12 +7,10 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.util.strings;
 
-/**
- * A read-only byte array.
- */
+/** A read-only byte array. */
 public final class ImmutableByteArray {
 
   // allow "friends" in this package to access
@@ -39,7 +37,8 @@ public final class ImmutableByteArray {
     try {
       System.arraycopy(b, start, this.b, 0, length);
     } catch (ArrayIndexOutOfBoundsException e) {
-      throw new IllegalArgumentException("illegal parameters " + b.length + " " + start + " " + length, e);
+      throw new IllegalArgumentException(
+          "illegal parameters " + b.length + ' ' + start + ' ' + length, e);
     }
   }
 
@@ -49,7 +48,7 @@ public final class ImmutableByteArray {
 
   public byte get(int i) throws IllegalArgumentException {
     if (i < 0 || i >= b.length) {
-      throw new IllegalArgumentException("index out of bounds " + b.length + " " + i);
+      throw new IllegalArgumentException("index out of bounds " + b.length + ' ' + i);
     }
     return b[i];
   }
@@ -65,7 +64,7 @@ public final class ImmutableByteArray {
     try {
       System.arraycopy(b, i, result, 0, length);
     } catch (ArrayIndexOutOfBoundsException e) {
-      throw new IllegalArgumentException("Invalid combination: " + i + " " + length, e);
+      throw new IllegalArgumentException("Invalid combination: " + i + ' ' + length, e);
     }
     return result;
   }
@@ -88,5 +87,4 @@ public final class ImmutableByteArray {
   public static ImmutableByteArray make(String s) {
     return new ImmutableByteArray(UTF8Convert.toUTF8(s));
   }
-
 }

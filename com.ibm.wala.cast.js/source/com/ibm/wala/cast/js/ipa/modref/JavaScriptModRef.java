@@ -1,4 +1,4 @@
-/******************************************************************************
+/*
  * Copyright (c) 2002 - 2014 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,12 +7,9 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *****************************************************************************/
+ */
 
 package com.ibm.wala.cast.js.ipa.modref;
-
-import java.util.Collection;
-import java.util.Iterator;
 
 import com.ibm.wala.cast.ipa.callgraph.AstHeapModel;
 import com.ibm.wala.cast.ipa.modref.AstModRef;
@@ -20,8 +17,6 @@ import com.ibm.wala.cast.js.ssa.JSInstructionVisitor;
 import com.ibm.wala.cast.js.ssa.JavaScriptCheckReference;
 import com.ibm.wala.cast.js.ssa.JavaScriptInstanceOf;
 import com.ibm.wala.cast.js.ssa.JavaScriptInvoke;
-import com.ibm.wala.cast.js.ssa.JavaScriptPropertyRead;
-import com.ibm.wala.cast.js.ssa.JavaScriptPropertyWrite;
 import com.ibm.wala.cast.js.ssa.JavaScriptTypeOfInstruction;
 import com.ibm.wala.cast.js.ssa.JavaScriptWithRegion;
 import com.ibm.wala.cast.js.ssa.PrototypeLookup;
@@ -31,13 +26,16 @@ import com.ibm.wala.ipa.callgraph.propagation.InstanceKey;
 import com.ibm.wala.ipa.callgraph.propagation.PointerAnalysis;
 import com.ibm.wala.ipa.callgraph.propagation.PointerKey;
 import com.ibm.wala.ipa.modref.ExtendedHeapModel;
+import java.util.Collection;
 
 public class JavaScriptModRef<T extends InstanceKey> extends AstModRef<T> {
 
-  protected static class JavaScriptRefVisitor<T extends InstanceKey> extends AstRefVisitor<T> implements JSInstructionVisitor {
+  public static class JavaScriptRefVisitor<T extends InstanceKey> extends AstRefVisitor<T>
+      implements JSInstructionVisitor {
 
-    protected JavaScriptRefVisitor(CGNode n, Collection<PointerKey> result, PointerAnalysis<T> pa, ExtendedHeapModel h) {
-      super(n, result, pa, (AstHeapModel)h);
+    public JavaScriptRefVisitor(
+        CGNode n, Collection<PointerKey> result, PointerAnalysis<T> pa, ExtendedHeapModel h) {
+      super(n, result, pa, (AstHeapModel) h);
     }
 
     @Override
@@ -47,26 +45,6 @@ public class JavaScriptModRef<T extends InstanceKey> extends AstModRef<T> {
 
     @Override
     public void visitTypeOf(JavaScriptTypeOfInstruction instruction) {
-      // do nothing
-    }
-
-    @Override
-    public void visitJavaScriptPropertyRead(JavaScriptPropertyRead instruction) {
-      PointerKey obj = h.getPointerKeyForLocal(n, instruction.getObjectRef());
-      PointerKey prop = h.getPointerKeyForLocal(n, instruction.getMemberRef());
-      for(InstanceKey o : pa.getPointsToSet(obj)) {
-        for(InstanceKey p : pa.getPointsToSet(prop)) {
-          for(Iterator<PointerKey> keys = h.getPointerKeysForReflectedFieldRead(o, p); keys.hasNext(); ) {
-            PointerKey x = keys.next();
-            assert x != null : instruction;
-            result.add(x);
-          }
-        }
-      }
-    }
-
-    @Override
-    public void visitJavaScriptPropertyWrite(JavaScriptPropertyWrite instruction) {
       // do nothing
     }
 
@@ -93,20 +71,22 @@ public class JavaScriptModRef<T extends InstanceKey> extends AstModRef<T> {
     @Override
     public void visitPrototypeLookup(PrototypeLookup instruction) {
       // TODO Auto-generated method stub
-      
-    }
 
+    }
   }
 
   @Override
-  protected RefVisitor<T, ? extends ExtendedHeapModel> makeRefVisitor(CGNode n, Collection<PointerKey> result, PointerAnalysis<T> pa, ExtendedHeapModel h) {
+  protected RefVisitor<T, ? extends ExtendedHeapModel> makeRefVisitor(
+      CGNode n, Collection<PointerKey> result, PointerAnalysis<T> pa, ExtendedHeapModel h) {
     return new JavaScriptRefVisitor<>(n, result, pa, h);
   }
 
-  protected static class JavaScriptModVisitor<T extends InstanceKey> extends AstModVisitor<T> implements JSInstructionVisitor {
+  public static class JavaScriptModVisitor<T extends InstanceKey> extends AstModVisitor<T>
+      implements JSInstructionVisitor {
 
-    protected JavaScriptModVisitor(CGNode n, Collection<PointerKey> result, ExtendedHeapModel h, PointerAnalysis<T> pa) {
-      super(n, result, (AstHeapModel)h, pa);
+    public JavaScriptModVisitor(
+        CGNode n, Collection<PointerKey> result, ExtendedHeapModel h, PointerAnalysis<T> pa) {
+      super(n, result, (AstHeapModel) h, pa);
     }
 
     @Override
@@ -117,26 +97,6 @@ public class JavaScriptModRef<T extends InstanceKey> extends AstModRef<T> {
     @Override
     public void visitTypeOf(JavaScriptTypeOfInstruction instruction) {
       // do nothing
-    }
-
-    @Override
-    public void visitJavaScriptPropertyRead(JavaScriptPropertyRead instruction) {
-      // do nothing
-    }
-
-    @Override
-    public void visitJavaScriptPropertyWrite(JavaScriptPropertyWrite instruction) {
-      PointerKey obj = h.getPointerKeyForLocal(n, instruction.getObjectRef());
-      PointerKey prop = h.getPointerKeyForLocal(n, instruction.getMemberRef());
-      for(T o : pa.getPointsToSet(obj)) {
-        for(T p : pa.getPointsToSet(prop)) {
-          for(Iterator<PointerKey> keys = h.getPointerKeysForReflectedFieldWrite(o, p); keys.hasNext(); ) {
-            PointerKey x = keys.next();
-            assert x != null : instruction;
-            result.add(x);
-          }
-        }
-      }
     }
 
     @Override
@@ -157,18 +117,22 @@ public class JavaScriptModRef<T extends InstanceKey> extends AstModRef<T> {
     @Override
     public void visitSetPrototype(SetPrototype instruction) {
       // TODO Auto-generated method stub
-      
+
     }
 
     @Override
     public void visitPrototypeLookup(PrototypeLookup instruction) {
       // do nothing
     }
-
   }
 
   @Override
-  protected ModVisitor<T, ? extends ExtendedHeapModel> makeModVisitor(CGNode n, Collection<PointerKey> result, PointerAnalysis<T> pa, ExtendedHeapModel h, boolean ignoreAllocHeapDefs) {
+  protected ModVisitor<T, ? extends ExtendedHeapModel> makeModVisitor(
+      CGNode n,
+      Collection<PointerKey> result,
+      PointerAnalysis<T> pa,
+      ExtendedHeapModel h,
+      boolean ignoreAllocHeapDefs) {
     return new JavaScriptModVisitor<>(n, result, h, pa);
   }
 }

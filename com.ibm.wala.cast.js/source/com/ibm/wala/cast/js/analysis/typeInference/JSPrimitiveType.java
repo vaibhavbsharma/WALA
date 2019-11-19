@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2013 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,7 +7,7 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.cast.js.analysis.typeInference;
 
 import com.ibm.wala.analysis.typeInference.PrimitiveType;
@@ -20,20 +20,19 @@ public class JSPrimitiveType extends PrimitiveType {
     new JSPrimitiveType(JavaScriptTypes.Undefined, -1);
 
     new JSPrimitiveType(JavaScriptTypes.Null, -1);
-    
+
     new JSPrimitiveType(JavaScriptTypes.Boolean, -1);
-    
+
     new JSPrimitiveType(JavaScriptTypes.String, -1);
-    
+
     new JSPrimitiveType(JavaScriptTypes.Number, -1);
-    
+
     new JSPrimitiveType(JavaScriptTypes.Date, -1);
-    
+
     new JSPrimitiveType(JavaScriptTypes.RegExp, -1);
   }
 
   public JSPrimitiveType(TypeReference reference, int size) {
     super(reference, size);
   }
-
 }

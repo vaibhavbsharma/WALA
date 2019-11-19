@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2002 - 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,7 +7,7 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 
 package com.ibm.wala.ipa.callgraph.propagation;
 
@@ -16,9 +16,7 @@ import com.ibm.wala.classLoader.IClass;
 import com.ibm.wala.classLoader.NewSiteReference;
 import com.ibm.wala.ipa.callgraph.CGNode;
 
-/**
- * An {@link InstanceKey} which represents a multinewarray allocation site in a {@link CGNode}.
- */
+/** An {@link InstanceKey} which represents a multinewarray allocation site in a {@link CGNode}. */
 public final class MultiNewArrayInNode extends AllocationSiteInNode {
   private final int dim;
 
@@ -26,7 +24,8 @@ public final class MultiNewArrayInNode extends AllocationSiteInNode {
    * @return null if the element type is a primitive
    * @throws IllegalArgumentException if T == null
    */
-  private static IClass myElementType(ArrayClass T, int d) throws IllegalArgumentException, IllegalArgumentException {
+  private static IClass myElementType(ArrayClass T, int d)
+      throws IllegalArgumentException, IllegalArgumentException {
     if (T == null) {
       throw new IllegalArgumentException("T == null");
     }
@@ -52,7 +51,9 @@ public final class MultiNewArrayInNode extends AllocationSiteInNode {
     // instanceof is OK because this class is final
     if (obj instanceof MultiNewArrayInNode) {
       MultiNewArrayInNode other = (MultiNewArrayInNode) obj;
-      return (dim == other.dim && getNode().equals(other.getNode()) && getSite().equals(other.getSite()));
+      return (dim == other.dim
+          && getNode().equals(other.getNode())
+          && getSite().equals(other.getSite()));
     } else {
       return false;
     }
@@ -65,7 +66,7 @@ public final class MultiNewArrayInNode extends AllocationSiteInNode {
 
   @Override
   public String toString() {
-    return super.toString() + "<dim:" + dim + ">";
+    return super.toString() + "<dim:" + dim + '>';
   }
 
   public int getDim() {

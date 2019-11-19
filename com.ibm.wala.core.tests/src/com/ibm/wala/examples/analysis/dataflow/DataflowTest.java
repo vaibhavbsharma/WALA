@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2008 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,19 +7,11 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.examples.analysis.dataflow;
 
-import java.io.ByteArrayInputStream;
-import java.util.ArrayList;
-import java.util.List;
-
-import org.junit.AfterClass;
-import org.junit.Assert;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
 import com.ibm.wala.classLoader.IMethod;
+import com.ibm.wala.classLoader.Language;
 import com.ibm.wala.core.tests.callGraph.CallGraphTestUtil;
 import com.ibm.wala.core.tests.util.TestConstants;
 import com.ibm.wala.core.tests.util.WalaTestCase;
@@ -55,10 +47,15 @@ import com.ibm.wala.util.config.AnalysisScopeReader;
 import com.ibm.wala.util.config.FileOfClasses;
 import com.ibm.wala.util.intset.IntIterator;
 import com.ibm.wala.util.intset.IntSet;
+import java.io.ByteArrayInputStream;
+import java.util.ArrayList;
+import java.util.List;
+import org.junit.AfterClass;
+import org.junit.Assert;
+import org.junit.BeforeClass;
+import org.junit.Test;
 
-/**
- * Tests of various flow analysis engines.
- */
+/** Tests of various flow analysis engines. */
 public class DataflowTest extends WalaTestCase {
 
   private static AnalysisScope scope;
@@ -67,25 +64,27 @@ public class DataflowTest extends WalaTestCase {
 
   // more aggressive exclusions to avoid library blowup
   // in interprocedural tests
-  private static final String EXCLUSIONS = "java\\/awt\\/.*\n" + 
-  		"javax\\/swing\\/.*\n" + 
-  		"sun\\/awt\\/.*\n" + 
-  		"sun\\/swing\\/.*\n" + 
-  		"com\\/sun\\/.*\n" + 
-  		"sun\\/.*\n" + 
-  		"org\\/netbeans\\/.*\n" + 
-  		"org\\/openide\\/.*\n" + 
-  		"com\\/ibm\\/crypto\\/.*\n" + 
-  		"com\\/ibm\\/security\\/.*\n" + 
-  		"org\\/apache\\/xerces\\/.*\n" + 
-  		"java\\/security\\/.*\n" + 
-  		"";
-  
-  
+  private static final String EXCLUSIONS =
+      "java\\/awt\\/.*\n"
+          + "javax\\/swing\\/.*\n"
+          + "sun\\/awt\\/.*\n"
+          + "sun\\/swing\\/.*\n"
+          + "com\\/sun\\/.*\n"
+          + "sun\\/.*\n"
+          + "org\\/netbeans\\/.*\n"
+          + "org\\/openide\\/.*\n"
+          + "com\\/ibm\\/crypto\\/.*\n"
+          + "com\\/ibm\\/security\\/.*\n"
+          + "org\\/apache\\/xerces\\/.*\n"
+          + "java\\/security\\/.*\n"
+          + "";
+
   @BeforeClass
   public static void beforeClass() throws Exception {
 
-    scope = AnalysisScopeReader.readJavaScope(TestConstants.WALA_TESTDATA, null, DataflowTest.class.getClassLoader());
+    scope =
+        AnalysisScopeReader.readJavaScope(
+            TestConstants.WALA_TESTDATA, null, DataflowTest.class.getClassLoader());
 
     scope.setExclusions(new FileOfClasses(new ByteArrayInputStream(EXCLUSIONS.getBytes("UTF-8"))));
     try {
@@ -97,7 +96,7 @@ public class DataflowTest extends WalaTestCase {
 
   /*
    * (non-Javadoc)
-   * 
+   *
    * @see junit.framework.TestCase#tearDown()
    */
   @AfterClass
@@ -109,8 +108,9 @@ public class DataflowTest extends WalaTestCase {
   @Test
   public void testIntraproc1() {
     IAnalysisCacheView cache = new AnalysisCacheImpl();
-    final MethodReference ref = MethodReference.findOrCreate(ClassLoaderReference.Application, "Ldataflow/StaticDataflow", "test1",
-        "()V");
+    final MethodReference ref =
+        MethodReference.findOrCreate(
+            ClassLoaderReference.Application, "Ldataflow/StaticDataflow", "test1", "()V");
     IMethod method = cha.resolveMethod(ref);
     IR ir = cache.getIRFactory().makeIR(method, Everywhere.EVERYWHERE, SSAOptions.defaultOptions());
     ExplodedControlFlowGraph ecfg = ExplodedControlFlowGraph.make(ir);
@@ -128,8 +128,9 @@ public class DataflowTest extends WalaTestCase {
   @Test
   public void testIntraproc2() {
     IAnalysisCacheView cache = new AnalysisCacheImpl();
-    final MethodReference ref = MethodReference.findOrCreate(ClassLoaderReference.Application, "Ldataflow/StaticDataflow", "test2",
-        "()V");
+    final MethodReference ref =
+        MethodReference.findOrCreate(
+            ClassLoaderReference.Application, "Ldataflow/StaticDataflow", "test2", "()V");
     IMethod method = cha.resolveMethod(ref);
     IR ir = cache.getIRFactory().makeIR(method, Everywhere.EVERYWHERE, SSAOptions.defaultOptions());
     ExplodedControlFlowGraph ecfg = ExplodedControlFlowGraph.make(ir);
@@ -146,12 +147,15 @@ public class DataflowTest extends WalaTestCase {
   }
 
   @Test
-  public void testContextInsensitive() throws IllegalArgumentException, CallGraphBuilderCancelException {
-    Iterable<Entrypoint> entrypoints = com.ibm.wala.ipa.callgraph.impl.Util.makeMainEntrypoints(scope, cha,
-        "Ldataflow/StaticDataflow");
+  public void testContextInsensitive()
+      throws IllegalArgumentException, CallGraphBuilderCancelException {
+    Iterable<Entrypoint> entrypoints =
+        com.ibm.wala.ipa.callgraph.impl.Util.makeMainEntrypoints(
+            scope, cha, "Ldataflow/StaticDataflow");
     AnalysisOptions options = CallGraphTestUtil.makeAnalysisOptions(scope, entrypoints);
 
-    CallGraphBuilder<InstanceKey> builder = Util.makeZeroOneCFABuilder(options, new AnalysisCacheImpl(), cha, scope);
+    CallGraphBuilder<InstanceKey> builder =
+        Util.makeZeroOneCFABuilder(Language.JAVA, options, new AnalysisCacheImpl(), cha, scope);
     CallGraph cg = builder.makeCallGraph(options, null);
     ExplodedInterproceduralCFG icfg = ExplodedInterproceduralCFG.make(cg);
     ContextInsensitiveReachingDefs reachingDefs = new ContextInsensitiveReachingDefs(icfg, cha);
@@ -166,7 +170,12 @@ public class DataflowTest extends WalaTestCase {
           while (intIterator.hasNext()) {
             int next = intIterator.next();
             final Pair<CGNode, Integer> def = reachingDefs.getNodeAndInstrForNumber(next);
-            if (def.fst.getMethod().getDeclaringClass().getClassLoader().getReference().equals(ClassLoaderReference.Application)) {
+            if (def.fst
+                .getMethod()
+                .getDeclaringClass()
+                .getClassLoader()
+                .getReference()
+                .equals(ClassLoaderReference.Application)) {
               System.out.println(def);
               applicationDefs.add(def);
             }
@@ -179,15 +188,19 @@ public class DataflowTest extends WalaTestCase {
 
   @Test
   public void testContextSensitive() throws IllegalArgumentException, CancelException {
-    Iterable<Entrypoint> entrypoints = com.ibm.wala.ipa.callgraph.impl.Util.makeMainEntrypoints(scope, cha,
-        "Ldataflow/StaticDataflow");
+    Iterable<Entrypoint> entrypoints =
+        com.ibm.wala.ipa.callgraph.impl.Util.makeMainEntrypoints(
+            scope, cha, "Ldataflow/StaticDataflow");
     AnalysisOptions options = CallGraphTestUtil.makeAnalysisOptions(scope, entrypoints);
 
-    CallGraphBuilder<InstanceKey> builder = Util.makeZeroOneCFABuilder(options, new AnalysisCacheImpl(), cha, scope);
+    CallGraphBuilder<InstanceKey> builder =
+        Util.makeZeroOneCFABuilder(Language.JAVA, options, new AnalysisCacheImpl(), cha, scope);
     CallGraph cg = builder.makeCallGraph(options, null);
     ContextSensitiveReachingDefs reachingDefs = new ContextSensitiveReachingDefs(cg);
-    TabulationResult<BasicBlockInContext<IExplodedBasicBlock>, CGNode, Pair<CGNode, Integer>> result = reachingDefs.analyze();
-    ISupergraph<BasicBlockInContext<IExplodedBasicBlock>, CGNode> supergraph = reachingDefs.getSupergraph();
+    TabulationResult<BasicBlockInContext<IExplodedBasicBlock>, CGNode, Pair<CGNode, Integer>>
+        result = reachingDefs.analyze();
+    ISupergraph<BasicBlockInContext<IExplodedBasicBlock>, CGNode> supergraph =
+        reachingDefs.getSupergraph();
     for (BasicBlockInContext<IExplodedBasicBlock> bb : supergraph) {
       if (bb.getNode().toString().contains("testInterproc")) {
         IExplodedBasicBlock delegate = bb.getDelegate();
@@ -198,7 +211,12 @@ public class DataflowTest extends WalaTestCase {
           while (intIterator.hasNext()) {
             int next = intIterator.next();
             final Pair<CGNode, Integer> def = reachingDefs.getDomain().getMappedObject(next);
-            if (def.fst.getMethod().getDeclaringClass().getClassLoader().getReference().equals(ClassLoaderReference.Application)) {
+            if (def.fst
+                .getMethod()
+                .getDeclaringClass()
+                .getClassLoader()
+                .getReference()
+                .equals(ClassLoaderReference.Application)) {
               System.out.println(def);
               applicationDefs.add(def);
             }

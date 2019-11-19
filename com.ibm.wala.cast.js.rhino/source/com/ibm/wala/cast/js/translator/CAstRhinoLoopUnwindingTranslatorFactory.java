@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2013 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,16 +7,15 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.cast.js.translator;
 
 import com.ibm.wala.cast.ir.translator.TranslatorToCAst;
 import com.ibm.wala.cast.tree.CAst;
 import com.ibm.wala.classLoader.SourceModule;
 
-public class CAstRhinoLoopUnwindingTranslatorFactory 
-  extends JavaScriptLoopUnwindingTranslatorFactory 
-{
+public class CAstRhinoLoopUnwindingTranslatorFactory
+    extends JavaScriptLoopUnwindingTranslatorFactory {
   public CAstRhinoLoopUnwindingTranslatorFactory(int unwindFactor) {
     super(unwindFactor);
   }
@@ -30,4 +29,3 @@ public class CAstRhinoLoopUnwindingTranslatorFactory
     return new CAstRhinoTranslator(M, true);
   }
 }
-

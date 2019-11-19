@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2002 - 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,29 +7,27 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.util.warnings;
 
 import com.ibm.wala.util.debug.Assertions;
 
-/**
- * A warning message. These are ordered first by severity, and then by lexicographic order.
- */
-public abstract class Warning implements Comparable {
+/** A warning message. These are ordered first by severity, and then by lexicographic order. */
+public abstract class Warning implements Comparable<Warning> {
 
-  public final static byte MILD = 0;
+  public static final byte MILD = 0;
 
-  public final static byte MODERATE = 1;
+  public static final byte MODERATE = 1;
 
-  public final static byte SEVERE = 2;
+  public static final byte SEVERE = 2;
 
-  public final static byte CLIENT_MILD = 3;
+  public static final byte CLIENT_MILD = 3;
 
-  public final static byte CLIENT_MODERATE = 4;
+  public static final byte CLIENT_MODERATE = 4;
 
-  public final static byte CLIENT_SEVERE = 5;
+  public static final byte CLIENT_SEVERE = 5;
 
-  public final static byte N_LEVELS = 6;
+  public static final byte N_LEVELS = 6;
 
   private byte level;
 
@@ -43,15 +41,12 @@ public abstract class Warning implements Comparable {
 
   /*
    * @see java.lang.Comparable#compareTo(java.lang.Object)
-   * 
-   * @throws ClassCastException if o is not a Warning
    */
   @Override
-  public int compareTo(Object o) throws ClassCastException {
-    if (o == null) {
+  public int compareTo(Warning other) {
+    if (other == null) {
       return -1;
     }
-    Warning other = (Warning) o;
     if (level < other.level) {
       return -1;
     } else if (level > other.level) {
@@ -78,29 +73,26 @@ public abstract class Warning implements Comparable {
 
   @Override
   public String toString() {
-    StringBuffer result = new StringBuffer();
-    result.append("[").append(severityString()).append("] ");
-    result.append(getMsg());
-    return result.toString();
+    return '[' + severityString() + "] " + getMsg();
   }
 
   protected String severityString() {
     switch (level) {
-    case MILD:
-      return ("mild");
-    case MODERATE:
-      return ("Moderate");
-    case SEVERE:
-      return ("SEVERE");
-    case CLIENT_MILD:
-      return ("Client mild");
-    case CLIENT_MODERATE:
-      return ("Client moderate");
-    case CLIENT_SEVERE:
-      return ("Client severe");
-    default:
-      Assertions.UNREACHABLE();
-      return null;
+      case MILD:
+        return ("mild");
+      case MODERATE:
+        return ("Moderate");
+      case SEVERE:
+        return ("SEVERE");
+      case CLIENT_MILD:
+        return ("Client mild");
+      case CLIENT_MODERATE:
+        return ("Client moderate");
+      case CLIENT_SEVERE:
+        return ("Client severe");
+      default:
+        Assertions.UNREACHABLE();
+        return null;
     }
   }
 
@@ -108,9 +100,7 @@ public abstract class Warning implements Comparable {
     return level;
   }
 
-  /**
-   * Must return the same String always -- this is required by the implementation of hashCode.
-   */
+  /** Must return the same String always -- this is required by the implementation of hashCode. */
   public abstract String getMsg();
 
   public void setLevel(byte b) {

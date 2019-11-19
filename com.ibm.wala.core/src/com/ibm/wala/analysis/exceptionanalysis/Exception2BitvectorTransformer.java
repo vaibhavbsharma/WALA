@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2007 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,17 +7,16 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.analysis.exceptionanalysis;
-
-import java.util.HashSet;
-import java.util.Set;
 
 import com.ibm.wala.fixpoint.BitVectorVariable;
 import com.ibm.wala.types.TypeReference;
 import com.ibm.wala.util.collections.ObjectArrayMapping;
 import com.ibm.wala.util.intset.BitVector;
 import com.ibm.wala.util.intset.OrdinalSetMapping;
+import java.util.HashSet;
+import java.util.Set;
 
 public class Exception2BitvectorTransformer {
   private OrdinalSetMapping<TypeReference> values;
@@ -37,7 +36,7 @@ public class Exception2BitvectorTransformer {
   private void createValues(Set<TypeReference> exceptions) {
     TypeReference[] exceptionsArray = new TypeReference[exceptions.size()];
     exceptions.toArray(exceptionsArray);
-    values = new ObjectArrayMapping<TypeReference>(exceptionsArray);
+    values = new ObjectArrayMapping<>(exceptionsArray);
   }
 
   public BitVector computeBitVector(Set<TypeReference> exceptions) {
@@ -47,8 +46,9 @@ public class Exception2BitvectorTransformer {
       if (pos != -1) {
         result.set(pos);
       } else {
-        throw new IllegalArgumentException("Got exception I don't know about,"
-            + "make sure only to use exceptions given to the constructor ");
+        throw new IllegalArgumentException(
+            "Got exception I don't know about,"
+                + "make sure only to use exceptions given to the constructor ");
       }
     }
     return result;

@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2002 - 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,7 +7,7 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.ssa;
 
 import com.ibm.wala.shrikeBT.BinaryOpInstruction;
@@ -17,12 +17,16 @@ public abstract class SSABinaryOpInstruction extends SSAAbstractBinaryInstructio
 
   private final IBinaryOpInstruction.IOperator operator;
 
-  /**
-   * Might this instruction represent integer arithmetic?
-   */
+  /** Might this instruction represent integer arithmetic? */
   private final boolean mayBeInteger;
 
-  protected SSABinaryOpInstruction(int iindex, IBinaryOpInstruction.IOperator operator, int result, int val1, int val2, boolean mayBeInteger) {
+  protected SSABinaryOpInstruction(
+      int iindex,
+      IBinaryOpInstruction.IOperator operator,
+      int result,
+      int val1,
+      int val2,
+      boolean mayBeInteger) {
     super(iindex, result, val1, val2);
     this.operator = operator;
     this.mayBeInteger = mayBeInteger;
@@ -36,21 +40,22 @@ public abstract class SSABinaryOpInstruction extends SSAAbstractBinaryInstructio
 
   @Override
   public String toString(SymbolTable symbolTable) {
-    return getValueString(symbolTable, result) + " = binaryop(" + operator + ") " + getValueString(symbolTable, val1) + " , "
+    return getValueString(symbolTable, result)
+        + " = binaryop("
+        + operator
+        + ") "
+        + getValueString(symbolTable, val1)
+        + " , "
         + getValueString(symbolTable, val2);
   }
 
-  /**
-   * @see com.ibm.wala.ssa.SSAInstruction#visit(IVisitor)
-   */
+  /** @see com.ibm.wala.ssa.SSAInstruction#visit(IVisitor) */
   @Override
   public void visit(IVisitor v) throws NullPointerException {
     v.visitBinaryOp(this);
   }
 
-  /**
-   * Ugh. clean up shrike operator stuff.
-   */
+  /** Ugh. clean up shrike operator stuff. */
   public IBinaryOpInstruction.IOperator getOperator() {
     return operator;
   }
@@ -60,7 +65,9 @@ public abstract class SSABinaryOpInstruction extends SSAAbstractBinaryInstructio
    */
   @Override
   public boolean isPEI() {
-    return mayBeInteger && (operator == BinaryOpInstruction.Operator.DIV || operator == BinaryOpInstruction.Operator.REM);
+    return mayBeInteger
+        && (operator == BinaryOpInstruction.Operator.DIV
+            || operator == BinaryOpInstruction.Operator.REM);
   }
 
   /*

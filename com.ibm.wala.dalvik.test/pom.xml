@@ -5,7 +5,7 @@
   <parent>
       <groupId>com.ibm.wala</groupId>
       <artifactId>WALA</artifactId>
-      <version>1.4.4-SNAPSHOT</version>
+      <version>1.5.5-SNAPSHOT</version>
   </parent>
   <artifactId>com.ibm.wala.dalvik.test</artifactId>
   <packaging>eclipse-plugin</packaging>
@@ -40,7 +40,9 @@
               <testClassesDirectory>${project.build.outputDirectory}</testClassesDirectory>
               <argLine>-Xmx800M -ea</argLine>
               <redirectTestOutputToFile>true</redirectTestOutputToFile>
-            </configuration>
+  	      <forkCount>2</forkCount>
+	      <reuseForks>false</reuseForks>
+          </configuration>
             <goals>
               <goal>test</goal>
             </goals>
@@ -54,9 +56,24 @@
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
-      <version>4.11</version>
+      <version>4.12</version>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>org.smali</groupId>
+      <artifactId>dexlib2</artifactId>
+      <version>2.2.5</version>
+    </dependency>
+    <dependency>
+      <groupId>org.smali</groupId>
+      <artifactId>util</artifactId>
+      <version>2.2.5</version>
+    </dependency>
+    <dependency>
+      <groupId>com.google.guava</groupId>
+      <artifactId>guava</artifactId>
+      <version>22.0</version>
+    </dependency>
   </dependencies>
-
+  
 </project>

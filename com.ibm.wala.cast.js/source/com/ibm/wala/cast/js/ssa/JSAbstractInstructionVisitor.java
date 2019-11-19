@@ -1,4 +1,4 @@
-/******************************************************************************
+/*
  * Copyright (c) 2002 - 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,60 +7,40 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *****************************************************************************/
+ */
 package com.ibm.wala.cast.js.ssa;
 
 import com.ibm.wala.cast.ir.ssa.AstAbstractInstructionVisitor;
+import com.ibm.wala.cast.ir.ssa.AstPropertyRead;
+import com.ibm.wala.cast.ir.ssa.AstPropertyWrite;
 
-public class JSAbstractInstructionVisitor 
-    extends AstAbstractInstructionVisitor 
-    implements JSInstructionVisitor
-{
-
-  @Override
-  public void visitJavaScriptInvoke(JavaScriptInvoke instruction) {
-  
-  }
-    
-  @Override
-  public void visitJavaScriptPropertyRead(JavaScriptPropertyRead instruction) {
-  
-  }
-  
-  @Override
-  public void visitJavaScriptPropertyWrite(JavaScriptPropertyWrite instruction) {
-  
-  }
+public class JSAbstractInstructionVisitor extends AstAbstractInstructionVisitor
+    implements JSInstructionVisitor {
 
   @Override
-  public void visitTypeOf(JavaScriptTypeOfInstruction instruction) {
-      
-  }
+  public void visitJavaScriptInvoke(JavaScriptInvoke instruction) {}
 
   @Override
-  public void visitJavaScriptInstanceOf(JavaScriptInstanceOf instruction) {
-     
-  }
+  public void visitPropertyRead(AstPropertyRead instruction) {}
 
   @Override
-  public void visitCheckRef(JavaScriptCheckReference instruction) {
- 
-  }
+  public void visitPropertyWrite(AstPropertyWrite instruction) {}
 
   @Override
-  public void visitWithRegion(JavaScriptWithRegion instruction) {
-    
-  }
+  public void visitTypeOf(JavaScriptTypeOfInstruction instruction) {}
 
   @Override
-  public void visitSetPrototype(SetPrototype instruction) {
-    
-  }
+  public void visitJavaScriptInstanceOf(JavaScriptInstanceOf instruction) {}
 
   @Override
-  public void visitPrototypeLookup(PrototypeLookup instruction) {
-    
-  }
+  public void visitCheckRef(JavaScriptCheckReference instruction) {}
 
+  @Override
+  public void visitWithRegion(JavaScriptWithRegion instruction) {}
+
+  @Override
+  public void visitSetPrototype(SetPrototype instruction) {}
+
+  @Override
+  public void visitPrototypeLookup(PrototypeLookup instruction) {}
 }
-

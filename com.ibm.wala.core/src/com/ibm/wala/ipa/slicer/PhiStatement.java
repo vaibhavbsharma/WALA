@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,15 +7,13 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.ipa.slicer;
 
 import com.ibm.wala.ipa.callgraph.CGNode;
 import com.ibm.wala.ssa.SSAPhiInstruction;
 
-/**
- * identifier of a phi instruction
- */
+/** identifier of a phi instruction */
 public class PhiStatement extends Statement {
   private final SSAPhiInstruction phi;
 
@@ -28,7 +26,7 @@ public class PhiStatement extends Statement {
   public Kind getKind() {
     return Kind.PHI;
   }
-  
+
   @Override
   public boolean equals(Object obj) {
     if (obj == null) {
@@ -49,11 +47,10 @@ public class PhiStatement extends Statement {
 
   @Override
   public String toString() {
-    return "PHI " + getNode() + ":" + phi;
+    return "PHI " + getNode() + ':' + phi;
   }
 
   public SSAPhiInstruction getPhi() {
     return phi;
   }
-
 }

@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,14 +7,14 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.ipa.slicer;
 
 import com.ibm.wala.ipa.callgraph.CGNode;
 
 /**
- * A {@link Statement} representing method exit used as a dummy exit for starting propagation to a seed statement in backwards
- * slicing.
+ * A {@link Statement} representing method exit used as a dummy exit for starting propagation to a
+ * seed statement in backwards slicing.
  */
 public class MethodExitStatement extends Statement {
 
@@ -49,5 +49,4 @@ public class MethodExitStatement extends Statement {
   public String toString() {
     return getKind() + ":" + getNode();
   }
-
 }

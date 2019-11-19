@@ -1,4 +1,4 @@
-/******************************************************************************
+/*
  * Copyright (c) 2002 - 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,7 +7,7 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *****************************************************************************/
+ */
 package com.ibm.wala.cast.js.analysis.typeInference;
 
 import com.ibm.wala.analysis.typeInference.ConeType;
@@ -18,14 +18,11 @@ import com.ibm.wala.cast.analysis.typeInference.AstTypeInference;
 import com.ibm.wala.cast.js.ssa.JavaScriptCheckReference;
 import com.ibm.wala.cast.js.ssa.JavaScriptInstanceOf;
 import com.ibm.wala.cast.js.ssa.JavaScriptInvoke;
-import com.ibm.wala.cast.js.ssa.JavaScriptPropertyRead;
-import com.ibm.wala.cast.js.ssa.JavaScriptPropertyWrite;
 import com.ibm.wala.cast.js.ssa.JavaScriptTypeOfInstruction;
 import com.ibm.wala.cast.js.ssa.JavaScriptWithRegion;
 import com.ibm.wala.cast.js.ssa.PrototypeLookup;
 import com.ibm.wala.cast.js.ssa.SetPrototype;
 import com.ibm.wala.cast.js.types.JavaScriptTypes;
-import com.ibm.wala.fixpoint.IVariable;
 import com.ibm.wala.ipa.cha.IClassHierarchy;
 import com.ibm.wala.ssa.IR;
 import com.ibm.wala.ssa.SymbolTable;
@@ -39,14 +36,10 @@ public class JSTypeInference extends AstTypeInference {
 
   @Override
   protected void initialize() {
-    class JSTypeOperatorFactory extends AstTypeOperatorFactory implements com.ibm.wala.cast.js.ssa.JSInstructionVisitor {
+    class JSTypeOperatorFactory extends AstTypeOperatorFactory
+        implements com.ibm.wala.cast.js.ssa.JSInstructionVisitor {
       @Override
       public void visitJavaScriptInvoke(JavaScriptInvoke inst) {
-        result = new DeclaredTypeOperator(new ConeType(cha.getRootClass()));
-      }
-
-      @Override
-      public void visitJavaScriptPropertyRead(JavaScriptPropertyRead inst) {
         result = new DeclaredTypeOperator(new ConeType(cha.getRootClass()));
       }
 
@@ -61,20 +54,13 @@ public class JSTypeInference extends AstTypeInference {
       }
 
       @Override
-      public void visitJavaScriptPropertyWrite(JavaScriptPropertyWrite inst) {
-      }
+      public void visitCheckRef(JavaScriptCheckReference instruction) {}
 
       @Override
-      public void visitCheckRef(JavaScriptCheckReference instruction) {
-      }
+      public void visitWithRegion(JavaScriptWithRegion instruction) {}
 
       @Override
-      public void visitWithRegion(JavaScriptWithRegion instruction) {
-      }
-
-      @Override
-      public void visitSetPrototype(SetPrototype instruction) {
-      }
+      public void visitSetPrototype(SetPrototype instruction) {}
 
       @Override
       public void visitPrototypeLookup(PrototypeLookup instruction) {
@@ -89,7 +75,7 @@ public class JSTypeInference extends AstTypeInference {
       }
 
       @Override
-      public IVariable makeVariable(int vn) {
+      public TypeVariable makeVariable(int vn) {
         if (ir.getSymbolTable().isStringConstant(vn)) {
           return new TypeVariable(make(JavaScriptTypes.String));
         } else if (ir.getSymbolTable().isBooleanConstant(vn)) {

@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2002 - 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,10 +7,38 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.ipa.callgraph;
 
+import com.ibm.wala.classLoader.ArrayClassLoader;
+import com.ibm.wala.classLoader.BinaryDirectoryTreeModule;
+import com.ibm.wala.classLoader.ClassFileModule;
+import com.ibm.wala.classLoader.IClassLoader;
+import com.ibm.wala.classLoader.JarFileModule;
+import com.ibm.wala.classLoader.JarStreamModule;
+import com.ibm.wala.classLoader.Language;
+import com.ibm.wala.classLoader.Module;
+import com.ibm.wala.classLoader.SourceDirectoryTreeModule;
+import com.ibm.wala.classLoader.SourceFileModule;
+import com.ibm.wala.shrikeCT.InvalidClassFileException;
+import com.ibm.wala.types.ClassLoaderReference;
+import com.ibm.wala.types.Descriptor;
+import com.ibm.wala.types.MethodReference;
+import com.ibm.wala.types.TypeName;
+import com.ibm.wala.types.TypeReference;
+import com.ibm.wala.util.collections.FilterIterator;
+import com.ibm.wala.util.collections.HashMapFactory;
+import com.ibm.wala.util.collections.HashSetFactory;
+import com.ibm.wala.util.collections.MapIterator;
+import com.ibm.wala.util.collections.MapUtil;
+import com.ibm.wala.util.config.SetOfClasses;
+import com.ibm.wala.util.debug.Assertions;
+import com.ibm.wala.util.io.RtJar;
+import com.ibm.wala.util.strings.Atom;
+import com.ibm.wala.util.strings.ImmutableByteArray;
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.NotSerializableException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -24,49 +52,23 @@ import java.util.jar.Attributes;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 
-import com.ibm.wala.classLoader.ArrayClassLoader;
-import com.ibm.wala.classLoader.BinaryDirectoryTreeModule;
-import com.ibm.wala.classLoader.ClassFileModule;
-import com.ibm.wala.classLoader.IClassLoader;
-import com.ibm.wala.classLoader.JarFileModule;
-import com.ibm.wala.classLoader.Language;
-import com.ibm.wala.classLoader.Module;
-import com.ibm.wala.classLoader.SourceDirectoryTreeModule;
-import com.ibm.wala.classLoader.SourceFileModule;
-import com.ibm.wala.shrikeCT.InvalidClassFileException;
-import com.ibm.wala.types.ClassLoaderReference;
-import com.ibm.wala.types.Descriptor;
-import com.ibm.wala.types.MethodReference;
-import com.ibm.wala.types.TypeName;
-import com.ibm.wala.types.TypeReference;
-import com.ibm.wala.util.Predicate;
-import com.ibm.wala.util.collections.FilterIterator;
-import com.ibm.wala.util.collections.HashMapFactory;
-import com.ibm.wala.util.collections.HashSetFactory;
-import com.ibm.wala.util.collections.MapIterator;
-import com.ibm.wala.util.collections.MapUtil;
-import com.ibm.wala.util.config.SetOfClasses;
-import com.ibm.wala.util.debug.Assertions;
-import com.ibm.wala.util.functions.Function;
-import com.ibm.wala.util.io.RtJar;
-import com.ibm.wala.util.strings.Atom;
-import com.ibm.wala.util.strings.ImmutableByteArray;
-
 /**
  * Base class that represents a set of files to analyze.
- * 
- * The analysis scope is partitioned by class loader. There are three pre-defined class loader scopes:
+ *
+ * <p>The analysis scope is partitioned by class loader. There are three pre-defined class loader
+ * scopes:
+ *
  * <ul>
- * <li>Primordial (for <code>rt.jar</code>, the core classes)
- * <li>Extension (for extension libraries in $JRE/lib/ext)
- * <li>Application (for the classes of the application)
+ *   <li>Primordial (for {@code rt.jar}, the core classes)
+ *   <li>Extension (for extension libraries in $JRE/lib/ext)
+ *   <li>Application (for the classes of the application)
  * </ul>
- * 
+ *
  * Each class loader will load a set of classes described by a {@link Module}.
  */
 public class AnalysisScope {
 
-  private final static int DEBUG_LEVEL = 0;
+  private static final int DEBUG_LEVEL = 0;
 
   public static final Atom PRIMORDIAL = Atom.findOrCreateUnicodeAtom("Primordial");
 
@@ -76,64 +78,56 @@ public class AnalysisScope {
 
   public static final Atom SYNTHETIC = Atom.findOrCreateUnicodeAtom("Synthetic");
 
-  /**
-   * Create an analysis scope initialized for analysis of Java
-   */
+  /** Create an analysis scope initialized for analysis of Java */
   public static AnalysisScope createJavaAnalysisScope() {
     AnalysisScope scope = new AnalysisScope(Collections.singleton(Language.JAVA));
     scope.initForJava();
     return scope;
   }
 
-  /**
-   * Initialize a scope for java analysis
-   */
+  /** Initialize a scope for java analysis */
   protected void initForJava() {
     initCoreForJava();
     initSynthetic(loadersByName.get(APPLICATION));
   }
 
-  /**
-   * Initialize the standard 3 class loaders for java analysis
-   */
+  /** Initialize the standard 3 class loaders for java analysis */
   protected void initCoreForJava() {
-    ClassLoaderReference primordial = new ClassLoaderReference(PRIMORDIAL, ClassLoaderReference.Java, null);
-    ClassLoaderReference extension = new ClassLoaderReference(EXTENSION, ClassLoaderReference.Java, primordial);
-    ClassLoaderReference application = new ClassLoaderReference(APPLICATION, ClassLoaderReference.Java, extension);
+    ClassLoaderReference primordial =
+        new ClassLoaderReference(PRIMORDIAL, ClassLoaderReference.Java, null);
+    ClassLoaderReference extension =
+        new ClassLoaderReference(EXTENSION, ClassLoaderReference.Java, primordial);
+    ClassLoaderReference application =
+        new ClassLoaderReference(APPLICATION, ClassLoaderReference.Java, extension);
 
     loadersByName.put(PRIMORDIAL, primordial);
     loadersByName.put(EXTENSION, extension);
     loadersByName.put(APPLICATION, application);
   }
 
-  /**
-   * Create the class loader for synthetic classes.
-   */
+  /** Create the class loader for synthetic classes. */
   protected void initSynthetic(ClassLoaderReference parent) {
-    ClassLoaderReference synthetic = new ClassLoaderReference(SYNTHETIC, ClassLoaderReference.Java, parent);
+    ClassLoaderReference synthetic =
+        new ClassLoaderReference(SYNTHETIC, ClassLoaderReference.Java, parent);
     setLoaderImpl(synthetic, "com.ibm.wala.ipa.summaries.BypassSyntheticClassLoader");
     loadersByName.put(SYNTHETIC, synthetic);
   }
 
-  /**
-   * A set of classes to exclude from the analysis entirely.
-   */
+  /** A set of classes to exclude from the analysis entirely. */
   private SetOfClasses exclusions;
 
-  final protected LinkedHashMap<Atom, ClassLoaderReference> loadersByName = new LinkedHashMap<Atom, ClassLoaderReference>();
+  public final LinkedHashMap<Atom, ClassLoaderReference> loadersByName = new LinkedHashMap<>();
 
-  /**
-   * Special class loader for array instances
-   */
+  /** Special class loader for array instances */
   private final ArrayClassLoader arrayClassLoader = new ArrayClassLoader();
 
-  final private Map<ClassLoaderReference, List<Module>> moduleMap = HashMapFactory.make(3);
+  private final Map<ClassLoaderReference, List<Module>> moduleMap = HashMapFactory.make(3);
 
   private final Map<Atom, Language> languages;
 
   protected AnalysisScope(Collection<? extends Language> languages) {
     super();
-    this.languages = new HashMap<Atom, Language>();
+    this.languages = new HashMap<>();
     for (Language l : languages) {
       this.languages.put(l.getName(), l);
     }
@@ -147,44 +141,34 @@ public class AnalysisScope {
     return loader.getReference().equals(getLoader(APPLICATION));
   }
 
-  /**
-   * Return the information regarding the primordial loader.
-   */
+  /** Return the information regarding the primordial loader. */
   public ClassLoaderReference getPrimordialLoader() {
     return getLoader(PRIMORDIAL);
   }
 
-  /**
-   * Return the information regarding the extension loader.
-   */
+  /** Return the information regarding the extension loader. */
   public ClassLoaderReference getExtensionLoader() {
     return getLoader(EXTENSION);
   }
 
-  /**
-   * Return the information regarding the application loader.
-   */
+  /** Return the information regarding the application loader. */
   public ClassLoaderReference getApplicationLoader() {
     return getLoader(APPLICATION);
   }
 
-  /**
-   * Return the information regarding the application loader.
-   */
+  /** Return the information regarding the application loader. */
   public ClassLoaderReference getSyntheticLoader() {
     return getLoader(SYNTHETIC);
   }
 
-  /**
-   * @return the set of languages to be processed during this analysis session.
-   */
+  /** @return the set of languages to be processed during this analysis session. */
   public Collection<Language> getLanguages() {
     return languages.values();
   }
 
   /**
-   * @return the set of "base languages," each of which defines a family of compatible languages, and therefore induces a distinct
-   *         ClassHierarchy
+   * @return the set of "base languages," each of which defines a family of compatible languages,
+   *     and therefore induces a distinct ClassHierarchy
    */
   public Set<Language> getBaseLanguages() {
     Set<Language> result = HashSetFactory.make();
@@ -196,26 +180,31 @@ public class AnalysisScope {
     return result;
   }
 
-  /**
-   * Add a class file to the scope for a loader
-   */
-  public void addSourceFileToScope(ClassLoaderReference loader, File file, String fileName) throws IllegalArgumentException {
+  /** Add a class file to the scope for a loader */
+  public void addSourceFileToScope(ClassLoaderReference loader, File file, String fileName)
+      throws IllegalArgumentException {
     List<Module> s = MapUtil.findOrCreateList(moduleMap, loader);
     s.add(new SourceFileModule(file, fileName, null));
   }
 
-  /**
-   * Add a class file to the scope for a loader
-   * @throws InvalidClassFileException 
-   */
-  public void addClassFileToScope(ClassLoaderReference loader, File file) throws IllegalArgumentException, InvalidClassFileException {
+  /** Add a class file to the scope for a loader */
+  public void addClassFileToScope(ClassLoaderReference loader, File file)
+      throws IllegalArgumentException, InvalidClassFileException {
     List<Module> s = MapUtil.findOrCreateList(moduleMap, loader);
     s.add(new ClassFileModule(file, null));
   }
 
   /**
-   * Add a jar file to the scope for a loader
+   * Add a jar file to the scope via an {@link InputStream}. NOTE: The InputStream should *not* be a
+   * {@link java.util.jar.JarInputStream}; it should be a regular {@link InputStream} for the raw
+   * bytes of the jar file.
    */
+  public void addInputStreamForJarToScope(ClassLoaderReference loader, InputStream stream)
+      throws IOException {
+    MapUtil.findOrCreateList(moduleMap, loader).add(new JarStreamModule(stream));
+  }
+
+  /** Add a jar file to the scope for a loader */
   @SuppressWarnings("unused")
   public void addToScope(ClassLoaderReference loader, JarFile file) {
     List<Module> s = MapUtil.findOrCreateList(moduleMap, loader);
@@ -225,9 +214,7 @@ public class AnalysisScope {
     s.add(new JarFileModule(file));
   }
 
-  /**
-   * Add a module to the scope for a loader
-   */
+  /** Add a module to the scope for a loader */
   @SuppressWarnings("unused")
   public void addToScope(ClassLoaderReference loader, Module m) {
     if (m == null) {
@@ -240,9 +227,7 @@ public class AnalysisScope {
     s.add(m);
   }
 
-  /**
-   * Add all modules from another scope
-   */
+  /** Add all modules from another scope */
   public void addToScope(AnalysisScope other) {
     if (other == null) {
       throw new IllegalArgumentException("null other");
@@ -255,7 +240,8 @@ public class AnalysisScope {
   }
 
   /**
-   * Add a module file to the scope for a loader. The classes in the added jar file will override classes added to the scope so far.
+   * Add a module file to the scope for a loader. The classes in the added jar file will override
+   * classes added to the scope so far.
    */
   @SuppressWarnings("unused")
   public void addToScopeHead(ClassLoaderReference loader, Module m) {
@@ -270,7 +256,7 @@ public class AnalysisScope {
   }
 
   /**
-   * @return the ClassLoaderReference specified by <code>name</code>.
+   * @return the ClassLoaderReference specified by {@code name}.
    * @throws IllegalArgumentException if name is null
    */
   public ClassLoaderReference getLoader(Atom name) throws IllegalArgumentException {
@@ -325,31 +311,27 @@ public class AnalysisScope {
 
   @Override
   public String toString() {
-    StringBuffer result = new StringBuffer();
+    StringBuilder result = new StringBuilder();
     for (ClassLoaderReference loader : loadersByName.values()) {
       result.append(loader.getName());
-      result.append("\n");
+      result.append('\n');
       for (Module m : getModules(loader)) {
-        result.append(" ");
+        result.append(' ');
         result.append(m);
-        result.append("\n");
+        result.append('\n');
       }
     }
     result.append(getExclusionString());
-    result.append("\n");
+    result.append('\n');
     return result.toString();
   }
 
-  /**
-   * @return a String that describes exclusions from the analysis scope.
-   */
+  /** @return a String that describes exclusions from the analysis scope. */
   protected Object getExclusionString() {
     return "Exclusions: " + exclusions;
   }
 
-  /**
-   * Utility function. Useful when parsing input.
-   */
+  /** Utility function. Useful when parsing input. */
   public MethodReference findMethod(Atom loader, String klass, Atom name, ImmutableByteArray desc) {
     if (desc == null) {
       throw new IllegalArgumentException("null desc");
@@ -366,29 +348,18 @@ public class AnalysisScope {
     return result == null ? empty : result;
   }
 
-  /**
-   * @return Returns the arrayClassLoader.
-   */
+  /** @return Returns the arrayClassLoader. */
   public ArrayClassLoader getArrayClassLoader() {
     return arrayClassLoader;
   }
 
-  /**
-   * @return the rt.jar (1.4) or core.jar (1.5) file, or null if not found.
-   */
+  /** @return the rt.jar (1.4) or core.jar (1.5) file, or null if not found. */
   private JarFile getRtJar() {
     return RtJar.getRtJar(
-        new MapIterator<Module,JarFile>(
-            new FilterIterator<Module>(getModules(getPrimordialLoader()).iterator(), new Predicate<Module>() {
-              @Override
-              public boolean test(Module M) {
-                return M instanceof JarFileModule;
-              } }), new Function<Module,JarFile>() {
-
-              @Override
-              public JarFile apply(Module M) {
-                return ((JarFileModule) M).getJarFile();
-              } }));
+        new MapIterator<>(
+            new FilterIterator<>(
+                getModules(getPrimordialLoader()).iterator(), JarFileModule.class::isInstance),
+            M -> ((JarFileModule) M).getJarFile()));
   }
 
   public String getJavaLibraryVersion() throws IllegalStateException {
@@ -402,7 +373,8 @@ public class AnalysisScope {
       if (result == null) {
         Attributes att = man.getMainAttributes();
         System.err.println("main attributes:" + att);
-        Assertions.UNREACHABLE("Manifest for " + rtJar.getName() + " has no value for Specification-Version");
+        Assertions.UNREACHABLE(
+            "Manifest for " + rtJar.getName() + " has no value for Specification-Version");
       }
       return result;
     } catch (java.io.IOException e) {
@@ -433,9 +405,8 @@ public class AnalysisScope {
 
   /**
    * Creates a "serializable" version of the analysis scope.
-   * 
+   *
    * @return a "serializable" version of the analysis scope.
-   * @throws NotSerializableException
    */
   public ShallowAnalysisScope toShallowAnalysisScope() throws NotSerializableException {
 
@@ -445,12 +416,13 @@ public class AnalysisScope {
     // Note: 'arrayClassLoader' object will be built from scratch in remote process
 
     // represent modules map as a set of strings (corresponding to analysis scope file lines.
-    List<String> moduleLines = new ArrayList<String>();
+    List<String> moduleLines = new ArrayList<>();
     for (Map.Entry<ClassLoaderReference, List<Module>> e : moduleMap.entrySet()) {
       ClassLoaderReference lrReference = e.getKey();
       String moduleLdr = lrReference.getName().toString();
       String moduleLang = lrReference.getLanguage().toString();
-      assert Language.JAVA.getName().equals(lrReference.getLanguage()) : "Java language only is currently supported";
+      assert Language.JAVA.getName().equals(lrReference.getLanguage())
+          : "Java language only is currently supported";
 
       for (Module m : e.getValue()) {
         String moduleType;
@@ -472,24 +444,28 @@ public class AnalysisScope {
           continue;
         }
         modulePath.replace("\\", "/");
-        String moduleDescrLine = String.format("%s,%s,%s,%s", moduleLdr, moduleLang, moduleType, modulePath);
+        String moduleDescrLine =
+            String.format("%s,%s,%s,%s", moduleLdr, moduleLang, moduleType, modulePath);
         moduleLines.add(moduleDescrLine);
       }
     }
 
     // represent loaderImplByRef map as set of strings
-    List<String> ldrImplLines = new ArrayList<String>();
+    List<String> ldrImplLines = new ArrayList<>();
     for (Map.Entry<ClassLoaderReference, String> e : loaderImplByRef.entrySet()) {
       ClassLoaderReference lrReference = e.getKey();
       String ldrName = lrReference.getName().toString();
       String ldrLang = lrReference.getLanguage().toString();
-      assert Language.JAVA.getName().equals(lrReference.getLanguage()) : "Java language only is currently supported";
+      assert Language.JAVA.getName().equals(lrReference.getLanguage())
+          : "Java language only is currently supported";
       String ldrImplName = e.getValue();
-      String ldrImplDescrLine = String.format("%s,%s,%s,%s", ldrName, ldrLang, "loaderImpl", ldrImplName);
+      String ldrImplDescrLine =
+          String.format("%s,%s,%s,%s", ldrName, ldrLang, "loaderImpl", ldrImplName);
       ldrImplLines.add(ldrImplDescrLine);
     }
 
-    ShallowAnalysisScope shallowScope = new ShallowAnalysisScope(getExclusions(), moduleLines, ldrImplLines);
+    ShallowAnalysisScope shallowScope =
+        new ShallowAnalysisScope(getExclusions(), moduleLines, ldrImplLines);
     return shallowScope;
   }
 }

@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2013 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,7 +7,7 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package slice;
 
 public class TestThrowCatch {
@@ -19,7 +19,6 @@ public class TestThrowCatch {
     MyException(int state) {
       this.state = state;
     }
-
   }
 
   public static void callee(int x) throws MyException {
@@ -29,9 +28,7 @@ public class TestThrowCatch {
     }
   }
 
-  public static void doNothing(int x) {
-
-  }
+  public static void doNothing(int x) {}
 
   public static void main(String args[]) {
     try {

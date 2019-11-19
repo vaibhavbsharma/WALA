@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2007 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,14 +7,13 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package slice;
 
 import java.util.Hashtable;
 
 public class Slice7 {
   public static void main(String args[]) {
-    @SuppressWarnings("unused")
-    Hashtable<Object, Object> abc = new Hashtable<Object, Object>(3, 0.75f);
+    Hashtable<Object, Object> abc = new Hashtable<>(3, 0.75f);
   }
 }

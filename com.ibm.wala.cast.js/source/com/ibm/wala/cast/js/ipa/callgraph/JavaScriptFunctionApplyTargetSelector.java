@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2013 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,7 +7,7 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.cast.js.ipa.callgraph;
 
 import com.ibm.wala.cast.js.ipa.summaries.JavaScriptSummarizedFunction;
@@ -25,19 +25,20 @@ import com.ibm.wala.types.TypeName;
 import com.ibm.wala.util.strings.Atom;
 
 /**
- * We need to generate synthetic methods for Function.apply() in the target
- * selector, so that the AstMethod for Function_prototype_apply() in the prologue doesn't
- * actually get used in the CGNodes used for calls to Function.prototype.apply(). The
- * generated dummy methods should <em>never</em> actually be used except as a
- * stub.
+ * We need to generate synthetic methods for Function.apply() in the target selector, so that the
+ * AstMethod for Function_prototype_apply() in the prologue doesn't actually get used in the CGNodes
+ * used for calls to Function.prototype.apply(). The generated dummy methods should <em>never</em>
+ * actually be used except as a stub.
  */
 public class JavaScriptFunctionApplyTargetSelector implements MethodTargetSelector {
 
   private final MethodTargetSelector base;
 
-  private static final TypeName APPLY_TYPE_NAME = TypeName.findOrCreate("Lprologue.js/Function_prototype_apply");
+  private static final TypeName APPLY_TYPE_NAME =
+      TypeName.findOrCreate("Lprologue.js/Function_prototype_apply");
 
   private IMethod applyMethod;
+
   public JavaScriptFunctionApplyTargetSelector(MethodTargetSelector base) {
     this.base = base;
   }
@@ -46,7 +47,7 @@ public class JavaScriptFunctionApplyTargetSelector implements MethodTargetSelect
     final MethodReference ref = genSyntheticMethodRef(declaringClass);
     // number of args doesn't matter
     JavaScriptSummary S = new JavaScriptSummary(ref, 1);
-    return new JavaScriptSummarizedFunction(ref, S, declaringClass);  
+    return new JavaScriptSummarizedFunction(ref, S, declaringClass);
   }
 
   public static final String SYNTHETIC_APPLY_METHOD_PREFIX = "$$ apply_dummy";
@@ -72,5 +73,4 @@ public class JavaScriptFunctionApplyTargetSelector implements MethodTargetSelect
     }
     return base.getCalleeTarget(caller, site, receiver);
   }
-
 }

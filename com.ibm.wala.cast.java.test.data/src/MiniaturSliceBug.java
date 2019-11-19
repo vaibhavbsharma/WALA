@@ -1,4 +1,4 @@
-/******************************************************************************
+/*
  * Copyright (c) 2002 - 2008 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,13 +7,12 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *****************************************************************************/
+ */
 abstract class PrimitiveWrapper {
     
   /**
    * Sets the integer representation of the underlying primitive
    * to the given value.
-   * @effects this.intVal' = i
    */
   public abstract void setIntValue(int i);
     
@@ -27,7 +26,6 @@ abstract class PrimitiveWrapper {
    * Returns true if this and the given object are 
    * pri
    * {@inheritDoc}
-   * @see java.lang.Object#equals(java.lang.Object)
    */
   
   @Override
@@ -39,42 +37,23 @@ final class IntWrapper extends PrimitiveWrapper {
 	
   /**
    * Constructs a wrapper for the given int.
-   * @effects this.intVal' = val
    */
   public IntWrapper(int val) { 
     this.val = val;
   }
-	
-  /**
-   * {@inheritDoc}
-   * @see com.ibm.miniatur.tests.sequential.PrimitiveWrapper#intValue()
-   */
-  
+
   @Override
-  @SuppressWarnings("javadoc")
   public int intValue() {
     return val;
   }
 
-  /**
-   * {@inheritDoc}
-   * @see com.ibm.miniatur.tests.sequential.PrimitiveWrapper#setIntValue(int)
-   */
-  
   @Override
-  @SuppressWarnings("javadoc")
   public void setIntValue(int i) {
     this.val = i;
   }
 	
-  /**
-   * {@inheritDoc}
-   * @see com.ibm.miniatur.tests.sequential.PrimitiveWrapper#equals(java.lang.Object)
-   */
-  
   @Override
-  @SuppressWarnings("javadoc")
-  public boolean equals(Object o) { 
+  public boolean equals(Object o) {
     return o instanceof IntWrapper && ((IntWrapper)o).val==val;
   }
 }

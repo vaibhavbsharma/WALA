@@ -1,4 +1,4 @@
-/******************************************************************************
+/*
  * Copyright (c) 2002 - 2008 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,7 +7,7 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *****************************************************************************/
+ */
 public class Breaks {
 
   private static class Ref {
@@ -27,8 +27,8 @@ public class Breaks {
     if (objectClass != null) {
       String[] classes = reference.getClasses();
       int size = classes.length;
-      for (int i = 0; i < size; i++) {    
-	if (classes[i] == objectClass)
+      for (String aClass : classes) {
+        if (aClass == objectClass)
 	  break objectClassCheck;
       }
       return;
