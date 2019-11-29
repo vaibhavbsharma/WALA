@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2013 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,13 +7,15 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.shrikeBT;
 
 public interface IComparisonInstruction extends IInstruction {
 
   public enum Operator {
-    CMP, CMPL, CMPG;
+    CMP,
+    CMPL,
+    CMPG;
 
     @Override
     public String toString() {
@@ -24,5 +26,4 @@ public interface IComparisonInstruction extends IInstruction {
   Operator getOperator();
 
   String getType();
-
 }

@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2002 - 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,14 +7,12 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.util.io;
 
 import java.net.URI;
 
-/**
- * Some simple utilities used to manipulate Strings
- */
+/** Some simple utilities used to manipulate Strings */
 public class FileSuffixes {
 
   private static final String CLASS_SUFFIX = ".class";
@@ -28,9 +26,7 @@ public class FileSuffixes {
 
   /**
    * Does the URI refer to a .dex file?
-   * 
-   * @param uri
-   * @return boolean
+   *
    * @throws IllegalArgumentException if uri is null
    */
   public static boolean isDexFile(final URI uri) {
@@ -51,10 +47,9 @@ public class FileSuffixes {
     }
   }
 
-
   /**
    * Does the file name represent a .dex file?
-   * 
+   *
    * @param fileName name of a file
    * @return boolean
    * @throws IllegalArgumentException if fileName is null
@@ -68,7 +63,7 @@ public class FileSuffixes {
 
   /**
    * Does the file name represent a .dex file?
-   * 
+   *
    * @param fileName name of a file
    * @return boolean
    * @throws IllegalArgumentException if fileName is null
@@ -82,7 +77,7 @@ public class FileSuffixes {
 
   /**
    * Does the file name represent a .class file?
-   * 
+   *
    * @param fileName name of a file
    * @return boolean
    * @throws IllegalArgumentException if fileName is null
@@ -96,7 +91,7 @@ public class FileSuffixes {
 
   /**
    * Does the file name represent a .java file?
-   * 
+   *
    * @param fileName name of a file
    * @return boolean
    * @throws IllegalArgumentException if fileName is null
@@ -110,7 +105,7 @@ public class FileSuffixes {
 
   /**
    * Does the file name represent a .jar file?
-   * 
+   *
    * @param fileName name of a file
    * @return boolean
    * @throws IllegalArgumentException if fileName is null
@@ -124,7 +119,7 @@ public class FileSuffixes {
 
   /**
    * Does the file name represent a .war file?
-   * 
+   *
    * @param fileName name of a file
    * @return boolean
    * @throws IllegalArgumentException if fileName is null
@@ -138,9 +133,9 @@ public class FileSuffixes {
 
   /**
    * Strip the ".class" or ".java" suffix from a file name
-   * 
-   * TODO: generalize for all suffixes
-   * 
+   *
+   * <p>TODO: generalize for all suffixes
+   *
    * @param fileName the file name
    * @throws IllegalArgumentException if fileName is null
    */
@@ -157,10 +152,8 @@ public class FileSuffixes {
     }
   }
 
-  /**
-   * Does the URI point to a ressource in a jar-file
-   */
+  /** Does the URI point to a ressource in a jar-file */
   public static boolean isRessourceFromJar(final URI uri) {
-    return uri.toString().startsWith("jar:");   // How Pretty 
+    return uri.toString().startsWith("jar:"); // How Pretty
   }
 }

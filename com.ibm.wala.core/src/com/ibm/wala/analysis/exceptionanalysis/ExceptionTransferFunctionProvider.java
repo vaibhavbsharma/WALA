@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2007 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,12 +7,8 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.analysis.exceptionanalysis;
-
-import java.util.Iterator;
-import java.util.LinkedHashSet;
-import java.util.Set;
 
 import com.ibm.wala.classLoader.CallSiteReference;
 import com.ibm.wala.dataflow.graph.AbstractMeetOperator;
@@ -26,13 +22,19 @@ import com.ibm.wala.ipa.callgraph.CGNode;
 import com.ibm.wala.ipa.callgraph.CallGraph;
 import com.ibm.wala.types.TypeReference;
 import com.ibm.wala.util.intset.BitVector;
+import java.util.Iterator;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
-public class ExceptionTransferFunctionProvider implements ITransferFunctionProvider<CGNode, BitVectorVariable> {
+public class ExceptionTransferFunctionProvider
+    implements ITransferFunctionProvider<CGNode, BitVectorVariable> {
   private Exception2BitvectorTransformer transformer;
   private CallGraph cg;
   private CGIntraproceduralExceptionAnalysis intraResult;
 
-  public ExceptionTransferFunctionProvider(CGIntraproceduralExceptionAnalysis intraResult, CallGraph cg,
+  public ExceptionTransferFunctionProvider(
+      CGIntraproceduralExceptionAnalysis intraResult,
+      CallGraph cg,
       Exception2BitvectorTransformer transformer) {
     this.cg = cg;
     this.transformer = transformer;
@@ -75,8 +77,8 @@ public class ExceptionTransferFunctionProvider implements ITransferFunctionProvi
 
       CallSiteReference callsite = callsites.next();
 
-      Set<TypeReference> caught = new LinkedHashSet<>();
-      caught.addAll(intraResult.getAnalysis(src).getCaughtExceptions(callsite));
+      Set<TypeReference> caught =
+          new LinkedHashSet<>(intraResult.getAnalysis(src).getCaughtExceptions(callsite));
       while (callsites.hasNext()) {
         callsite = callsites.next();
         caught.retainAll(intraResult.getAnalysis(src).getCaughtExceptions(callsite));

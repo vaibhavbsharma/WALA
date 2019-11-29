@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2007 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,13 +7,8 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.analysis.exceptionanalysis;
-
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.Set;
 
 import com.ibm.wala.ipa.callgraph.CGNode;
 import com.ibm.wala.ipa.callgraph.CallGraph;
@@ -23,19 +18,25 @@ import com.ibm.wala.ipa.cfg.exceptionpruning.interprocedural.InterproceduralExce
 import com.ibm.wala.ipa.cha.ClassHierarchy;
 import com.ibm.wala.ssa.SSAInstruction;
 import com.ibm.wala.types.TypeReference;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Wrapper to store multiple intraprocedural analysis for a call graph.
- * 
- * @author Stephan Gocht {@code <stephan@gobro.de>}
  *
+ * @author Stephan Gocht {@code <stephan@gobro.de>}
  */
 public class CGIntraproceduralExceptionAnalysis {
   private Map<CGNode, IntraproceduralExceptionAnalysis> analysis;
   private Set<TypeReference> exceptions;
   private CallGraph callGraph;
 
-  public CGIntraproceduralExceptionAnalysis(CallGraph cg, PointerAnalysis<InstanceKey> pointerAnalysis, ClassHierarchy cha,
+  public CGIntraproceduralExceptionAnalysis(
+      CallGraph cg,
+      PointerAnalysis<InstanceKey> pointerAnalysis,
+      ClassHierarchy cha,
       InterproceduralExceptionFilter<SSAInstruction> filter) {
     this.callGraph = cg;
     this.exceptions = new LinkedHashSet<>();
@@ -45,7 +46,9 @@ public class CGIntraproceduralExceptionAnalysis {
         analysis.put(node, IntraproceduralExceptionAnalysis.newDummy());
       } else {
         IntraproceduralExceptionAnalysis intraEA;
-        intraEA = new IntraproceduralExceptionAnalysis(node, filter.getFilter(node), cha, pointerAnalysis);
+        intraEA =
+            new IntraproceduralExceptionAnalysis(
+                node, filter.getFilter(node), cha, pointerAnalysis);
         analysis.put(node, intraEA);
         exceptions.addAll(intraEA.getExceptions());
         exceptions.addAll(intraEA.getPossiblyCaughtExceptions());
@@ -53,13 +56,11 @@ public class CGIntraproceduralExceptionAnalysis {
     }
   }
 
-  /**
-   * @param node
-   * @return IntraproceduralExceptionAnalysis for given node.
-   */
+  /** @return IntraproceduralExceptionAnalysis for given node. */
   public IntraproceduralExceptionAnalysis getAnalysis(CGNode node) {
     if (!callGraph.containsNode(node)) {
-      throw new IllegalArgumentException("The given CG node has to be part " + "of the call graph given during construction.");
+      throw new IllegalArgumentException(
+          "The given CG node has to be part " + "of the call graph given during construction.");
     }
 
     IntraproceduralExceptionAnalysis result = analysis.get(node);
@@ -70,9 +71,8 @@ public class CGIntraproceduralExceptionAnalysis {
   }
 
   /**
-   * Return a set of all Exceptions, which might occur within the given call
-   * graph.
-   * 
+   * Return a set of all Exceptions, which might occur within the given call graph.
+   *
    * @return all exceptions, which might occur.
    */
   public Set<TypeReference> getExceptions() {

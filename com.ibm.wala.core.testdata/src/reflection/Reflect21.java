@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2013 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,25 +7,23 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package reflection;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 
-
-/**
- * Test of Constructor.newInstance
- */
+/** Test of Constructor.newInstance */
 public class Reflect21 {
-  public static void main(String[] args) throws ClassNotFoundException, SecurityException,
-      NoSuchMethodException, IllegalAccessException, InstantiationException,
-      IllegalArgumentException, InvocationTargetException {
+  public static void main(String[] args)
+      throws ClassNotFoundException, SecurityException, NoSuchMethodException,
+          IllegalAccessException, InstantiationException, IllegalArgumentException,
+          InvocationTargetException {
     Class<?> helperClass = Class.forName("reflection.Helper");
     Class<?> objectClass = Class.forName("java.lang.Object");
-    Class<?>[] paramArrayTypes = new Class[]{objectClass, objectClass};
+    Class<?>[] paramArrayTypes = new Class[] {objectClass, objectClass};
     Constructor<?> constr = helperClass.getDeclaredConstructor(paramArrayTypes);
-    Object[] paramArrayObjects = new Object[]{new Object(), new Object()};
+    Object[] paramArrayObjects = new Object[] {new Object(), new Object()};
     constr.newInstance(paramArrayObjects);
   }
 }

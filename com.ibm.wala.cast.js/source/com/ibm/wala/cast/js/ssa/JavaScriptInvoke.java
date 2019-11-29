@@ -1,4 +1,4 @@
-/******************************************************************************
+/*
  * Copyright (c) 2002 - 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,10 +7,8 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *****************************************************************************/
+ */
 package com.ibm.wala.cast.js.ssa;
-
-import java.util.Collection;
 
 import com.ibm.wala.cast.ir.ssa.MultiReturnValueInvokeInstruction;
 import com.ibm.wala.cast.js.types.JavaScriptMethods;
@@ -19,26 +17,33 @@ import com.ibm.wala.ssa.SSAInstruction;
 import com.ibm.wala.ssa.SSAInstructionFactory;
 import com.ibm.wala.ssa.SymbolTable;
 import com.ibm.wala.types.TypeReference;
+import java.util.Collection;
 
 public class JavaScriptInvoke extends MultiReturnValueInvokeInstruction {
-  /**
-   * The value numbers of the arguments passed to the call.
-   */
+  /** The value numbers of the arguments passed to the call. */
   private final int[] params;
 
   private int function;
 
-  public JavaScriptInvoke(int iindex, int function, int results[], int[] params, int exception, CallSiteReference site) {
+  public JavaScriptInvoke(
+      int iindex,
+      int function,
+      int results[],
+      int[] params,
+      int exception,
+      CallSiteReference site) {
     super(iindex, results, exception, site);
     this.function = function;
     this.params = params;
   }
 
-  public JavaScriptInvoke(int iindex, int function, int result, int[] params, int exception, CallSiteReference site) {
-    this(iindex, function, new int[] { result }, params, exception, site);
+  public JavaScriptInvoke(
+      int iindex, int function, int result, int[] params, int exception, CallSiteReference site) {
+    this(iindex, function, new int[] {result}, params, exception, site);
   }
 
-  public JavaScriptInvoke(int iindex, int function, int[] params, int exception, CallSiteReference site) {
+  public JavaScriptInvoke(
+      int iindex, int function, int[] params, int exception, CallSiteReference site) {
     this(iindex, function, null, params, exception, site);
   }
 
@@ -53,13 +58,10 @@ public class JavaScriptInvoke extends MultiReturnValueInvokeInstruction {
       fn = uses[i++];
 
       newParams = new int[params.length];
-      for (int j = 0; j < newParams.length; j++)
-        newParams[j] = uses[i++];
-
+      for (int j = 0; j < newParams.length; j++) newParams[j] = uses[i++];
     }
 
-    int newLvals[] = new int[results.length];
-    System.arraycopy(results, 0, newLvals, 0, results.length);
+    int[] newLvals = results.clone();
     int newExp = exception;
 
     if (defs != null) {
@@ -71,42 +73,37 @@ public class JavaScriptInvoke extends MultiReturnValueInvokeInstruction {
       for (int j = 1; j < getNumberOfReturnValues(); j++) {
         newLvals[j] = defs[i++];
       }
-
     }
 
-    return ((JSInstructionFactory)insts).Invoke(iindex, fn, newLvals, newParams, newExp, site);
+    return ((JSInstructionFactory) insts).Invoke(iIndex(), fn, newLvals, newParams, newExp, site);
   }
 
-  
   @Override
   public int getNumberOfUses() {
-    return getNumberOfParameters();
+    return getNumberOfPositionalParameters();
   }
 
   @Override
   public String toString(SymbolTable symbolTable) {
-    StringBuffer s = new StringBuffer();
+    StringBuilder s = new StringBuilder();
     if (getNumberOfReturnValues() > 0) {
       s.append(getValueString(symbolTable, getReturnValue(0)));
       s.append(" = ");
     }
-    if (site.getDeclaredTarget().equals(JavaScriptMethods.ctorReference))
-      s.append("construct ");
+    if (site.getDeclaredTarget().equals(JavaScriptMethods.ctorReference)) s.append("construct ");
     else if (site.getDeclaredTarget().equals(JavaScriptMethods.dispatchReference))
       s.append("dispatch ");
-    else
-      s.append("invoke ");
+    else s.append("invoke ");
     s.append(getValueString(symbolTable, function));
 
-    if (site != null)
-      s.append("@").append(site.getProgramCounter());
+    if (site != null) s.append('@').append(site.getProgramCounter());
 
     if (params != null) {
       if (params.length > 0) {
-        s.append(" ").append(getValueString(symbolTable, params[0]));
+        s.append(' ').append(getValueString(symbolTable, params[0]));
       }
       for (int i = 1; i < params.length; i++) {
-        s.append(",").append(getValueString(symbolTable, params[i]));
+        s.append(',').append(getValueString(symbolTable, params[i]));
       }
     }
 
@@ -126,7 +123,7 @@ public class JavaScriptInvoke extends MultiReturnValueInvokeInstruction {
   }
 
   @Override
-  public int getNumberOfParameters() {
+  public int getNumberOfPositionalParameters() {
     if (params == null) {
       return 1;
     } else {
@@ -136,10 +133,8 @@ public class JavaScriptInvoke extends MultiReturnValueInvokeInstruction {
 
   @Override
   public int getUse(int j) {
-    if (j == 0)
-      return function;
-    else if (j <= params.length)
-      return params[j - 1];
+    if (j == 0) return function;
+    else if (j <= params.length) return params[j - 1];
     else {
       return super.getUse(j);
     }

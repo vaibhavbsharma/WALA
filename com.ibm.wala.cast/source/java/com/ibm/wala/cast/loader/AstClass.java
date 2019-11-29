@@ -1,4 +1,4 @@
-/******************************************************************************
+/*
  * Copyright (c) 2002 - 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,15 +7,8 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *****************************************************************************/
+ */
 package com.ibm.wala.cast.loader;
-
-import java.io.Reader;
-import java.net.URL;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
 
 import com.ibm.wala.cast.tree.CAstSourcePositionMap;
 import com.ibm.wala.classLoader.IClass;
@@ -29,8 +22,13 @@ import com.ibm.wala.types.TypeName;
 import com.ibm.wala.types.TypeReference;
 import com.ibm.wala.util.collections.HashSetFactory;
 import com.ibm.wala.util.strings.Atom;
+import java.io.Reader;
+import java.net.URL;
+import java.util.Collection;
+import java.util.Map;
+import java.util.Set;
 
-abstract public class AstClass implements IClass, ClassConstants {
+public abstract class AstClass implements IClass, ClassConstants {
   private final CAstSourcePositionMap.Position sourcePosition;
 
   private final TypeName typeName;
@@ -45,8 +43,13 @@ abstract public class AstClass implements IClass, ClassConstants {
 
   protected final Map<Selector, IMethod> declaredMethods;
 
-  protected AstClass(CAstSourcePositionMap.Position sourcePosition, TypeName typeName, IClassLoader loader, short modifiers,
-      Map<Atom, IField> declaredFields, Map<Selector, IMethod> declaredMethods) {
+  protected AstClass(
+      CAstSourcePositionMap.Position sourcePosition,
+      TypeName typeName,
+      IClassLoader loader,
+      short modifiers,
+      Map<Atom, IField> declaredFields,
+      Map<Selector, IMethod> declaredMethods) {
     this.sourcePosition = sourcePosition;
     this.typeName = typeName;
     this.loader = loader;
@@ -70,7 +73,7 @@ abstract public class AstClass implements IClass, ClassConstants {
   public boolean isPublic() {
     return (modifiers & ACC_PUBLIC) != 0;
   }
-  
+
   @Override
   public boolean isPrivate() {
     return (modifiers & ACC_PRIVATE) != 0;
@@ -83,6 +86,11 @@ abstract public class AstClass implements IClass, ClassConstants {
 
   @Override
   public boolean isArrayClass() {
+    return false;
+  }
+
+  @Override
+  public boolean isSynthetic() {
     return false;
   }
 
@@ -176,16 +184,16 @@ abstract public class AstClass implements IClass, ClassConstants {
     // assume that for AST classes, you can't have multiple fields with the same name
     return getField(name);
   }
+
   @Override
-  public Collection<IMethod> getDeclaredMethods() {
+  public Collection<? extends IMethod> getDeclaredMethods() {
     return declaredMethods.values();
   }
 
   @Override
   public Collection<IField> getDeclaredInstanceFields() {
     Set<IField> result = HashSetFactory.make();
-    for (Iterator<IField> FS = declaredFields.values().iterator(); FS.hasNext();) {
-      IField F = FS.next();
+    for (IField F : declaredFields.values()) {
       if (!F.isStatic()) {
         result.add(F);
       }
@@ -197,8 +205,7 @@ abstract public class AstClass implements IClass, ClassConstants {
   @Override
   public Collection<IField> getDeclaredStaticFields() {
     Set<IField> result = HashSetFactory.make();
-    for (Iterator<IField> FS = declaredFields.values().iterator(); FS.hasNext();) {
-      IField F = FS.next();
+    for (IField F : declaredFields.values()) {
       if (F.isStatic()) {
         result.add(F);
       }
@@ -238,16 +245,13 @@ abstract public class AstClass implements IClass, ClassConstants {
   }
 
   @Override
-  public Collection<IMethod> getAllMethods() {
+  public Collection<? extends IMethod> getAllMethods() {
     Collection<IMethod> result = HashSetFactory.make();
-    for (Iterator<IMethod> ms = getDeclaredMethods().iterator(); ms.hasNext();) {
-      result.add(ms.next());
-    }
+    result.addAll(getDeclaredMethods());
     if (getSuperclass() != null) {
       result.addAll(getSuperclass().getAllMethods());
     }
 
     return result;
   }
-
 }

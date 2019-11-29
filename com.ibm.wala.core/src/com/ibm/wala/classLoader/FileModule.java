@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2002 - 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,28 +7,25 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.classLoader;
 
+import com.ibm.wala.util.collections.NonNullSingletonIterator;
+import com.ibm.wala.util.debug.Assertions;
+import com.ibm.wala.util.debug.UnimplementedError;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.Iterator;
 
-import com.ibm.wala.util.collections.NonNullSingletonIterator;
-import com.ibm.wala.util.debug.Assertions;
-import com.ibm.wala.util.debug.UnimplementedError;
-
-/**
- * A module which is a wrapper around a file in the filesystem
- */
+/** A module which is a wrapper around a file in the filesystem */
 public abstract class FileModule implements Module, ModuleEntry {
 
   private final File file;
 
   private final Module container;
-  
+
   public FileModule(File f, Module container) throws IllegalArgumentException {
     if (f == null) {
       throw new IllegalArgumentException("f is null");
@@ -49,7 +46,7 @@ public abstract class FileModule implements Module, ModuleEntry {
    */
   @Override
   public Iterator<ModuleEntry> getEntries() {
-    return new NonNullSingletonIterator<ModuleEntry>(this);
+    return new NonNullSingletonIterator<>(this);
   }
 
   @Override
@@ -103,9 +100,7 @@ public abstract class FileModule implements Module, ModuleEntry {
     return false;
   }
 
-  /**
-   * @return Returns the file.
-   */
+  /** @return Returns the file. */
   public File getFile() {
     return file;
   }
@@ -115,10 +110,9 @@ public abstract class FileModule implements Module, ModuleEntry {
     Assertions.UNREACHABLE("implement me");
     return null;
   }
-  
+
   @Override
   public Module getContainer() {
     return container;
   }
-
 }

@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,15 +7,13 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.ipa.slicer;
 
 import com.ibm.wala.ipa.callgraph.CGNode;
 import com.ibm.wala.ssa.SSAGetCaughtExceptionInstruction;
 
-/**
- * identifier of a GetCaughtException instruction
- */
+/** identifier of a GetCaughtException instruction */
 public class GetCaughtExceptionStatement extends Statement {
   private final SSAGetCaughtExceptionInstruction st;
 
@@ -28,7 +26,7 @@ public class GetCaughtExceptionStatement extends Statement {
   public Kind getKind() {
     return Kind.CATCH;
   }
-  
+
   @Override
   public boolean equals(Object obj) {
     if (obj == null) {
@@ -55,5 +53,4 @@ public class GetCaughtExceptionStatement extends Statement {
   public SSAGetCaughtExceptionInstruction getInstruction() {
     return st;
   }
-
 }

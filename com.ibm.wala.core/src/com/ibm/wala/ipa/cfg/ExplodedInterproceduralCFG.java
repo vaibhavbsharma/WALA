@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2002 - 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,10 +7,8 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.ipa.cfg;
-
-import java.util.Map;
 
 import com.ibm.wala.cfg.ControlFlowGraph;
 import com.ibm.wala.ipa.callgraph.CGNode;
@@ -19,17 +17,14 @@ import com.ibm.wala.ssa.IR;
 import com.ibm.wala.ssa.SSAInstruction;
 import com.ibm.wala.ssa.analysis.ExplodedControlFlowGraph;
 import com.ibm.wala.ssa.analysis.IExplodedBasicBlock;
-import com.ibm.wala.util.Predicate;
 import com.ibm.wala.util.collections.HashMapFactory;
+import java.util.Map;
+import java.util.function.Predicate;
 
-/**
- * Exploded interprocedural control-flow graph, constructed lazily.
- */
+/** Exploded interprocedural control-flow graph, constructed lazily. */
 public class ExplodedInterproceduralCFG extends AbstractInterproceduralCFG<IExplodedBasicBlock> {
 
-  /**
-   * Caching to improve runtime .. hope it doesn't turn into a memory leak.
-   */
+  /** Caching to improve runtime .. hope it doesn't turn into a memory leak. */
   private Map<CGNode, ExplodedControlFlowGraph> cfgMap;
 
   public static ExplodedInterproceduralCFG make(CallGraph cg) {
@@ -39,7 +34,7 @@ public class ExplodedInterproceduralCFG extends AbstractInterproceduralCFG<IExpl
   protected ExplodedInterproceduralCFG(CallGraph cg) {
     super(cg);
   }
-  
+
   public ExplodedInterproceduralCFG(CallGraph cg, Predicate<CGNode> filter) {
     super(cg, filter);
   }
@@ -49,7 +44,8 @@ public class ExplodedInterproceduralCFG extends AbstractInterproceduralCFG<IExpl
    * @throws IllegalArgumentException if n == null
    */
   @Override
-  public ControlFlowGraph<SSAInstruction, IExplodedBasicBlock> getCFG(CGNode n) throws IllegalArgumentException {
+  public ControlFlowGraph<SSAInstruction, IExplodedBasicBlock> getCFG(CGNode n)
+      throws IllegalArgumentException {
     if (n == null) {
       throw new IllegalArgumentException("n == null");
     }
@@ -68,5 +64,4 @@ public class ExplodedInterproceduralCFG extends AbstractInterproceduralCFG<IExpl
     }
     return result;
   }
-
 }

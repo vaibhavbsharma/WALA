@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2002 - 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,16 +7,11 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.ipa.callgraph.impl;
 
-import java.io.Reader;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Map;
-import java.util.Set;
-
 import com.ibm.wala.classLoader.IClass;
+import com.ibm.wala.classLoader.IClassLoader;
 import com.ibm.wala.classLoader.IField;
 import com.ibm.wala.classLoader.IMethod;
 import com.ibm.wala.classLoader.SyntheticClass;
@@ -32,24 +27,33 @@ import com.ibm.wala.util.collections.HashSetFactory;
 import com.ibm.wala.util.debug.Assertions;
 import com.ibm.wala.util.debug.UnimplementedError;
 import com.ibm.wala.util.strings.Atom;
+import java.io.Reader;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Map;
+import java.util.Set;
 
-/**
- * A synthetic class for the fake root method.
- */
+/** A synthetic class for the fake root method. */
 public class FakeRootClass extends SyntheticClass {
-  public static final TypeReference FAKE_ROOT_CLASS = TypeReference.findOrCreate(ClassLoaderReference.Primordial, TypeName
-      .string2TypeName("Lcom/ibm/wala/FakeRootClass"));
+  public static final TypeReference fakeRootClass(ClassLoaderReference clr) {
+    return TypeReference.findOrCreate(clr, TypeName.string2TypeName("Lcom/ibm/wala/FakeRootClass"));
+  }
 
   private Map<Atom, IField> fakeRootStaticFields = null;
 
   private Set<IMethod> methods = HashSetFactory.make();
 
-  public FakeRootClass(IClassHierarchy cha) {
-    this(FAKE_ROOT_CLASS, cha);
+  public FakeRootClass(ClassLoaderReference clr, IClassHierarchy cha) {
+    this(fakeRootClass(clr), cha);
   }
 
   public FakeRootClass(TypeReference typeRef, IClassHierarchy cha) {
     super(typeRef, cha);
+  }
+
+  @Override
+  public IClassLoader getClassLoader() {
+    return getClassHierarchy().getLoader(getReference().getClassLoader());
   }
 
   public void addMethod(IMethod m) {
@@ -61,67 +65,69 @@ public class FakeRootClass extends SyntheticClass {
       fakeRootStaticFields = HashMapFactory.make(2);
     }
 
-    fakeRootStaticFields.put(name, new IField() {
-      @Override
-      public IClassHierarchy getClassHierarchy() {
-        return FakeRootClass.this.getClassHierarchy();
-      }
+    fakeRootStaticFields.put(
+        name,
+        new IField() {
+          @Override
+          public IClassHierarchy getClassHierarchy() {
+            return FakeRootClass.this.getClassHierarchy();
+          }
 
-      @Override
-      public TypeReference getFieldTypeReference() {
-        return fieldType;
-      }
+          @Override
+          public TypeReference getFieldTypeReference() {
+            return fieldType;
+          }
 
-      @Override
-      public IClass getDeclaringClass() {
-        return FakeRootClass.this;
-      }
+          @Override
+          public IClass getDeclaringClass() {
+            return FakeRootClass.this;
+          }
 
-      @Override
-      public Atom getName() {
-        return name;
-      }
+          @Override
+          public Atom getName() {
+            return name;
+          }
 
-      @Override
-      public boolean isStatic() {
-        return true;
-      }
+          @Override
+          public boolean isStatic() {
+            return true;
+          }
 
-      @Override
-      public boolean isVolatile() {
-        return false;
-      }
+          @Override
+          public boolean isVolatile() {
+            return false;
+          }
 
-      @Override
-      public FieldReference getReference() {
-        return FieldReference.findOrCreate(FAKE_ROOT_CLASS, name, fieldType);
-      }
+          @Override
+          public FieldReference getReference() {
+            return FieldReference.findOrCreate(FakeRootClass.this.getReference(), name, fieldType);
+          }
 
-      @Override
-      public boolean isFinal() {
-        return false;
-      }
+          @Override
+          public boolean isFinal() {
+            return false;
+          }
 
-      @Override
-      public boolean isPrivate() {
-        return true;
-      }
+          @Override
+          public boolean isPrivate() {
+            return true;
+          }
 
-      @Override
-      public boolean isProtected() {
-        return false;
-      }
+          @Override
+          public boolean isProtected() {
+            return false;
+          }
 
-      @Override
-      public boolean isPublic() {
-        return false;
-      }
+          @Override
+          public boolean isPublic() {
+            return false;
+          }
 
-      @Override
-      public Collection<Annotation> getAnnotations() {
-        return Collections.emptySet();
-      }
-    });
+          @Override
+          public Collection<Annotation> getAnnotations() {
+            return Collections.emptySet();
+          }
+        });
   }
 
   /*
@@ -237,7 +243,7 @@ public class FakeRootClass extends SyntheticClass {
    * @see com.ibm.wala.classLoader.IClass#getAllInstanceFields()
    */
   @Override
-  public Collection<IField> getAllInstanceFields()  {
+  public Collection<IField> getAllInstanceFields() {
     return Collections.emptySet();
   }
 
@@ -253,7 +259,7 @@ public class FakeRootClass extends SyntheticClass {
    * @see com.ibm.wala.classLoader.IClass#getAllMethods()
    */
   @Override
-  public Collection<IMethod> getAllMethods()  {
+  public Collection<IMethod> getAllMethods() {
     throw new UnsupportedOperationException();
   }
 
@@ -261,7 +267,7 @@ public class FakeRootClass extends SyntheticClass {
    * @see com.ibm.wala.classLoader.IClass#getAllFields()
    */
   @Override
-  public Collection<IField> getAllFields()  {
+  public Collection<IField> getAllFields() {
     return getDeclaredStaticFields();
   }
 
@@ -269,7 +275,7 @@ public class FakeRootClass extends SyntheticClass {
   public boolean isPublic() {
     return false;
   }
-  
+
   @Override
   public boolean isPrivate() {
     return false;

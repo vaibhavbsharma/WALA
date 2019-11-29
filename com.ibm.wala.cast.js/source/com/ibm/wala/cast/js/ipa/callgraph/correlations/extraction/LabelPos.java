@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2013 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,7 +7,7 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.cast.js.ipa.callgraph.correlations.extraction;
 
 import com.ibm.wala.cast.tree.CAstNode;
@@ -15,9 +15,8 @@ import com.ibm.wala.cast.tree.CAstNode;
 /**
  * A {@link NodePos} for a node that labels a CFG edge; currently only seems to occur with 'switch'
  * statements.
- * 
- * @author mschaefer
  *
+ * @author mschaefer
  */
 public class LabelPos extends NodePos {
   private final CAstNode parent;
@@ -40,5 +39,4 @@ public class LabelPos extends NodePos {
   public <A> A accept(PosSwitch<A> ps) {
     return ps.caseLabelPos(this);
   }
-
 }

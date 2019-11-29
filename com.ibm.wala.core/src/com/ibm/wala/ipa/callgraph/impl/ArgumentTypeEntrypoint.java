@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2002 - 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,12 +7,8 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.ipa.callgraph.impl;
-
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.Set;
 
 import com.ibm.wala.classLoader.ArrayClass;
 import com.ibm.wala.classLoader.IClass;
@@ -20,19 +16,20 @@ import com.ibm.wala.classLoader.IMethod;
 import com.ibm.wala.ipa.callgraph.Entrypoint;
 import com.ibm.wala.ipa.cha.IClassHierarchy;
 import com.ibm.wala.types.TypeReference;
+import java.util.Collection;
+import java.util.Set;
 
 /**
- * An entrypoint which chooses some valid (non-interface) concrete type for each argument, if one is available.
+ * An entrypoint which chooses some valid (non-interface) concrete type for each argument, if one is
+ * available.
  */
 public class ArgumentTypeEntrypoint extends Entrypoint {
 
-  final private TypeReference[][] paramTypes;
+  private final TypeReference[][] paramTypes;
 
   private final IClassHierarchy cha;
 
-  /**
-   * @throws IllegalArgumentException if method == null
-   */
+  /** @throws IllegalArgumentException if method == null */
   protected TypeReference[][] makeParameterTypes(IMethod method) throws IllegalArgumentException {
     if (method == null) {
       throw new IllegalArgumentException("method == null");
@@ -66,24 +63,23 @@ public class ArgumentTypeEntrypoint extends Entrypoint {
         }
       }
 
-      result[i] = (t == null) ? new TypeReference[0] : new TypeReference[] { t };
+      result[i] = (t == null) ? new TypeReference[0] : new TypeReference[] {t};
     }
     return result;
   }
 
   private TypeReference chooseAnImplementor(IClass iface) {
-    Set implementors = cha.getImplementors(iface.getReference());
+    Set<IClass> implementors = cha.getImplementors(iface.getReference());
     if (!implementors.isEmpty()) {
-      return ((IClass) implementors.iterator().next()).getReference();
+      return implementors.iterator().next().getReference();
     } else {
       return null;
     }
   }
 
   private TypeReference chooseAConcreteSubClass(IClass klass) {
-    Collection subclasses = cha.computeSubClasses(klass.getReference());
-    for (Iterator it = subclasses.iterator(); it.hasNext();) {
-      IClass c = (IClass) it.next();
+    Collection<IClass> subclasses = cha.computeSubClasses(klass.getReference());
+    for (IClass c : subclasses) {
       if (!c.isAbstract()) {
         return c.getReference();
       }
@@ -109,5 +105,4 @@ public class ArgumentTypeEntrypoint extends Entrypoint {
   public int getNumberOfParameters() {
     return paramTypes.length;
   }
-
 }

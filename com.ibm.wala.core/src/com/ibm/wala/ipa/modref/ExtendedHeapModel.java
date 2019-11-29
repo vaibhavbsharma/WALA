@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,7 +7,7 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.ipa.modref;
 
 import com.ibm.wala.ipa.callgraph.propagation.HeapModel;
@@ -20,7 +20,8 @@ import com.ibm.wala.ipa.callgraph.propagation.PointerKey;
 public interface ExtendedHeapModel extends HeapModel {
   /**
    * @param I an InstanceKey representing an abstract array
-   * @return the PointerKey that acts as a representation for the arraylength field of this abstract array
+   * @return the PointerKey that acts as a representation for the arraylength field of this abstract
+   *     array
    */
   PointerKey getPointerKeyForArrayLength(InstanceKey I);
 }

@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2002 - 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,22 +7,25 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 
 package com.ibm.wala.util.graph.impl;
 
-import java.util.HashSet;
-import java.util.Iterator;
-
 import com.ibm.wala.util.collections.HashSetFactory;
 import com.ibm.wala.util.graph.NodeManager;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.stream.Stream;
 
-/**
- * Simple implementation of a {@link NodeManager}.
- */
+/** Simple implementation of a {@link NodeManager}. */
 public class BasicNodeManager<T> implements NodeManager<T> {
 
-  final private HashSet<T> nodes = HashSetFactory.make();
+  private final HashSet<T> nodes = HashSetFactory.make();
+
+  @Override
+  public Stream<T> stream() {
+    return nodes.stream();
+  }
 
   @Override
   public Iterator<T> iterator() {
@@ -60,5 +63,4 @@ public class BasicNodeManager<T> implements NodeManager<T> {
   public boolean containsNode(T N) {
     return nodes.contains(N);
   }
-
 }

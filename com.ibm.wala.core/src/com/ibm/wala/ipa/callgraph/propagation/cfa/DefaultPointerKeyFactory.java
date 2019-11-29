@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2002 - 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,7 +7,7 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.ipa.callgraph.propagation.cfa;
 
 import com.ibm.wala.classLoader.IField;
@@ -23,13 +23,10 @@ import com.ibm.wala.ipa.callgraph.propagation.PointerKeyFactory;
 import com.ibm.wala.ipa.callgraph.propagation.ReturnValueKey;
 import com.ibm.wala.ipa.callgraph.propagation.StaticFieldKey;
 
-/**
- * Default implementation of {@link PointerKeyFactory}
- */
+/** Default implementation of {@link PointerKeyFactory} */
 public class DefaultPointerKeyFactory implements PointerKeyFactory {
 
-  public DefaultPointerKeyFactory() {
-  }
+  public DefaultPointerKeyFactory() {}
 
   @Override
   public PointerKey getPointerKeyForLocal(CGNode node, int valueNumber) {
@@ -40,7 +37,8 @@ public class DefaultPointerKeyFactory implements PointerKeyFactory {
   }
 
   @Override
-  public FilteredPointerKey getFilteredPointerKeyForLocal(CGNode node, int valueNumber, FilteredPointerKey.TypeFilter filter) {
+  public FilteredPointerKey getFilteredPointerKeyForLocal(
+      CGNode node, int valueNumber, FilteredPointerKey.TypeFilter filter) {
     if (filter == null) {
       throw new IllegalArgumentException("null filter");
     }
@@ -72,6 +70,13 @@ public class DefaultPointerKeyFactory implements PointerKeyFactory {
     if (field == null) {
       throw new IllegalArgumentException("field is null");
     }
+
+    IField resolveAgain =
+        I.getConcreteType().getField(field.getName(), field.getFieldTypeReference().getName());
+    if (resolveAgain != null) {
+      field = resolveAgain;
+    }
+
     return new InstanceFieldKey(I, field);
   }
 

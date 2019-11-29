@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2002 - 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,14 +7,12 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.ipa.callgraph.propagation;
 
 import com.ibm.wala.ipa.callgraph.CGNode;
 
-/**
- * A key which represents the return value for a node.
- */
+/** A key which represents the return value for a node. */
 public class ReturnValueKey extends NodeKey {
   public ReturnValueKey(CGNode node) {
     super(node);
@@ -22,7 +20,7 @@ public class ReturnValueKey extends NodeKey {
 
   @Override
   public String toString() {
-    return "[Ret-V:" + getNode() + "]";
+    return "[Ret-V:" + getNode() + ']';
   }
 
   @Override

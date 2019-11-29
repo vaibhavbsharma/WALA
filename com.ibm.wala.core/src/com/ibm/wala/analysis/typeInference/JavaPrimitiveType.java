@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2007 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,17 +7,14 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.analysis.typeInference;
-
-import java.util.HashMap;
 
 import com.ibm.wala.types.TypeReference;
 import com.ibm.wala.util.collections.HashMapFactory;
+import java.util.HashMap;
 
-/**
- * Abstraction of a primitive type in Java.
- */
+/** Abstraction of a primitive type in Java. */
 public class JavaPrimitiveType extends PrimitiveType {
 
   public static final PrimitiveType BOOLEAN = makePrimitive(TypeReference.Boolean, 1);
@@ -38,19 +35,18 @@ public class JavaPrimitiveType extends PrimitiveType {
 
   public static final PrimitiveType VOID = makePrimitive(TypeReference.Void, 0);
 
-  public static void init() {
-    
-  }
-  
+  public static void init() {}
+
   private JavaPrimitiveType(TypeReference reference, int size) {
     super(reference, size);
   }
-  
+
   private static PrimitiveType makePrimitive(TypeReference reference, int size) {
     return new JavaPrimitiveType(reference, size);
   }
 
-  final private static HashMap<String, String> primitiveNameMap;
+  private static final HashMap<String, String> primitiveNameMap;
+
   static {
     primitiveNameMap = HashMapFactory.make(9);
     primitiveNameMap.put("I", "int");
@@ -69,5 +65,4 @@ public class JavaPrimitiveType extends PrimitiveType {
     String result = primitiveNameMap.get(reference.getName().toString());
     return (result != null) ? result : reference.getName().toString();
   }
-
 }

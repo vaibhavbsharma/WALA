@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2002 - 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,13 +7,11 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 
 package com.ibm.wala.ssa;
 
-/**
- * An instruction which unconditionally throws an exception
- */
+/** An instruction which unconditionally throws an exception */
 public abstract class SSAAbstractThrowInstruction extends SSAInstruction {
   private final int exception;
 
@@ -28,17 +26,11 @@ public abstract class SSAAbstractThrowInstruction extends SSAInstruction {
     return "throw " + getValueString(symbolTable, exception);
   }
 
-  /**
-   * @see com.ibm.wala.ssa.SSAInstruction#getNumberOfUses()
-   */
   @Override
   public int getNumberOfUses() {
     return 1;
   }
 
-  /**
-   * @see com.ibm.wala.ssa.SSAInstruction#getUse(int)
-   */
   @Override
   public int getUse(int j) {
     if (j != 0) {
@@ -60,7 +52,7 @@ public abstract class SSAAbstractThrowInstruction extends SSAInstruction {
     return true;
   }
 
-  /* 
+  /*
    * @see com.ibm.wala.ssa.Instruction#isFallThrough()
    */
   @Override
@@ -68,11 +60,8 @@ public abstract class SSAAbstractThrowInstruction extends SSAInstruction {
     return false;
   }
 
-  /**
-   * @return value number of the thrown exception object.
-   */
+  /** @return value number of the thrown exception object. */
   public int getException() {
     return exception;
   }
-
 }

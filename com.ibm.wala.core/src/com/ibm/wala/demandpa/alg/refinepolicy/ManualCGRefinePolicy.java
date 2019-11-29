@@ -1,11 +1,11 @@
-/*******************************************************************************
+/*
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html.
- * 
+ *
  * This file is a derivative of code released by the University of
- * California under the terms listed below.  
+ * California under the terms listed below.
  *
  * Refinement Analysis Tools is Copyright (c) 2007 The Regents of the
  * University of California (Regents). Provided that this notice and
@@ -20,13 +20,13 @@
  * estoppel, or otherwise any license or rights in any intellectual
  * property of Regents, including, but not limited to, any patents
  * of Regents or Regents' employees.
- * 
+ *
  * IN NO EVENT SHALL REGENTS BE LIABLE TO ANY PARTY FOR DIRECT,
  * INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES,
  * INCLUDING LOST PROFITS, ARISING OUT OF THE USE OF THIS SOFTWARE
  * AND ITS DOCUMENTATION, EVEN IF REGENTS HAS BEEN ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
- *   
+ *
  * REGENTS SPECIFICALLY DISCLAIMS ANY WARRANTIES, INCLUDING, BUT NOT
  * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
  * FOR A PARTICULAR PURPOSE AND FURTHER DISCLAIMS ANY STATUTORY
@@ -41,9 +41,7 @@ import com.ibm.wala.ipa.callgraph.propagation.cfa.CallerSiteContext;
 import com.ibm.wala.types.MethodReference;
 
 /**
- * A call graph refinement policy with manual annotations for which
- * virtual call sites to refine.
- *
+ * A call graph refinement policy with manual annotations for which virtual call sites to refine.
  */
 public class ManualCGRefinePolicy implements CallGraphRefinePolicy {
 
@@ -53,7 +51,7 @@ public class ManualCGRefinePolicy implements CallGraphRefinePolicy {
       throw new IllegalArgumentException("callSiteAndCGNode == null");
     }
     MethodReference declaredTarget = callSiteAndCGNode.getCallSite().getDeclaredTarget();
-    if (declaredTarget.toString().indexOf("toString()Ljava/lang/String") != -1) {
+    if (declaredTarget.toString().contains("toString()Ljava/lang/String")) {
       return false;
     }
     return true;
@@ -63,6 +61,4 @@ public class ManualCGRefinePolicy implements CallGraphRefinePolicy {
   public boolean nextPass() {
     return false;
   }
-
-
 }

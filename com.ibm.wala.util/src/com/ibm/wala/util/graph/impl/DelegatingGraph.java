@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,16 +7,14 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.util.graph.impl;
 
-import java.util.Iterator;
-
 import com.ibm.wala.util.graph.Graph;
+import java.util.Iterator;
+import java.util.stream.Stream;
 
-/**
- * A utility class.
- */
+/** A utility class. */
 public class DelegatingGraph<T> implements Graph<T> {
 
   private final Graph<T> delegate;
@@ -84,6 +82,11 @@ public class DelegatingGraph<T> implements Graph<T> {
   }
 
   @Override
+  public Stream<T> stream() {
+    return delegate.stream();
+  }
+
+  @Override
   public void removeAllIncidentEdges(T node) throws IllegalArgumentException {
     delegate.removeAllIncidentEdges(node);
   }
@@ -112,5 +115,4 @@ public class DelegatingGraph<T> implements Graph<T> {
   public void removeOutgoingEdges(T node) throws IllegalArgumentException {
     delegate.removeOutgoingEdges(node);
   }
-
 }

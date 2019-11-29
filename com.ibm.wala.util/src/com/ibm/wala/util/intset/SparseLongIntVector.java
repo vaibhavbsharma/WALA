@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2002 - 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,29 +7,27 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.util.intset;
 
+import java.util.Arrays;
 
 /**
- * an int vector implementation designed for low occupancy. Note that get() from
- * this vector is a binary search.
- * 
- * This should only be used for small sets ... insertion and deletion are linear
- * in size of set.
- * 
- * In this optimizations, the indices are longs.
+ * an int vector implementation designed for low occupancy. Note that get() from this vector is a
+ * binary search.
+ *
+ * <p>This should only be used for small sets ... insertion and deletion are linear in size of set.
+ *
+ * <p>In this optimizations, the indices are longs.
  */
 public class SparseLongIntVector {
 
-  private final static int INITIAL_SIZE = 5;
+  private static final int INITIAL_SIZE = 5;
 
   private final double EXPANSION = 1.5;
 
-  /**
-   * if indices[i] = x, then data[i] == get(x)
-   */
-  final private MutableSparseLongSet indices = new MutableSparseLongSet();
+  /** if indices[i] = x, then data[i] == get(x) */
+  private final MutableSparseLongSet indices = new MutableSparseLongSet();
 
   private int[] data = new int[INITIAL_SIZE];
 
@@ -53,7 +51,7 @@ public class SparseLongIntVector {
 
   /*
    * TODO: this can be optimized
-   * 
+   *
    * @see com.ibm.wala.util.intset.IntVector#set(int, int)
    */
   public void set(long x, int value) {
@@ -71,9 +69,7 @@ public class SparseLongIntVector {
 
   private void ensureCapacity(int capacity) {
     if (data.length < capacity + 1) {
-      int[] old = data;
-      data = new int[1 + (int) (capacity * EXPANSION)];
-      System.arraycopy(old, 0, data, 0, old.length);
+      data = Arrays.copyOf(data, 1 + (int) (capacity * EXPANSION));
     }
   }
 
@@ -84,6 +80,5 @@ public class SparseLongIntVector {
     System.err.println((getClass() + " stats: "));
     System.err.println(("data.length " + data.length));
     System.err.println(("indices.size() " + indices.size()));
-
   }
 }

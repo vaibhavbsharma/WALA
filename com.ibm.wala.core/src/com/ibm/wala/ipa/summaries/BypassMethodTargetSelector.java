@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2002 - 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,12 +7,8 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.ipa.summaries;
-
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
 
 import com.ibm.wala.classLoader.CallSiteReference;
 import com.ibm.wala.classLoader.IClass;
@@ -31,13 +27,17 @@ import com.ibm.wala.types.TypeName;
 import com.ibm.wala.types.TypeReference;
 import com.ibm.wala.util.collections.HashMapFactory;
 import com.ibm.wala.util.strings.Atom;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * "Non-standard" bypass rules to use during call graph construction.
- * 
- * Normally, the method bypass rules replace the IMethod that is resolved by other means, via the getBypass() method. However, the
- * bypass rules can be invoked even before resolving the target of a call, by checking the intercept rules.
- * 
+ *
+ * <p>Normally, the method bypass rules replace the IMethod that is resolved by other means, via the
+ * getBypass() method. However, the bypass rules can be invoked even before resolving the target of
+ * a call, by checking the intercept rules.
+ *
  * @author sfink
  */
 public class BypassMethodTargetSelector implements MethodTargetSelector {
@@ -45,49 +45,40 @@ public class BypassMethodTargetSelector implements MethodTargetSelector {
   static final boolean DEBUG = false;
 
   /**
-   * Method summaries collected for methods. Mapping Object -> MethodSummary where Object is either a
+   * Method summaries collected for methods. Mapping Object -&gt; MethodSummary where Object is
+   * either a
+   *
    * <ul>
-   * <li>MethodReference
-   * <li>TypeReference
-   * <li>Atom (package name)
+   *   <li>MethodReference
+   *   <li>TypeReference
+   *   <li>Atom (package name)
    * </ul>
    */
   private final Map<MethodReference, MethodSummary> methodSummaries;
 
-  /**
-   * Set of Atoms representing package names whose methods should be treated as no-ops
-   */
+  /** Set of Atoms representing package names whose methods should be treated as no-ops */
   private final Set<Atom> ignoredPackages;
 
-  /**
-   * Governing class hierarchy.
-   */
+  /** Governing class hierarchy. */
   protected final IClassHierarchy cha;
 
-  /**
-   * target selector to use for non-bypassed calls
-   */
+  /** target selector to use for non-bypassed calls */
   protected final MethodTargetSelector parent;
 
-  /**
-   * for checking method target resolution via CHA
-   */
+  /** for checking method target resolution via CHA */
   private final ClassHierarchyMethodTargetSelector chaMethodTargetSelector;
 
   /**
-   * Mapping from MethodReference -> SyntheticMethod We may call syntheticMethod.put(m,null) .. in which case we use containsKey()
-   * to check for having already considered m.
+   * Mapping from MethodReference -&gt; SyntheticMethod We may call syntheticMethod.put(m,null) ..
+   * in which case we use containsKey() to check for having already considered m.
    */
-  final private HashMap<MethodReference, SummarizedMethod> syntheticMethods = HashMapFactory.make();
+  private final HashMap<MethodReference, SummarizedMethod> syntheticMethods = HashMapFactory.make();
 
-  /**
-   * @param parent
-   * @param methodSummaries
-   * @param ignoredPackages
-   * @param cha
-   */
-  public BypassMethodTargetSelector(MethodTargetSelector parent, Map<MethodReference, MethodSummary> methodSummaries,
-      Set<Atom> ignoredPackages, IClassHierarchy cha) {
+  public BypassMethodTargetSelector(
+      MethodTargetSelector parent,
+      Map<MethodReference, MethodSummary> methodSummaries,
+      Set<Atom> ignoredPackages,
+      IClassHierarchy cha) {
     this.methodSummaries = methodSummaries;
     this.ignoredPackages = ignoredPackages;
     this.parent = parent;
@@ -96,8 +87,9 @@ public class BypassMethodTargetSelector implements MethodTargetSelector {
   }
 
   /**
-   * Check to see if a particular call site should be bypassed, before checking normal resolution of the receiver.
-   * 
+   * Check to see if a particular call site should be bypassed, before checking normal resolution of
+   * the receiver.
+   *
    * @throws IllegalArgumentException if site is null
    */
   @Override
@@ -107,11 +99,22 @@ public class BypassMethodTargetSelector implements MethodTargetSelector {
       throw new IllegalArgumentException("site is null");
     }
     // first, see if we'd like to bypass the CHA-based target for the site
-    MethodReference ref = site.getDeclaredTarget();    
+    MethodReference ref = site.getDeclaredTarget();
     IMethod chaTarget = chaMethodTargetSelector.getCalleeTarget(caller, site, dispatchType);
-    IMethod target = (chaTarget == null) ? findOrCreateSyntheticMethod(ref, site.isStatic()) : findOrCreateSyntheticMethod(chaTarget,
-        site.isStatic());
+    IMethod target =
+        (chaTarget == null)
+            ? findOrCreateSyntheticMethod(ref, site.isStatic())
+            : findOrCreateSyntheticMethod(chaTarget, site.isStatic());
 
+    // try synthetic method that matches receiver type
+    if (dispatchType != null) {
+      ref = MethodReference.findOrCreate(dispatchType.getReference(), ref.getSelector());
+      chaTarget = chaMethodTargetSelector.getCalleeTarget(caller, site, dispatchType);
+      target =
+          (chaTarget == null)
+              ? findOrCreateSyntheticMethod(ref, site.isStatic())
+              : findOrCreateSyntheticMethod(chaTarget, site.isStatic());
+    }
 
     if (DEBUG) {
       System.err.println("target is initially " + target);
@@ -127,7 +130,7 @@ public class BypassMethodTargetSelector implements MethodTargetSelector {
       }
 
       // not using if (instanceof ClassHierarchyMethodTargetSelector) because
-      // we want to make sure that getCalleeTarget() is still called if 
+      // we want to make sure that getCalleeTarget() is still called if
       // parent is a subclass of ClassHierarchyMethodTargetSelector
       if (parent.getClass() == ClassHierarchyMethodTargetSelector.class) {
         // already checked this case and decided not to bypass
@@ -142,12 +145,10 @@ public class BypassMethodTargetSelector implements MethodTargetSelector {
       if (target != null) {
         IMethod bypassTarget = findOrCreateSyntheticMethod(target, site.isStatic());
 
-        if (DEBUG)
-          System.err.println("bypassTarget is " + target);
+        if (DEBUG) System.err.println("bypassTarget is " + target);
 
         return (bypassTarget == null) ? target : bypassTarget;
-      } else
-        return target;
+      } else return target;
     }
   }
 
@@ -179,7 +180,7 @@ public class BypassMethodTargetSelector implements MethodTargetSelector {
           syntheticMethods.put(m, null);
           return null;
         }
-        SummarizedMethod n = new SummarizedMethod(m, summ, C);
+        SummarizedMethod n = new SummarizedMethodWithNames(m, summ, C);
         syntheticMethods.put(m, n);
         return n;
       } else {
@@ -216,28 +217,28 @@ public class BypassMethodTargetSelector implements MethodTargetSelector {
   }
 
   /**
-   * Generate a {@link MethodSummary} which is the "standard" representation of a method 
-   * that does nothing.
+   * Generate a {@link MethodSummary} which is the "standard" representation of a method that does
+   * nothing.
    */
-  public static MethodSummary generateStandardNoOp(Language l, MethodReference m, boolean isStatic) {
+  public static MethodSummary generateStandardNoOp(
+      Language l, MethodReference m, boolean isStatic) {
     return new NoOpSummary(l, m, isStatic);
   }
-  
+
   /**
-   * Generate a {@link MethodSummary} which is the "standard" representation of a method 
-   * that does nothing.  Subclasses may override this method to implement alternative semantics
-   * concerning what "do nothing" means.
+   * Generate a {@link MethodSummary} which is the "standard" representation of a method that does
+   * nothing. Subclasses may override this method to implement alternative semantics concerning what
+   * "do nothing" means.
    */
   public MethodSummary generateNoOp(MethodReference m, boolean isStatic) {
     Language l = cha.resolveMethod(m).getDeclaringClass().getClassLoader().getLanguage();
     return new NoOpSummary(l, m, isStatic);
   }
-  
 
   private static class NoOpSummary extends MethodSummary {
 
     private final Language l;
-    
+
     public NoOpSummary(Language l, MethodReference method, boolean isStatic) {
       super(method);
       setStatic(isStatic);
@@ -259,13 +260,9 @@ public class BypassMethodTargetSelector implements MethodTargetSelector {
         return result;
       }
     }
-
   }
 
-  /**
-   * @param m
-   * @return true iff we can treat m as a no-op method
-   */
+  /** @return true iff we can treat m as a no-op method */
   protected boolean canIgnore(MemberReference m) {
     TypeReference T = m.getDeclaringClass();
     TypeName n = T.getName();
@@ -279,5 +276,5 @@ public class BypassMethodTargetSelector implements MethodTargetSelector {
 
   protected IClassHierarchy getClassHierarchy() {
     return cha;
-  }  
+  }
 }

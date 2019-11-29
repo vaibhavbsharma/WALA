@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2002 - 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,18 +7,15 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.util.collections;
 
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Set;
+import java.util.function.Function;
 
-import com.ibm.wala.util.functions.Function;
-
-/**
- * An <code>MapIterator</code> maps an <code>Iterator</code> contents to produce a new Iterator
- */
+/** An {@code MapIterator} maps an {@code Iterator} contents to produce a new Iterator */
 public class MapIterator<X, Y> implements Iterator<Y> {
   final Iterator<? extends X> i;
 
@@ -52,11 +49,11 @@ public class MapIterator<X, Y> implements Iterator<Y> {
     return "map: " + f + " of " + i;
   }
 
-  public static <X,Y> Iterator<Y> map(Function<X, Y> f, Iterator<X> i) {
+  public static <X, Y> Iterator<Y> map(Function<X, Y> f, Iterator<X> i) {
     return new MapIterator<>(i, f);
   }
 
-  public static <X,Y> Set<Y> map(Function<X, Y> f, Collection<X> i) {
+  public static <X, Y> Set<Y> map(Function<X, Y> f, Collection<X> i) {
     return Iterator2Collection.toSet(new MapIterator<>(i.iterator(), f));
   }
 }

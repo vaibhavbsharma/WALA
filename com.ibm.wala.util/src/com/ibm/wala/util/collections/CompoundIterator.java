@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2002 - 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,19 +7,18 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.util.collections;
 
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
-/**
- * An iterator which provides a logical concatenation of the lists from two other iterators
- */
+/** An iterator which provides a logical concatenation of the lists from two other iterators */
 public class CompoundIterator<T> implements Iterator<T> {
 
   final Iterator<? extends T> A;
   final Iterator<? extends T> B;
+
   public CompoundIterator(Iterator<? extends T> A, Iterator<? extends T> B) {
     if (A == null) {
       throw new IllegalArgumentException("null A");
@@ -42,11 +41,6 @@ public class CompoundIterator<T> implements Iterator<T> {
     }
   }
 
-  /**
-   * @see java.util.Iterator#remove()
-   */
   @Override
-  public void remove() {
-  }
-
+  public void remove() {}
 }

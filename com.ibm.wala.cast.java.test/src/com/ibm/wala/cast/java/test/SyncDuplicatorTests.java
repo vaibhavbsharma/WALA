@@ -1,4 +1,4 @@
-/******************************************************************************
+/*
  * Copyright (c) 2002 - 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,12 +7,8 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *****************************************************************************/
+ */
 package com.ibm.wala.cast.java.test;
-
-import java.io.IOException;
-
-import org.junit.Test;
 
 import com.ibm.wala.cast.java.ipa.callgraph.JavaSourceAnalysisScope;
 import com.ibm.wala.classLoader.CallSiteReference;
@@ -28,6 +24,8 @@ import com.ibm.wala.types.TypeReference;
 import com.ibm.wala.util.CancelException;
 import com.ibm.wala.util.collections.Pair;
 import com.ibm.wala.util.strings.Atom;
+import java.io.IOException;
+import org.junit.Test;
 
 public abstract class SyncDuplicatorTests extends IRTests {
 
@@ -35,13 +33,20 @@ public abstract class SyncDuplicatorTests extends IRTests {
     super(null);
   }
 
-  protected final static CallSiteReference testMethod = CallSiteReference.make(0, MethodReference.findOrCreate(TypeReference
-      .findOrCreate(JavaSourceAnalysisScope.SOURCE, TypeName.string2TypeName("LMonitor2")), Atom.findOrCreateUnicodeAtom("test"),
-      Descriptor.findOrCreateUTF8(Language.JAVA, "(Ljava/lang/Object;)Z")), IInvokeInstruction.Dispatch.STATIC);
+  protected static final CallSiteReference testMethod =
+      CallSiteReference.make(
+          0,
+          MethodReference.findOrCreate(
+              TypeReference.findOrCreate(
+                  JavaSourceAnalysisScope.SOURCE, TypeName.string2TypeName("LMonitor2")),
+              Atom.findOrCreateUnicodeAtom("test"),
+              Descriptor.findOrCreateUTF8(Language.JAVA, "(Ljava/lang/Object;)Z")),
+          IInvokeInstruction.Dispatch.STATIC);
 
-  @Test public void testMonitor2() throws IllegalArgumentException, CancelException, IOException {
-    Pair<CallGraph, PointerAnalysis<InstanceKey>> result = runTest(singleTestSrc(), rtJar, simpleTestEntryPoint(), emptyList, true);
+  @Test
+  public void testMonitor2() throws IllegalArgumentException, CancelException, IOException {
+    Pair<CallGraph, PointerAnalysis<? extends InstanceKey>> result =
+        runTest(singleTestSrc(), rtJar, simpleTestEntryPoint(), emptyList, true, null);
     System.err.println(result.fst);
   }
-
 }

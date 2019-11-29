@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2002 - 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,7 +7,7 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.dataflow.graph;
 
 import com.ibm.wala.fixpoint.BitVectorVariable;
@@ -15,9 +15,7 @@ import com.ibm.wala.fixpoint.UnaryOperator;
 import com.ibm.wala.util.intset.BitVector;
 import com.ibm.wala.util.intset.BitVectorIntSet;
 
-/**
- * Operator OUT = (IN - kill) U gen
- */
+/** Operator OUT = (IN - kill) U gen */
 public class BitVectorKillGen extends UnaryOperator<BitVectorVariable> {
 
   private final BitVectorIntSet kill;
@@ -36,7 +34,8 @@ public class BitVectorKillGen extends UnaryOperator<BitVectorVariable> {
   }
 
   @Override
-  public byte evaluate(BitVectorVariable lhs, BitVectorVariable rhs) throws IllegalArgumentException {
+  public byte evaluate(BitVectorVariable lhs, BitVectorVariable rhs)
+      throws IllegalArgumentException {
     if (rhs == null) {
       throw new IllegalArgumentException("rhs == null");
     }

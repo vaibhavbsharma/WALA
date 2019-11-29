@@ -1,4 +1,4 @@
-/******************************************************************************
+/*
  * Copyright (c) 2002 - 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,12 +7,8 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *****************************************************************************/
+ */
 package com.ibm.wala.cast.ipa.callgraph;
-
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
 
 import com.ibm.wala.classLoader.IClass;
 import com.ibm.wala.classLoader.IField;
@@ -26,6 +22,9 @@ import com.ibm.wala.ipa.callgraph.propagation.PointerKey;
 import com.ibm.wala.ipa.callgraph.propagation.PointerKeyFactory;
 import com.ibm.wala.util.collections.NonNullSingletonIterator;
 import com.ibm.wala.util.strings.Atom;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 
 public class DelegatingAstPointerKeys implements AstPointerKeyFactory {
   private final PointerKeyFactory base;
@@ -40,7 +39,8 @@ public class DelegatingAstPointerKeys implements AstPointerKeyFactory {
   }
 
   @Override
-  public FilteredPointerKey getFilteredPointerKeyForLocal(CGNode node, int valueNumber, FilteredPointerKey.TypeFilter filter) {
+  public FilteredPointerKey getFilteredPointerKeyForLocal(
+      CGNode node, int valueNumber, FilteredPointerKey.TypeFilter filter) {
     return base.getFilteredPointerKeyForLocal(node, valueNumber, filter);
   }
 
@@ -90,31 +90,25 @@ public class DelegatingAstPointerKeys implements AstPointerKeyFactory {
     return result.iterator();
   }
 
-  /**
-   * get type for F appropriate for use in a field name.
-   * 
-   * @param F
-   * @return
-   */
+  /** get type for F appropriate for use in a field name. */
   protected IClass getFieldNameType(InstanceKey F) {
     return F.getConcreteType();
   }
 
   /**
-   * if F is a supported constant representing a field, return the corresponding {@link InstanceFieldKey} for I.  Otherwise, return <code>null</code>.
-   * @param F
-   * @return
+   * if F is a supported constant representing a field, return the corresponding {@link
+   * InstanceFieldKey} for I. Otherwise, return {@code null}.
    */
   protected PointerKey getInstanceFieldPointerKeyForConstant(InstanceKey I, ConstantKey<?> F) {
     Object v = F.getValue();
     // FIXME: current only constant string are handled
-    if (v instanceof String) {
-      IField f = I.getConcreteType().getField(Atom.findOrCreateUnicodeAtom((String) v));
+    if (I.getConcreteType().getClassLoader().getLanguage().modelConstant(v)) {
+      IField f = I.getConcreteType().getField(Atom.findOrCreateUnicodeAtom(String.valueOf(v)));
       return getPointerKeyForInstanceField(I, f);
     }
     return null;
   }
-  
+
   @Override
   public Iterator<PointerKey> getPointerKeysForReflectedFieldRead(InstanceKey I, InstanceKey F) {
     if (F instanceof ConstantKey) {

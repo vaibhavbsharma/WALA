@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2002 - 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,14 +7,12 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.ssa;
 
 import com.ibm.wala.types.TypeReference;
 
-/**
- * A dynamic type test (instanceof) instruction.
- */
+/** A dynamic type test (instanceof) instruction. */
 public class SSAInstanceofInstruction extends SSAInstruction {
   private final int result;
 
@@ -37,26 +35,28 @@ public class SSAInstanceofInstruction extends SSAInstruction {
     if (uses != null && uses.length == 0) {
       throw new IllegalArgumentException("uses.length == 0");
     }
-    return insts.InstanceofInstruction(iindex, defs == null || defs.length == 0 ? result : defs[0], uses == null ? ref : uses[0],
+    return insts.InstanceofInstruction(
+        iIndex(),
+        defs == null || defs.length == 0 ? result : defs[0],
+        uses == null ? ref : uses[0],
         checkedType);
   }
 
   @Override
   public String toString(SymbolTable symbolTable) {
-    return getValueString(symbolTable, result) + " = instanceof " + getValueString(symbolTable, ref) + " " + checkedType;
+    return getValueString(symbolTable, result)
+        + " = instanceof "
+        + getValueString(symbolTable, ref)
+        + ' '
+        + checkedType;
   }
 
-  /**
-   * @see com.ibm.wala.ssa.SSAInstruction#visit(IVisitor)
-   */
   @Override
   public void visit(IVisitor v) throws NullPointerException {
     v.visitInstanceof(this);
   }
 
-  /**
-   * @see com.ibm.wala.ssa.SSAInstruction#getDef()
-   */
+  /** @see com.ibm.wala.ssa.SSAInstruction#getDef() */
   @Override
   public boolean hasDef() {
     return true;
@@ -77,9 +77,7 @@ public class SSAInstanceofInstruction extends SSAInstruction {
     return checkedType;
   }
 
-  /**
-   * @see com.ibm.wala.ssa.SSAInstruction#getNumberOfUses()
-   */
+  /** @see com.ibm.wala.ssa.SSAInstruction#getNumberOfUses() */
   @Override
   public int getNumberOfDefs() {
     return 1;
@@ -90,9 +88,6 @@ public class SSAInstanceofInstruction extends SSAInstruction {
     return 1;
   }
 
-  /**
-   * @see com.ibm.wala.ssa.SSAInstruction#getUse(int)
-   */
   @Override
   public int getUse(int j) {
     assert j == 0;

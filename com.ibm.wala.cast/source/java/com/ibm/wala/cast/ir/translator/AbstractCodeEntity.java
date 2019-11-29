@@ -1,4 +1,4 @@
-/******************************************************************************
+/*
  * Copyright (c) 2002 - 2014 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,17 +7,11 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *****************************************************************************/
-
-/**
- * 
  */
+
 package com.ibm.wala.cast.ir.translator;
 
-import com.ibm.wala.cast.tree.CAstControlFlowMap;
 import com.ibm.wala.cast.tree.CAstNode;
-import com.ibm.wala.cast.tree.CAstNodeTypeMap;
-import com.ibm.wala.cast.tree.CAstSourcePositionMap;
 import com.ibm.wala.cast.tree.CAstSourcePositionMap.Position;
 import com.ibm.wala.cast.tree.CAstType;
 import com.ibm.wala.cast.tree.impl.CAstControlFlowRecorder;
@@ -50,17 +44,17 @@ public abstract class AbstractCodeEntity extends AbstractEntity {
   }
 
   @Override
-  public CAstControlFlowMap getControlFlow() {
+  public CAstControlFlowRecorder getControlFlow() {
     return cfg;
   }
 
   @Override
-  public CAstSourcePositionMap getSourceMap() {
+  public CAstSourcePositionRecorder getSourceMap() {
     return src;
   }
 
   @Override
-  public CAstNodeTypeMap getNodeTypeMap() {
+  public CAstNodeTypeMapRecorder getNodeTypeMap() {
     return types;
   }
 
@@ -85,7 +79,7 @@ public abstract class AbstractCodeEntity extends AbstractEntity {
   public void setNodeType(CAstNode n, CAstType type) {
     types.add(n, type);
   }
-  
+
   public void setAst(CAstNode Ast) {
     this.Ast = Ast;
   }

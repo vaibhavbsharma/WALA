@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2002,2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,21 +7,19 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.shrikeBT;
 
-/**
- * This class represents instructions that store to local variables.
- */
+/** This class represents instructions that store to local variables. */
 public final class StoreInstruction extends Instruction implements IStoreInstruction {
-  final private int index;
+  private final int index;
 
   protected StoreInstruction(short opcode, int index) {
     super(opcode);
     this.index = index;
   }
 
-  private final static StoreInstruction[] preallocated = preallocate();
+  private static final StoreInstruction[] preallocated = preallocate();
 
   private static StoreInstruction[] preallocate() {
     StoreInstruction[] r = new StoreInstruction[5 * 16];
@@ -48,9 +46,7 @@ public final class StoreInstruction extends Instruction implements IStoreInstruc
     }
   }
 
-  /**
-   * @return the index of the local variable stored
-   */
+  /** @return the index of the local variable stored */
   @Override
   public int getVarIndex() {
     return index;
@@ -87,7 +83,7 @@ public final class StoreInstruction extends Instruction implements IStoreInstruc
 
   @Override
   public String toString() {
-    return "LocalStore(" + getType() + "," + index + ")";
+    return "LocalStore(" + getType() + ',' + index + ')';
   }
 
   @Override

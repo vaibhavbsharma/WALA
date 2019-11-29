@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2002 - 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,15 +7,8 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.core.tests.ir;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Map;
-
-import org.junit.Assert;
-import org.junit.Test;
 
 import com.ibm.wala.cfg.CFGSanitizer;
 import com.ibm.wala.classLoader.IMethod;
@@ -37,23 +30,25 @@ import com.ibm.wala.util.WalaException;
 import com.ibm.wala.util.config.AnalysisScopeReader;
 import com.ibm.wala.util.graph.Graph;
 import com.ibm.wala.util.io.FileProvider;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Map;
+import org.junit.Assert;
+import org.junit.Test;
 
-/**
- * Test integrity of CFGs
- */
+/** Test integrity of CFGs */
 public class CFGSanitizerTest extends WalaTestCase {
 
   /**
-   * check that for all synthetic methods coming from the native specifications, the exit block is not disconnected from the rest of
-   * the sanitized graph
-   * 
-   * @throws IOException
-   * @throws IllegalArgumentException
-   * @throws WalaException
+   * check that for all synthetic methods coming from the native specifications, the exit block is
+   * not disconnected from the rest of the sanitized graph
    */
   @Test
-  public void testSyntheticEdgeToExit() throws IOException, IllegalArgumentException, WalaException {
-    AnalysisScope scope = AnalysisScopeReader.makePrimordialScope((new FileProvider()).getFile(CallGraphTestUtil.REGRESSION_EXCLUSIONS));
+  public void testSyntheticEdgeToExit()
+      throws IOException, IllegalArgumentException, WalaException {
+    AnalysisScope scope =
+        AnalysisScopeReader.makePrimordialScope(
+            (new FileProvider()).getFile(CallGraphTestUtil.REGRESSION_EXCLUSIONS));
 
     ClassHierarchy cha = ClassHierarchyFactory.make(scope);
     ClassLoader cl = CFGSanitizerTest.class.getClassLoader();
@@ -63,13 +58,14 @@ public class CFGSanitizerTest extends WalaTestCase {
     }
     AnalysisOptions options = new AnalysisOptions(scope, null);
     Map<MethodReference, MethodSummary> summaries = summary.getSummaries();
-    for (MethodReference mr : summaries.keySet()) {
+    for (Map.Entry<MethodReference, MethodSummary> entry : summaries.entrySet()) {
+      final MethodReference mr = entry.getKey();
       IMethod m = cha.resolveMethod(mr);
       if (m == null) {
         continue;
       }
       System.out.println(m.getSignature());
-      MethodSummary methodSummary = summaries.get(mr);
+      MethodSummary methodSummary = entry.getValue();
       SummarizedMethod summMethod = new SummarizedMethod(mr, methodSummary, m.getDeclaringClass());
       IR ir = summMethod.makeIR(Everywhere.EVERYWHERE, options.getSSAOptions());
       System.out.println(ir);
@@ -81,5 +77,4 @@ public class CFGSanitizerTest extends WalaTestCase {
       }
     }
   }
-
 }

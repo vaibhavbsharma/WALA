@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2007 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,21 +7,10 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.classLoader;
 
-import java.io.Reader;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
+import com.ibm.wala.ipa.cha.ClassHierarchy;
 import com.ibm.wala.ipa.cha.ClassHierarchyWarning;
 import com.ibm.wala.ipa.cha.IClassHierarchy;
 import com.ibm.wala.shrikeCT.InvalidClassFileException;
@@ -42,10 +31,20 @@ import com.ibm.wala.util.strings.Atom;
 import com.ibm.wala.util.strings.ImmutableByteArray;
 import com.ibm.wala.util.warnings.Warning;
 import com.ibm.wala.util.warnings.Warnings;
+import java.io.Reader;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * A class representing which originates in some form of bytecode.
- * 
+ *
  * @param <T> type of classloader which loads this format of class.
  */
 public abstract class BytecodeClass<T extends IClassLoader> implements IClass {
@@ -55,78 +54,55 @@ public abstract class BytecodeClass<T extends IClassLoader> implements IClass {
     this.cha = cha;
   }
 
-  /**
-   * An Atom which holds the name of the super class. We cache this for efficiency reasons.
-   */
+  /** An Atom which holds the name of the super class. We cache this for efficiency reasons. */
   protected ImmutableByteArray superName;
 
-  /**
-   * The names of interfaces for this class. We cache this for efficiency reasons.
-   */
+  /** The names of interfaces for this class. We cache this for efficiency reasons. */
   protected ImmutableByteArray[] interfaceNames;
 
-  /**
-   * The object that loaded this class.
-   */
+  /** The object that loaded this class. */
   protected final T loader;
 
-  /**
-   * Governing class hierarchy for this class
-   */
+  /** Governing class hierarchy for this class */
   protected final IClassHierarchy cha;
 
   /**
    * A mapping from Selector to IMethod
-   * 
-   * TODO: get rid of this for classes (though keep it for interfaces) instead ... use a VMT.
+   *
+   * <p>TODO: get rid of this for classes (though keep it for interfaces) instead ... use a VMT.
    */
   protected volatile Map<Selector, IMethod> methodMap;
 
-  /**
-   * A mapping from Selector to IMethod used to cache method lookups from superclasses
-   */
+  /** A mapping from Selector to IMethod used to cache method lookups from superclasses */
   protected Map<Selector, IMethod> inheritCache;
 
-  /**
-   * Canonical type representation
-   */
+  /** Canonical type representation */
   protected TypeReference typeReference;
 
-  /**
-   * superclass
-   */
+  /** superclass */
   protected IClass superClass;
 
-  /**
-   * Compute the superclass lazily.
-   */
+  /** Compute the superclass lazily. */
   protected boolean superclassComputed = false;
 
   /**
-   * The IClasses that represent all interfaces this class implements (if it's a class) or extends (it it's an interface)
+   * The IClasses that represent all interfaces this class implements (if it's a class) or extends
+   * (it it's an interface)
    */
   protected Collection<IClass> allInterfaces = null;
 
-  /**
-   * The instance fields declared in this class.
-   */
+  /** The instance fields declared in this class. */
   protected IField[] instanceFields;
 
-  /**
-   * The static fields declared in this class.
-   */
+  /** The static fields declared in this class. */
   protected IField[] staticFields;
 
-  /**
-   * hash code; cached here for efficiency
-   */
+  /** hash code; cached here for efficiency */
   protected int hashCode;
 
   private final HashMap<Atom, IField> fieldMap = HashMapFactory.make(5);
-  
-  /**
-   * A warning for when we get a class not found exception
-   */
+
+  /** A warning for when we get a class not found exception */
   private static class ClassNotFoundWarning extends Warning {
 
     final ImmutableByteArray className;
@@ -234,7 +210,6 @@ public abstract class BytecodeClass<T extends IClassLoader> implements IClass {
     return null;
   }
 
-  
   @Override
   public IField getField(Atom name, TypeName type) {
     boolean unresolved = false;
@@ -250,8 +225,8 @@ public abstract class BytecodeClass<T extends IClassLoader> implements IClass {
       assert e.getMessage().startsWith("multiple fields with");
       unresolved = true;
     }
-    
-    if(unresolved){
+
+    if (unresolved) {
       // multiple fields.  look through all of them and see if any have the appropriate type
       List<IField> fields = findDeclaredField(name);
       for (IField f : fields) {
@@ -296,9 +271,21 @@ public abstract class BytecodeClass<T extends IClassLoader> implements IClass {
       computeSuperclass();
     }
     if (superClass == null && !getReference().equals(TypeReference.JavaLangObject)) {
-      throw new IllegalStateException("No superclass found for " + this + " Superclass name " + superName);
+      // TODO MissingSuperClassHandling.Phantom needs to be implemented
+      if (cha instanceof ClassHierarchy
+          && ((ClassHierarchy) cha)
+              .getSuperClassHandling()
+              .equals(ClassHierarchy.MissingSuperClassHandling.ROOT)) {
+        superClass = loader.lookupClass(loader.getLanguage().getRootType().getName());
+      } else
+        throw new NoSuperclassFoundException(
+            "No superclass found for " + this + " Superclass name " + superName);
     }
     return superClass;
+  }
+
+  public TypeName getSuperName() {
+    return TypeName.findOrCreate(superName);
   }
 
   /*
@@ -306,7 +293,7 @@ public abstract class BytecodeClass<T extends IClassLoader> implements IClass {
    */
   @Override
   public Collection<IField> getAllFields() {
-    Collection<IField> result = new LinkedList<IField>();
+    Collection<IField> result = new LinkedList<>();
     result.addAll(getAllInstanceFields());
     result.addAll(getAllStaticFields());
     return result;
@@ -359,7 +346,7 @@ public abstract class BytecodeClass<T extends IClassLoader> implements IClass {
    */
   @Override
   public Collection<IField> getAllInstanceFields() {
-    Collection<IField> result = new LinkedList<IField>(getDeclaredInstanceFields());
+    Collection<IField> result = new LinkedList<>(getDeclaredInstanceFields());
     IClass s = getSuperclass();
     while (s != null) {
       result.addAll(s.getDeclaredInstanceFields());
@@ -373,7 +360,7 @@ public abstract class BytecodeClass<T extends IClassLoader> implements IClass {
    */
   @Override
   public Collection<IField> getAllStaticFields() {
-    Collection<IField> result = new LinkedList<IField>(getDeclaredStaticFields());
+    Collection<IField> result = new LinkedList<>(getDeclaredStaticFields());
     IClass s = getSuperclass();
     while (s != null) {
       result.addAll(s.getDeclaredStaticFields());
@@ -387,11 +374,7 @@ public abstract class BytecodeClass<T extends IClassLoader> implements IClass {
    */
   @Override
   public Collection<IMethod> getAllMethods() {
-    Collection<IMethod> result = new LinkedList<IMethod>();
-    Iterator<IMethod> declaredMethods = getDeclaredMethods().iterator();
-    while (declaredMethods.hasNext()) {
-      result.add(declaredMethods.next());
-    }
+    Collection<IMethod> result = new LinkedList<>(getDeclaredMethods());
     if (isInterface()) {
       for (IClass i : getDirectInterfaces()) {
         result.addAll(i.getAllMethods());
@@ -399,16 +382,11 @@ public abstract class BytecodeClass<T extends IClassLoader> implements IClass {
     } else {
       // for non-interfaces, add default methods inherited from interfaces #219.
       for (IClass i : this.getAllImplementedInterfaces())
-          for (IMethod m : i.getDeclaredMethods())
-              if (!m.isAbstract())
-                  result.add(m);
+        for (IMethod m : i.getDeclaredMethods()) if (!m.isAbstract()) result.add(m);
     }
     IClass s = getSuperclass();
     while (s != null) {
-      Iterator<IMethod> superDeclaredMethods = s.getDeclaredMethods().iterator();
-      while (superDeclaredMethods.hasNext()) {
-        result.add(superDeclaredMethods.next());
-      }
+      result.addAll(s.getDeclaredMethods());
       s = s.getSuperclass();
     }
     return result;
@@ -453,27 +431,28 @@ public abstract class BytecodeClass<T extends IClassLoader> implements IClass {
     }
 
     // check parent, caching if found
-    if (!selector.equals(MethodReference.clinitSelector) && !selector.equals(MethodReference.initSelector)) {
+    if (!selector.equals(MethodReference.clinitSelector)
+        && !selector.getName().equals(MethodReference.initAtom)) {
       IClass superclass = getSuperclass();
       if (superclass != null) {
         IMethod inherit = superclass.getMethod(selector);
         if (inherit != null) {
           if (inheritCache == null) {
-            inheritCache = new BimodalMap<Selector, IMethod>(5);
+            inheritCache = new BimodalMap<>(5);
           }
           inheritCache.put(selector, inherit);
           return inherit;
         }
       }
     }
-    
+
     // check interfaces for Java 8 default implementation
     // Java seems to require a single default implementation, so take that on faith here
-    for(IClass iface : getAllImplementedInterfaces()) {
-      for(IMethod m : iface.getDeclaredMethods()) {
-        if (!m.isAbstract() && m.getSelector().equals(selector)) {          
+    for (IClass iface : getAllImplementedInterfaces()) {
+      for (IMethod m : iface.getDeclaredMethods()) {
+        if (!m.isAbstract() && m.getSelector().equals(selector)) {
           if (inheritCache == null) {
-            inheritCache = new BimodalMap<Selector, IMethod>(5);
+            inheritCache = new BimodalMap<>(5);
           }
           inheritCache.put(selector, m);
 
@@ -481,30 +460,20 @@ public abstract class BytecodeClass<T extends IClassLoader> implements IClass {
         }
       }
     }
-    
+
     // no method found
     if (inheritCache == null) {
-      inheritCache = new BimodalMap<Selector, IMethod>(5);
+      inheritCache = new BimodalMap<>(5);
     }
     inheritCache.put(selector, null);
     return null;
   }
 
-  protected void populateFieldArrayFromList(List<FieldImpl> L, IField[] A) {
-    Iterator<FieldImpl> it = L.iterator();
-    for (int i = 0; i < A.length; i++) {
-      A[i] = it.next();
-    }
-  }
-
-  /**
-   * @return Collection of IClasses, representing the interfaces this class implements.
-   */
+  /** @return Collection of IClasses, representing the interfaces this class implements. */
   protected Collection<IClass> computeAllInterfacesAsCollection() {
     Collection<? extends IClass> c = getDirectInterfaces();
     Set<IClass> result = HashSetFactory.make();
-    for (Iterator<? extends IClass> it = c.iterator(); it.hasNext();) {
-      IClass klass = it.next();
+    for (IClass klass : c) {
       if (klass.isInterface()) {
         result.add(klass);
       } else {
@@ -533,13 +502,12 @@ public abstract class BytecodeClass<T extends IClassLoader> implements IClass {
 
   /**
    * @param interfaces a set of class names
-   * @return Set of all IClasses that can be loaded corresponding to the class names in the interfaces array; raise warnings if
-   *         classes can not be loaded
+   * @return Set of all IClasses that can be loaded corresponding to the class names in the
+   *     interfaces array; raise warnings if classes can not be loaded
    */
   private Collection<IClass> array2IClassSet(ImmutableByteArray[] interfaces) {
-    ArrayList<IClass> result = new ArrayList<IClass>(interfaces.length);
-    for (int i = 0; i < interfaces.length; i++) {
-      ImmutableByteArray name = interfaces[i];
+    ArrayList<IClass> result = new ArrayList<>(interfaces.length);
+    for (ImmutableByteArray name : interfaces) {
       IClass klass = null;
       klass = loader.lookupClass(TypeName.findOrCreate(name));
       if (klass == null) {
@@ -552,21 +520,21 @@ public abstract class BytecodeClass<T extends IClassLoader> implements IClass {
   }
 
   protected List<IField> findDeclaredField(Atom name) {
-    
-    List<IField> result = new ArrayList<IField>(1);
-    
+
+    List<IField> result = new ArrayList<>(1);
+
     if (instanceFields != null) {
-      for (int i = 0; i < instanceFields.length; i++) {
-        if (instanceFields[i].getName() == name) {
-          result.add(instanceFields[i]);
+      for (IField instanceField : instanceFields) {
+        if (instanceField.getName() == name) {
+          result.add(instanceField);
         }
       }
     }
 
     if (staticFields != null) {
-      for (int i = 0; i < staticFields.length; i++) {
-        if (staticFields[i].getName() == name) {
-          result.add(staticFields[i]);
+      for (IField staticField : staticFields) {
+        if (staticField.getName() == name) {
+          result.add(staticField);
         }
       }
     }
@@ -574,8 +542,14 @@ public abstract class BytecodeClass<T extends IClassLoader> implements IClass {
     return result;
   }
 
-  protected void addFieldToList(List<FieldImpl> L, Atom name, ImmutableByteArray fieldType, int accessFlags,
-      Collection<Annotation> annotations, Collection<TypeAnnotation> typeAnnotations, TypeSignature sig) {
+  protected void addFieldToList(
+      List<FieldImpl> L,
+      Atom name,
+      ImmutableByteArray fieldType,
+      int accessFlags,
+      Collection<Annotation> annotations,
+      Collection<TypeAnnotation> typeAnnotations,
+      TypeSignature sig) {
     TypeName T = null;
     if (fieldType.get(fieldType.length() - 1) == ';') {
       T = TypeName.findOrCreate(fieldType, 0, fieldType.length() - 1);
@@ -588,32 +562,29 @@ public abstract class BytecodeClass<T extends IClassLoader> implements IClass {
     L.add(f);
   }
 
-  /**
-   * set up the methodMap mapping
-   */
+  /** set up the methodMap mapping */
   protected void computeMethodMapIfNeeded() throws InvalidClassFileException {
     if (methodMap == null) {
       synchronized (this) {
         if (methodMap == null) {
           IMethod[] methods = computeDeclaredMethods();
-          
+
           final Map<Selector, IMethod> tmpMethodMap;
           if (methods.length > 5) {
             tmpMethodMap = HashMapFactory.make(methods.length);
           } else {
-            tmpMethodMap= new SmallMap<Selector, IMethod>();
+            tmpMethodMap = new SmallMap<>();
           }
-          for (int i = 0; i < methods.length; i++) {
-            IMethod m = methods[i];
+          for (IMethod m : methods) {
             tmpMethodMap.put(m.getReference().getSelector(), m);
           }
-          
+
           methodMap = tmpMethodMap;
         }
       }
     }
-  }  
-  
-  public abstract Collection<Annotation> getAnnotations(boolean runtimeVisible) throws InvalidClassFileException;
+  }
 
+  public abstract Collection<Annotation> getAnnotations(boolean runtimeVisible)
+      throws InvalidClassFileException;
 }

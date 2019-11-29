@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2002 - 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,29 +7,21 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.types;
 
 import com.ibm.wala.util.strings.Atom;
 
-/**
- * Abstract superclass of {@link MethodReference} and {@link FieldReference}
- */
+/** Abstract superclass of {@link MethodReference} and {@link FieldReference} */
 public abstract class MemberReference {
 
-  /**
-   * The type that declares this member
-   */
+  /** The type that declares this member */
   private final TypeReference declaringClass;
 
-  /**
-   * The member name
-   */
+  /** The member name */
   private final Atom name;
 
-  /**
-   * Cached hash code for efficiency
-   */
+  /** Cached hash code for efficiency */
   private final int hash;
 
   protected MemberReference(TypeReference type, Atom name, int hash) {
@@ -38,9 +30,7 @@ public abstract class MemberReference {
     this.hash = hash;
   }
 
-  /**
-   * @return the member name component of this member reference
-   */
+  /** @return the member name component of this member reference */
   public final Atom getName() {
     return name;
   }
@@ -58,9 +48,7 @@ public abstract class MemberReference {
     return this == other;
   }
 
-  /**
-   * @return the type that declared this member
-   */
+  /** @return the type that declared this member */
   public TypeReference getDeclaringClass() {
     if (declaringClass == null) {
       // fail eagerly
@@ -68,5 +56,4 @@ public abstract class MemberReference {
     }
     return declaringClass;
   }
-
 }

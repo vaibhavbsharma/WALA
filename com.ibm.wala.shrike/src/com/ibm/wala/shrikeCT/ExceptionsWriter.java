@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2002,2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,20 +7,18 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.shrikeCT;
 
-/**
- * This class builds serializable Exceptions attributes.
- */
+/** This class builds serializable Exceptions attributes. */
 public final class ExceptionsWriter extends ClassWriter.Element {
-  final private int attrID;
+  private final int attrID;
 
   private int[] table;
 
   /**
    * Build an empty writer.
-   * 
+   *
    * @throws IllegalArgumentException if w is null
    */
   public ExceptionsWriter(ClassWriter w) {
@@ -42,8 +40,8 @@ public final class ExceptionsWriter extends ClassWriter.Element {
     ClassWriter.setUShort(buf, offset + 6, table == null ? 0 : table.length);
     offset += 8;
     if (table != null) {
-      for (int i = 0; i < table.length; i++) {
-        ClassWriter.setUShort(buf, offset, table[i]);
+      for (int element : table) {
+        ClassWriter.setUShort(buf, offset, element);
         offset += 2;
       }
     }
@@ -52,7 +50,7 @@ public final class ExceptionsWriter extends ClassWriter.Element {
 
   /**
    * Set the list of exceptions that can be thrown.
-   * 
+   *
    * @param exceptions an array of indices to constant pool Class entries
    * @throws IllegalArgumentException if exceptions is null
    */
@@ -60,9 +58,9 @@ public final class ExceptionsWriter extends ClassWriter.Element {
     if (exceptions == null) {
       throw new IllegalArgumentException("exceptions is null");
     }
-    for (int i = 0; i < exceptions.length; i++) {
-      if (exceptions[i] < 1 || exceptions[i] > 0xFFFF) {
-        throw new IllegalArgumentException("Invalid CP index: " + exceptions[i]);
+    for (int exception : exceptions) {
+      if (exception < 1 || exception > 0xFFFF) {
+        throw new IllegalArgumentException("Invalid CP index: " + exception);
       }
     }
 

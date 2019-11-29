@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2002 - 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,48 +7,43 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.ssa;
 
 import com.ibm.wala.types.TypeReference;
 
 /**
- * A checkcast (dynamic type test) instruction. This instruction produces a new value number (like an assignment) if the check
- * succeeds.
- * 
- * Note that this instruction generalizes the meaning of checkcast in Java since it supports
- * multiple types for which to check.  The meaning is that the case succeeds if the object
- * is of any of the desired types.
- *  
+ * A checkcast (dynamic type test) instruction. This instruction produces a new value number (like
+ * an assignment) if the check succeeds.
+ *
+ * <p>Note that this instruction generalizes the meaning of checkcast in Java since it supports
+ * multiple types for which to check. The meaning is that the case succeeds if the object is of any
+ * of the desired types.
  */
 public abstract class SSACheckCastInstruction extends SSAInstruction {
 
-  /**
-   * A new value number def'fed by this instruction when the type check succeeds.
-   */
+  /** A new value number def'fed by this instruction when the type check succeeds. */
   private final int result;
 
-  /**
-   * The value being checked by this instruction
-   */
+  /** The value being checked by this instruction */
   private final int val;
 
   /**
-   * The types for which this instruction checks; the assignment succeeds if the val is a subtype of one of these types
+   * The types for which this instruction checks; the assignment succeeds if the val is a subtype of
+   * one of these types
    */
   private final TypeReference[] declaredResultTypes;
 
-  /**
-   * whether the type test throws an exception
-   */
+  /** whether the type test throws an exception */
   private final boolean isPEI;
-  
+
   /**
    * @param result A new value number def'fed by this instruction when the type check succeeds.
    * @param val The value being checked by this instruction
-   * @param type The type which this instruction checks
+   * @param types The types which this instruction checks
    */
-  protected SSACheckCastInstruction(int iindex, int result, int val, TypeReference[] types, boolean isPEI) {
+  protected SSACheckCastInstruction(
+      int iindex, int result, int val, TypeReference[] types, boolean isPEI) {
     super(iindex);
     assert val != -1;
     this.result = result;
@@ -65,21 +60,28 @@ public abstract class SSACheckCastInstruction extends SSAInstruction {
     if (uses != null && uses.length == 0) {
       throw new IllegalArgumentException("(uses != null) and (uses.length == 0)");
     }
-    return insts.CheckCastInstruction(iindex, defs == null ? result : defs[0], uses == null ? val : uses[0], declaredResultTypes, isPEI);
+    return insts.CheckCastInstruction(
+        iIndex(),
+        defs == null ? result : defs[0],
+        uses == null ? val : uses[0],
+        declaredResultTypes,
+        isPEI);
   }
 
   @Override
   public String toString(SymbolTable symbolTable) {
-    String v = getValueString(symbolTable, result) + " = checkcast";
+    final StringBuilder v =
+        new StringBuilder(getValueString(symbolTable, result)).append(" = checkcast");
     for (TypeReference t : declaredResultTypes) {
-        v = v + " " + t;
+      v.append(' ').append(t);
     }
-    return v + getValueString(symbolTable, val);
+    v.append(getValueString(symbolTable, val));
+    return v.toString();
   }
 
   /*
    * @see com.ibm.wala.ssa.SSAInstruction#visit(IVisitor)
-   * 
+   *
    * @throws IllegalArgumentException if v is null
    */
   @Override
@@ -98,9 +100,7 @@ public abstract class SSACheckCastInstruction extends SSAInstruction {
     return true;
   }
 
-  /**
-   * @return A new value number def'fed by this instruction when the type check succeeds.
-   */
+  /** @return A new value number def'fed by this instruction when the type check succeeds. */
   @Override
   public int getDef() {
     return result;
@@ -128,9 +128,6 @@ public abstract class SSACheckCastInstruction extends SSAInstruction {
     return 1;
   }
 
-  /**
-   * @see com.ibm.wala.ssa.SSAInstruction#getUse(int)
-   */
   @Override
   public int getUse(int j) {
     assert j == 0;
@@ -138,8 +135,8 @@ public abstract class SSACheckCastInstruction extends SSAInstruction {
   }
 
   /**
-   * @deprecated the system now supports multiple types, so this
-   * accessor will not work for all languages.
+   * @deprecated the system now supports multiple types, so this accessor will not work for all
+   *     languages.
    */
   @Deprecated
   public TypeReference getDeclaredResultType() {
@@ -182,11 +179,10 @@ public abstract class SSACheckCastInstruction extends SSAInstruction {
 
   @Override
   public String toString() {
-    String s = super.toString();
+    final StringBuilder s = new StringBuilder(super.toString());
     for (TypeReference t : declaredResultTypes) {
-      s = s + " " + t;
+      s.append(' ').append(t);
     }
-    return s;
+    return s.toString();
   }
-
 }

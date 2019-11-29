@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2002,2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,13 +7,13 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.shrikeCT;
 
 import java.io.UnsupportedEncodingException;
 
 public class SourceDebugExtensionWriter extends ClassWriter.Element {
-  final private int attrID;
+  private final int attrID;
 
   private byte[] table;
 
@@ -35,8 +35,8 @@ public class SourceDebugExtensionWriter extends ClassWriter.Element {
     ClassWriter.setInt(buf, offset + 2, getSize() - 6);
     offset += 6;
     if (table != null) {
-      for (int i = 0; i < table.length; i++) {
-        ClassWriter.setUByte(buf, offset, table[i]);
+      for (byte element : table) {
+        ClassWriter.setUByte(buf, offset, element);
         offset++;
       }
     }
@@ -47,9 +47,9 @@ public class SourceDebugExtensionWriter extends ClassWriter.Element {
     if (sourceDebug == null) {
       throw new IllegalArgumentException("sourceDebug is null");
     }
-    for (int i = 0; i < sourceDebug.length; i++) {
-      if (sourceDebug[i] < 1) {
-        throw new IllegalArgumentException("Invalid CP index: " + sourceDebug[i]);
+    for (byte element : sourceDebug) {
+      if (element < 1) {
+        throw new IllegalArgumentException("Invalid CP index: " + element);
       }
     }
     this.table = sourceDebug;

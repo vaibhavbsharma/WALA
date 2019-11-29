@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2007 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,22 +7,22 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.ipa.cfg.exceptionpruning.interprocedural;
 
 import com.ibm.wala.ipa.callgraph.CGNode;
 import com.ibm.wala.ipa.cfg.exceptionpruning.ExceptionFilter;
 
-public class IgnoreExceptionsInterFilter<Instruction> implements InterproceduralExceptionFilter<Instruction>{
+public class IgnoreExceptionsInterFilter<Instruction>
+    implements InterproceduralExceptionFilter<Instruction> {
   private ExceptionFilter<Instruction> filter;
-  
-  public IgnoreExceptionsInterFilter(ExceptionFilter<Instruction> filter){
+
+  public IgnoreExceptionsInterFilter(ExceptionFilter<Instruction> filter) {
     this.filter = filter;
   }
-  
+
   @Override
   public ExceptionFilter<Instruction> getFilter(CGNode node) {
     return filter;
   }
-
 }

@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2002 - 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,26 +7,28 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.util.intset;
 
+import java.util.Arrays;
 
 /**
- * An implementation of Tarjan's union-find, using path compression and balancing, for non-negative integers
+ * An implementation of Tarjan's union-find, using path compression and balancing, for non-negative
+ * integers
  */
 public class IntegerUnionFind {
-  
-  private final static int MAX_VALUE = Integer.MAX_VALUE / 4;
 
-  final private static int DEFAULT_SIZE = 100;
+  private static final int MAX_VALUE = Integer.MAX_VALUE / 4;
+
+  private static final int DEFAULT_SIZE = 100;
   /**
-   * 
    * parent[i+1] =
+   *
    * <ul>
-   * <li>j > 0 if i is in the same equiv class as j
-   * <li>j <= 0 if i is the representative of a class of size -(j)+1
+   *   <li>j &gt; 0 if i is in the same equiv class as j
+   *   <li>j &lt;= 0 if i is the representative of a class of size -(j)+1
    * </ul>
-   * 
+   *
    * we initialize parent[j] = 0, so each element is a class of size 1
    */
   int[] parent;
@@ -35,19 +37,15 @@ public class IntegerUnionFind {
     this(DEFAULT_SIZE);
   }
 
-  /**
-   * @param size initial size of the tables
-   */
+  /** @param size initial size of the tables */
   public IntegerUnionFind(int size) {
-    if (size  < 0 || size > MAX_VALUE) {
+    if (size < 0 || size > MAX_VALUE) {
       throw new IllegalArgumentException("illegal size: " + size);
     }
     parent = new int[size + 1];
   }
 
-  /**
-   * union the equiv classes of x and y
-   */
+  /** union the equiv classes of x and y */
   public void union(int x, int y) {
     if (x < 0) {
       throw new IllegalArgumentException("invalid x : " + x);
@@ -84,15 +82,10 @@ public class IntegerUnionFind {
   }
 
   private void grow(int size) {
-    int[] old = parent;
-    parent = new int[size + 1];
-    System.arraycopy(old, 0, parent, 0, old.length);
+    parent = Arrays.copyOf(parent, size + 1);
   }
 
-  /**
-   * @param x
-   * @return representative of x's equivalence class
-   */
+  /** @return representative of x's equivalence class */
   public int find(int x) {
     if (x < 0) {
       throw new IllegalArgumentException("illegal x " + x);
@@ -105,10 +98,7 @@ public class IntegerUnionFind {
     return findInternal(x + 1) - 1;
   }
 
-  /**
-   * @param x
-   * @return representative of x's equivalence class
-   */
+  /** @return representative of x's equivalence class */
   private int findInternal(int x) {
     int root = x;
     while (parent[root] > 0) {
@@ -124,10 +114,8 @@ public class IntegerUnionFind {
     return root;
   }
 
-  /**
-   */
+  /** */
   public int size() {
     return parent.length - 1;
   }
-
 }

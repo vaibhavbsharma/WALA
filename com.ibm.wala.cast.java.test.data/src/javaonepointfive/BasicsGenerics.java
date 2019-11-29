@@ -42,7 +42,7 @@ import java.util.Iterator;
 
 public class BasicsGenerics {
 	
-	static ArrayList<String> strs = new ArrayList<String>();
+	static ArrayList<String> strs = new ArrayList<>();
 	static ArrayList<Integer> ints = new ArrayList<>();
 	
 	public BasicsGenerics() {
@@ -64,23 +64,20 @@ public class BasicsGenerics {
 		System.out.println(frenchy);
 		System.out.println(sicilian);
 		strs.add("hello");
-		ints.add(new Integer(3));
+		ints.add(3);
 		
 		String qqq;
 		
-		for (Iterator iter = ((Iterable)ints).iterator(); iter.hasNext(); iter.next());
+		for (Iterator<?> iter = ((Iterable<?>)ints).iterator(); iter.hasNext(); iter.next());
 		
 		for (Iterator<String> iter = strs.iterator(); iter.hasNext();) {
 			qqq = iter.next();
 			System.out.println(qqq);
 		}
 		
-		Iterable s1 = strs;
-		for (Iterator itertmp = s1.iterator(); itertmp.hasNext();) {
-			String rrr = (String) itertmp.next();
-			{
-				System.out.println("la vida pasaba y sentia " + rrr);
-			}
+		Iterable<String> s1 = strs;
+		for (String rrr : s1) {
+			System.out.println("la vida pasaba y sentia " + rrr);
 		}
 		
 		for (String rrr: strs) {

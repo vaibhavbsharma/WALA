@@ -1,4 +1,4 @@
-/******************************************************************************
+/*
  * Copyright (c) 2002 - 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,12 +7,8 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *****************************************************************************/
+ */
 package com.ibm.wala.cast.java.ipa.callgraph;
-
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Set;
 
 import com.ibm.wala.cast.ipa.callgraph.ScopeMappingInstanceKeys;
 import com.ibm.wala.cast.ir.translator.AstTranslator;
@@ -27,12 +23,16 @@ import com.ibm.wala.ipa.callgraph.propagation.InstanceKeyFactory;
 import com.ibm.wala.ipa.callgraph.propagation.PropagationCallGraphBuilder;
 import com.ibm.wala.util.collections.HashSetFactory;
 import com.ibm.wala.util.collections.Pair;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Set;
 
 public class JavaScopeMappingInstanceKeys extends ScopeMappingInstanceKeys {
 
-  public JavaScopeMappingInstanceKeys(PropagationCallGraphBuilder builder, InstanceKeyFactory basic) {
+  public JavaScopeMappingInstanceKeys(
+      PropagationCallGraphBuilder builder, InstanceKeyFactory basic) {
     super(builder, basic);
-
   }
 
   protected LexicalParent[] getParents(InstanceKey base) {
@@ -44,23 +44,18 @@ public class JavaScopeMappingInstanceKeys extends ScopeMappingInstanceKeys {
         if ((m instanceof AstMethod) && !m.isStatic()) {
           AstMethod M = (AstMethod) m;
           LexicalParent[] parents = M.getParents();
-          for (int i = 0; i < parents.length; i++) {
-            result.add(parents[i]);
-          }
+          result.addAll(Arrays.asList(parents));
         }
       }
 
       if (!result.isEmpty()) {
-        if (AstTranslator.DEBUG_LEXICAL)
-          System.err.println((base + " has parents: " + result));
+        if (AstTranslator.DEBUG_LEXICAL) System.err.println((base + " has parents: " + result));
 
-        return result.toArray(new LexicalParent[result.size()]);
+        return result.toArray(new LexicalParent[0]);
       }
-
     }
 
-    if (AstTranslator.DEBUG_LEXICAL)
-      System.err.println((base + " has no parents"));
+    if (AstTranslator.DEBUG_LEXICAL) System.err.println((base + " has no parents"));
 
     return new LexicalParent[0];
   }
@@ -77,11 +72,11 @@ public class JavaScopeMappingInstanceKeys extends ScopeMappingInstanceKeys {
 
     return result;
   }
-  
+
   @Override
-  protected Collection<CGNode> getConstructorCallers(ScopeMappingInstanceKey smik, Pair<String, String> name) {
+  protected Collection<CGNode> getConstructorCallers(
+      ScopeMappingInstanceKey smik, Pair<String, String> name) {
     // for Java, the creator node is exactly what we want
     return Collections.singleton(smik.getCreator());
   }
-
 }

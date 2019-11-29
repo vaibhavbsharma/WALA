@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2002 - 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,39 +7,37 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.util.intset;
 
+import com.ibm.wala.util.collections.HashMapFactory;
 import java.lang.ref.WeakReference;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Map;
 
-import com.ibm.wala.util.collections.HashMapFactory;
-
-/**
- * A repository for shared bit vectors as described by Heintze
- */
+/** A repository for shared bit vectors as described by Heintze */
+@SuppressWarnings("Java8MapApi")
 public class BitVectorRepository {
 
-  private final static boolean STATS = false;
+  private static final boolean STATS = false;
 
-  private final static int STATS_WINDOW = 100;
+  private static final int STATS_WINDOW = 100;
 
   private static int queries = 0;
 
   private static int hits = 0;
 
-  private final static int SUBSET_DELTA = 5;
+  private static final int SUBSET_DELTA = 5;
 
-  final private static Map<Integer, LinkedList<WeakReference<BitVectorIntSet>>> buckets = HashMapFactory.make();
+  private static final Map<Integer, LinkedList<WeakReference<BitVectorIntSet>>> buckets =
+      HashMapFactory.make();
 
   /**
-   * @param value
-   * @return the BitVector in this repository which is the canonical shared
-   *         subset representative of value; the result will have the same bits
-   *         as value, except it may exclude up to SUBSET_DELTA bits.
-   * @throws IllegalArgumentException  if value is null
+   * @return the BitVector in this repository which is the canonical shared subset representative of
+   *     value; the result will have the same bits as value, except it may exclude up to
+   *     SUBSET_DELTA bits.
+   * @throws IllegalArgumentException if value is null
    */
   public static synchronized BitVectorIntSet findOrCreateSharedSubset(BitVectorIntSet value) {
     if (value == null) {
@@ -53,7 +51,7 @@ public class BitVectorRepository {
     }
     int size = value.size();
     for (int i = size; i > size - SUBSET_DELTA; i--) {
-      LinkedList<WeakReference<BitVectorIntSet>> m = buckets.get(Integer.valueOf(i));
+      LinkedList<WeakReference<BitVectorIntSet>> m = buckets.get(i);
       if (m != null) {
         Iterator<WeakReference<BitVectorIntSet>> it = m.iterator();
         while (it.hasNext()) {
@@ -65,7 +63,7 @@ public class BitVectorRepository {
               if (STATS) {
                 hits++;
               }
-              return bv;            
+              return bv;
             }
           } else {
             // remove the weak reference to avoid leaks
@@ -75,7 +73,8 @@ public class BitVectorRepository {
       }
     }
     // didn't find one. create one.
-    LinkedList<WeakReference<BitVectorIntSet>> m = buckets.get(size);
+    LinkedList<WeakReference<BitVectorIntSet>> m;
+    m = buckets.get(size);
     if (m == null) {
       m = new LinkedList<>();
       buckets.put(size, m);
@@ -85,17 +84,14 @@ public class BitVectorRepository {
     return bv;
   }
 
-  /**
-   * 
-   */
+  /** */
   private static void reportStats() {
     double percent = 100.0 * hits / queries;
     System.err.println(("BitVectorRepository: queries " + queries + " hits " + percent));
     System.err.println(("                     entries " + countEntries()));
   }
 
-  /**
-   */
+  /** */
   private static int countEntries() {
     int result = 0;
     for (LinkedList<WeakReference<BitVectorIntSet>> l : buckets.values()) {
@@ -104,5 +100,4 @@ public class BitVectorRepository {
     }
     return result;
   }
-
 }

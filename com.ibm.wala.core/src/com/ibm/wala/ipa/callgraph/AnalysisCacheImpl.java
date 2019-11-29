@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2007 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,7 +7,7 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.ipa.callgraph;
 
 import com.ibm.wala.classLoader.IMethod;
@@ -20,9 +20,10 @@ import com.ibm.wala.ssa.SSAOptions;
 public class AnalysisCacheImpl extends AnalysisCache {
 
   public AnalysisCacheImpl(IRFactory<IMethod> irFactory, SSAOptions ssaOptions) {
-    super(irFactory, ssaOptions, new SSACache(irFactory, new AuxiliaryCache(), new AuxiliaryCache()));
+    super(
+        irFactory, ssaOptions, new SSACache(irFactory, new AuxiliaryCache(), new AuxiliaryCache()));
   }
-  
+
   public AnalysisCacheImpl(SSAOptions ssaOptions) {
     this(new DefaultIRFactory(), ssaOptions);
   }
@@ -30,9 +31,8 @@ public class AnalysisCacheImpl extends AnalysisCache {
   public AnalysisCacheImpl(IRFactory<IMethod> irFactory) {
     this(irFactory, new AnalysisOptions().getSSAOptions());
   }
-  
+
   public AnalysisCacheImpl() {
     this(new DefaultIRFactory());
   }
-
 }

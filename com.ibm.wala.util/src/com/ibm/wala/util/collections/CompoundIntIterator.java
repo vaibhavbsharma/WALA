@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2002 - 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,22 +7,19 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.util.collections;
 
 import com.ibm.wala.util.debug.Assertions;
 import com.ibm.wala.util.debug.UnimplementedError;
 import com.ibm.wala.util.intset.IntIterator;
 
-/**
- * An Iterator which provides a concatenation of two IntIterators.
- */
+/** An Iterator which provides a concatenation of two IntIterators. */
 public class CompoundIntIterator implements IntIterator {
 
   final IntIterator A;
 
   final IntIterator B;
-
 
   /**
    * @param A the first iterator in the concatenated result
@@ -39,12 +36,10 @@ public class CompoundIntIterator implements IntIterator {
     }
   }
 
-
   @Override
   public boolean hasNext() {
     return A.hasNext() || B.hasNext();
   }
-
 
   @Override
   public int next() {

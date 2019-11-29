@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 20078 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,13 +7,8 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.core.tests.cha;
-
-import org.junit.AfterClass;
-import org.junit.Assert;
-import org.junit.BeforeClass;
-import org.junit.Test;
 
 import com.ibm.wala.classLoader.ClassLoaderFactory;
 import com.ibm.wala.classLoader.ClassLoaderFactoryImpl;
@@ -31,10 +26,12 @@ import com.ibm.wala.types.TypeName;
 import com.ibm.wala.types.TypeReference;
 import com.ibm.wala.util.config.AnalysisScopeReader;
 import com.ibm.wala.util.io.FileProvider;
+import org.junit.AfterClass;
+import org.junit.Assert;
+import org.junit.BeforeClass;
+import org.junit.Test;
 
-/**
- * Test stuff with inner classes
- */
+/** Test stuff with inner classes */
 public class InnerClassesTest extends WalaTestCase {
 
   private static final ClassLoader MY_CLASSLOADER = InnerClassesTest.class.getClassLoader();
@@ -49,8 +46,11 @@ public class InnerClassesTest extends WalaTestCase {
 
   @BeforeClass
   public static void beforeClass() throws Exception {
-    scope = AnalysisScopeReader.readJavaScope(TestConstants.WALA_TESTDATA, (new FileProvider()).getFile("J2SEClassHierarchyExclusions.txt"),
-        MY_CLASSLOADER);
+    scope =
+        AnalysisScopeReader.readJavaScope(
+            TestConstants.WALA_TESTDATA,
+            (new FileProvider()).getFile("J2SEClassHierarchyExclusions.txt"),
+            MY_CLASSLOADER);
 
     ClassLoaderFactory factory = new ClassLoaderFactoryImpl(scope.getExclusions());
 
@@ -67,33 +67,38 @@ public class InnerClassesTest extends WalaTestCase {
     cha = null;
   }
 
-  @Test public void test1() throws InvalidClassFileException {
-    TypeReference t = TypeReference.findOrCreate(ClassLoaderReference.Application, TypeName
-        .string2TypeName("Linner/TestStaticInner"));
+  @Test
+  public void test1() throws InvalidClassFileException {
+    TypeReference t =
+        TypeReference.findOrCreate(
+            ClassLoaderReference.Application, TypeName.string2TypeName("Linner/TestStaticInner"));
     IClass klass = cha.lookupClass(t);
     assert klass != null;
-    ShrikeClass s = (ShrikeClass)klass;
+    ShrikeClass s = (ShrikeClass) klass;
     Assert.assertFalse(s.isInnerClass());
   }
-  
-  @Test public void test2() throws InvalidClassFileException {
-    TypeReference t = TypeReference.findOrCreate(ClassLoaderReference.Application, TypeName
-        .string2TypeName("Linner/TestStaticInner$A"));
+
+  @Test
+  public void test2() throws InvalidClassFileException {
+    TypeReference t =
+        TypeReference.findOrCreate(
+            ClassLoaderReference.Application, TypeName.string2TypeName("Linner/TestStaticInner$A"));
     IClass klass = cha.lookupClass(t);
     assert klass != null;
-    ShrikeClass s = (ShrikeClass)klass;
+    ShrikeClass s = (ShrikeClass) klass;
     Assert.assertTrue(s.isInnerClass());
     Assert.assertTrue(s.isStaticInnerClass());
   }
-  
-  @Test public void test3() throws InvalidClassFileException {
-    TypeReference t = TypeReference.findOrCreate(ClassLoaderReference.Application, TypeName
-        .string2TypeName("Linner/TestInner$A"));
+
+  @Test
+  public void test3() throws InvalidClassFileException {
+    TypeReference t =
+        TypeReference.findOrCreate(
+            ClassLoaderReference.Application, TypeName.string2TypeName("Linner/TestInner$A"));
     IClass klass = cha.lookupClass(t);
     assert klass != null;
-    ShrikeClass s = (ShrikeClass)klass;
+    ShrikeClass s = (ShrikeClass) klass;
     Assert.assertTrue(s.isInnerClass());
     Assert.assertFalse(s.isStaticInnerClass());
   }
-
 }

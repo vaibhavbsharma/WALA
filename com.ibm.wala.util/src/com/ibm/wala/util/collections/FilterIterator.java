@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2002 - 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,22 +7,18 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.util.collections;
 
 import java.util.Iterator;
 import java.util.NoSuchElementException;
+import java.util.function.Predicate;
 
-import com.ibm.wala.util.Predicate;
-
-/**
- * A <code>FilterIterator</code> filters an <code>Iterator</code> to generate a new one.
- */
+/** A {@code FilterIterator} filters an {@code Iterator} to generate a new one. */
 public class FilterIterator<T> implements java.util.Iterator<T> {
-  final Iterator<?> i;
+  final Iterator<? extends T> i;
 
-  @SuppressWarnings("rawtypes")
-  final Predicate f;
+  final Predicate<? super T> f;
 
   private T next = null;
 
@@ -32,8 +28,7 @@ public class FilterIterator<T> implements java.util.Iterator<T> {
    * @param i the original iterator
    * @param f a filter which defines which elements belong to the generated iterator
    */
-  @SuppressWarnings("rawtypes")
-  public FilterIterator(Iterator<?> i, Predicate f) {
+  public FilterIterator(Iterator<? extends T> i, Predicate<? super T> f) {
     if (i == null) {
       throw new IllegalArgumentException("null i");
     }
@@ -45,15 +40,12 @@ public class FilterIterator<T> implements java.util.Iterator<T> {
     advance();
   }
 
-  /**
-   * update the internal state to prepare for the next access to this iterator
-   */
-  @SuppressWarnings("unchecked")
+  /** update the internal state to prepare for the next access to this iterator */
   private void advance() {
     while (i.hasNext()) {
-      Object o = i.next();
+      T o = i.next();
       if (f.test(o)) {
-        next = (T) o;
+        next = o;
         return;
       }
     }

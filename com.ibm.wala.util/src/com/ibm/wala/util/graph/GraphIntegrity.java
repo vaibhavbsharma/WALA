@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2002 - 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,28 +7,28 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.util.graph;
 
+import com.ibm.wala.util.collections.HashSetFactory;
+import com.ibm.wala.util.collections.Iterator2Iterable;
+import com.ibm.wala.util.collections.IteratorUtil;
+import com.ibm.wala.util.graph.traverse.BFSIterator;
+import com.ibm.wala.util.graph.traverse.DFS;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 
-import com.ibm.wala.util.collections.HashSetFactory;
-import com.ibm.wala.util.graph.traverse.BFSIterator;
-import com.ibm.wala.util.graph.traverse.DFS;
-
-/**
- * Utility class to check integrity of a graph data structure.
- */
+/** Utility class to check integrity of a graph data structure. */
 public class GraphIntegrity {
 
   /**
    * DEBUG_LEVEL:
+   *
    * <ul>
-   * <li>0 No output
-   * <li>1 Print some simple stats and warning information
-   * <li>2 Detailed debugging
+   *   <li>0 No output
+   *   <li>1 Print some simple stats and warning information
+   *   <li>2 Detailed debugging
    * </ul>
    */
   static final int DEBUG_LEVEL = 0;
@@ -43,24 +43,15 @@ public class GraphIntegrity {
   }
 
   private static <T> void checkEdgeCounts(Graph<T> G) throws UnsoundGraphException {
-    for (Iterator<? extends T> it = G.iterator(); it.hasNext();) {
-      T N = it.next();
+    for (T N : G) {
       int count1 = G.getSuccNodeCount(N);
-      int count2 = 0;
-      for (Iterator<T> it2 = G.getSuccNodes(N); it2.hasNext();) {
-        it2.next();
-        count2++;
-      }
+      int count2 = IteratorUtil.count(G.getSuccNodes(N));
       if (count1 != count2) {
         throw new UnsoundGraphException("getSuccNodeCount " + count1 + " is wrong for node " + N);
       }
 
       int count3 = G.getPredNodeCount(N);
-      int count4 = 0;
-      for (Iterator<T> it2 = G.getPredNodes(N); it2.hasNext();) {
-        it2.next();
-        count4++;
-      }
+      int count4 = IteratorUtil.count(G.getPredNodes(N));
       if (count3 != count4) {
         throw new UnsoundGraphException("getPredNodeCount " + count1 + " is wrong for node " + N);
       }
@@ -68,18 +59,18 @@ public class GraphIntegrity {
   }
 
   private static <T> void checkEdges(Graph<T> G) throws UnsoundGraphException {
-    for (Iterator<? extends T> it = G.iterator(); it.hasNext();) {
-      T N = it.next();
+    for (T N : G) {
       if (!G.containsNode(N)) {
-        throw new UnsoundGraphException(N + " is not contained in the the graph " + G.containsNode(N));
+        throw new UnsoundGraphException(
+            N + " is not contained in the the graph " + G.containsNode(N));
       }
-      PRED: for (Iterator<? extends T> p = G.getPredNodes(N); p.hasNext();) {
-        T pred = p.next();
+      PRED:
+      for (T pred : Iterator2Iterable.make(G.getPredNodes(N))) {
         if (!G.containsNode(pred)) {
-          throw new UnsoundGraphException(pred + " is a predecessor of " + N + " but is not contained in the graph");
+          throw new UnsoundGraphException(
+              pred + " is a predecessor of " + N + " but is not contained in the graph");
         }
-        for (Iterator<?> s = G.getSuccNodes(pred); s.hasNext();) {
-          Object succ = s.next();
+        for (Object succ : Iterator2Iterable.make(G.getSuccNodes(pred))) {
           if (succ.equals(N)) {
             continue PRED;
           }
@@ -87,24 +78,25 @@ public class GraphIntegrity {
         // didn't find N
         G.getPredNodes(N);
         G.getSuccNodes(pred);
-        throw new UnsoundGraphException(pred + " is a predecessor of " + N + " but inverse doesn't hold");
+        throw new UnsoundGraphException(
+            pred + " is a predecessor of " + N + " but inverse doesn't hold");
       }
-      SUCC: for (Iterator<? extends T> s = G.getSuccNodes(N); s.hasNext();) {
-        T succ = s.next();
+      SUCC:
+      for (T succ : Iterator2Iterable.make(G.getSuccNodes(N))) {
         if (!G.containsNode(succ)) {
-          throw new UnsoundGraphException(succ + " is a successor of " + N + " but is not contained in the graph");
+          throw new UnsoundGraphException(
+              succ + " is a successor of " + N + " but is not contained in the graph");
         }
-        for (Iterator<?> p = G.getPredNodes(succ); p.hasNext();) {
-          Object pred = p.next();
+        for (Object pred : Iterator2Iterable.make(G.getPredNodes(succ))) {
           if (pred.equals(N)) {
             continue SUCC;
           }
         }
         // didn't find N
-        throw new UnsoundGraphException(succ + " is a successor of " + N + " but inverse doesn't hold");
+        throw new UnsoundGraphException(
+            succ + " is a successor of " + N + " but inverse doesn't hold");
       }
     }
-
   }
 
   @SuppressWarnings("unused")
@@ -117,28 +109,16 @@ public class GraphIntegrity {
     try {
       n1 = G.getNumberOfNodes();
       n2 = 0;
-      for (Iterator<T> it = G.iterator(); it.hasNext();) {
-        Object n = it.next();
+      for (T t : G) {
+        Object n = t;
         if (DEBUG_LEVEL > 1) {
           System.err.println(("n2 loop: " + n));
         }
         n2++;
       }
-      n3 = 0;
-      for (Iterator<T> it = new BFSIterator<T>(G); it.hasNext();) {
-        it.next();
-        n3++;
-      }
-      n4 = 0;
-      for (Iterator<T> it = DFS.iterateDiscoverTime(G); it.hasNext();) {
-        it.next();
-        n4++;
-      }
-      n5 = 0;
-      for (Iterator<T> it = DFS.iterateFinishTime(G); it.hasNext();) {
-        it.next();
-        n5++;
-      }
+      n3 = IteratorUtil.count(new BFSIterator<>(G));
+      n4 = IteratorUtil.count(DFS.iterateDiscoverTime(G));
+      n5 = IteratorUtil.count(DFS.iterateFinishTime(G));
     } catch (RuntimeException e) {
       e.printStackTrace();
       throw new UnsoundGraphException(e.toString());
@@ -147,7 +127,7 @@ public class GraphIntegrity {
       throw new UnsoundGraphException("n1: " + n1 + " n2: " + n2);
     }
     if (n1 != n3) {
-      throw setDiffException("n1: " + n1 + " n3: " + n3, G.iterator(), new BFSIterator<T>(G));
+      throw setDiffException("n1: " + n1 + " n3: " + n3, G.iterator(), new BFSIterator<>(G));
     }
     if (n1 != n4) {
       throw new UnsoundGraphException("n1: " + n1 + " n4: " + n3);
@@ -155,10 +135,10 @@ public class GraphIntegrity {
     if (n1 != n5) {
       throw new UnsoundGraphException("n1: " + n1 + " n5: " + n3);
     }
-
   }
 
-  private static <T> UnsoundGraphException setDiffException(String msg, Iterator<? extends T> i1, Iterator<T> i2) {
+  private static <T> UnsoundGraphException setDiffException(
+      String msg, Iterator<? extends T> i1, Iterator<T> i2) {
     HashSet<T> set1 = HashSetFactory.make();
     while (i1.hasNext()) {
       T o1 = i1.next();
@@ -191,7 +171,7 @@ public class GraphIntegrity {
         msg = msg + ", 2nd iterator contained " + first;
         return new UnsoundGraphException(msg);
       } else {
-        msg = msg + "set2.size = 0";
+        msg += "set2.size = 0";
         return new UnsoundGraphException(msg);
       }
     }
@@ -203,19 +183,14 @@ public class GraphIntegrity {
 
     public UnsoundGraphException() {
       super();
-
     }
 
     public UnsoundGraphException(String s) {
       super(s);
     }
-
   }
 
-  /**
-   * @throws IllegalArgumentException
-   *           if c is null
-   */
+  /** @throws IllegalArgumentException if c is null */
   public static void printCollection(String string, Collection<?> c) {
     if (c == null) {
       throw new IllegalArgumentException("c is null");
@@ -224,11 +199,10 @@ public class GraphIntegrity {
     if (c.isEmpty()) {
       System.err.println("none\n");
     } else {
-      for (Iterator<?> it = c.iterator(); it.hasNext();) {
-        System.err.println(it.next().toString());
+      for (Object name : c) {
+        System.err.println(name.toString());
       }
       System.err.println("\n");
     }
   }
-
 }

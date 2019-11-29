@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2002,2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,11 +7,8 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.shrikeBT.tools;
-
-import java.util.Arrays;
-import java.util.BitSet;
 
 import com.ibm.wala.shrikeBT.DupInstruction;
 import com.ibm.wala.shrikeBT.ExceptionHandler;
@@ -24,10 +21,12 @@ import com.ibm.wala.shrikeBT.PopInstruction;
 import com.ibm.wala.shrikeBT.StoreInstruction;
 import com.ibm.wala.shrikeBT.Util;
 import com.ibm.wala.shrikeBT.info.LocalAllocator;
+import java.util.Arrays;
+import java.util.BitSet;
 
 @Deprecated
 public final class MethodOptimizer {
-  final private MethodData data;
+  private final MethodData data;
 
   private IInstruction[] instructions;
 
@@ -59,7 +58,7 @@ public final class MethodOptimizer {
   // instruction
   // or -1 if there is more than one such instruction.
 
-  final static int[] noEdges = new int[0];
+  static final int[] noEdges = new int[0];
 
   public MethodOptimizer(MethodData d, MethodEditor e) {
     if (d == null) {
@@ -81,7 +80,8 @@ public final class MethodOptimizer {
     }
   }
 
-  public int findUniqueStackDef(final int instr, final int stack) throws UnoptimizableCodeException {
+  public int findUniqueStackDef(final int instr, final int stack)
+      throws UnoptimizableCodeException {
     instructions = editor.getInstructions();
     handlers = editor.getHandlers();
     checkConsistentStackSizes();
@@ -113,12 +113,12 @@ public final class MethodOptimizer {
 
     for (int i = 0; i < instructions.length; i++) {
       int[] targets = instructions[i].getBranchTargets();
-      for (int j = 0; j < targets.length; j++) {
-        backEdgeCount[targets[j]]++;
+      for (int target : targets) {
+        backEdgeCount[target]++;
       }
       ExceptionHandler[] hs = handlers[i];
-      for (int j = 0; j < hs.length; j++) {
-        backEdgeCount[hs[j].getHandler()]++;
+      for (ExceptionHandler h : hs) {
+        backEdgeCount[h.getHandler()]++;
       }
     }
 
@@ -134,14 +134,14 @@ public final class MethodOptimizer {
 
     for (int i = 0; i < instructions.length; i++) {
       int[] targets = instructions[i].getBranchTargets();
-      for (int j = 0; j < targets.length; j++) {
-        int target = targets[j];
+      for (int target2 : targets) {
+        int target = target2;
         backEdges[target][backEdgeCount[target]] = i;
         backEdgeCount[target]++;
       }
       ExceptionHandler[] hs = handlers[i];
-      for (int j = 0; j < hs.length; j++) {
-        int target = hs[j].getHandler();
+      for (ExceptionHandler element : hs) {
+        int target = element.getHandler();
         backEdges[target][backEdgeCount[target]] = i;
         backEdgeCount[target]++;
       }
@@ -155,8 +155,8 @@ public final class MethodOptimizer {
     checkStackSizesAt(0, 0);
 
     int result = 0;
-    for (int i = 0; i < stackSizes.length; i++) {
-      result = Math.max(result, stackSizes[i]);
+    for (int stackSize : stackSizes) {
+      result = Math.max(result, stackSize);
     }
     return result;
   }
@@ -168,8 +168,13 @@ public final class MethodOptimizer {
       }
       if (stackSizes[instruction] != -1) {
         if (stackSizes[instruction] != stackSize) {
-          throw new UnoptimizableCodeException("Mismatched stack sizes at " + instruction + ": " + stackSize + " and "
-              + stackSizes[instruction]);
+          throw new UnoptimizableCodeException(
+              "Mismatched stack sizes at "
+                  + instruction
+                  + ": "
+                  + stackSize
+                  + " and "
+                  + stackSizes[instruction]);
         } else {
           return;
         }
@@ -189,13 +194,13 @@ public final class MethodOptimizer {
       }
 
       int[] targets = instr.getBranchTargets();
-      for (int i = 0; i < targets.length; i++) {
-        checkStackSizesAt(targets[i], stackSize);
+      for (int target : targets) {
+        checkStackSizesAt(target, stackSize);
       }
 
       ExceptionHandler[] hs = handlers[instruction];
-      for (int i = 0; i < hs.length; i++) {
-        checkStackSizesAt(hs[i].getHandler(), 1);
+      for (ExceptionHandler element : hs) {
+        checkStackSizesAt(element.getHandler(), 1);
       }
 
       if (!instr.isFallThrough()) {
@@ -209,7 +214,8 @@ public final class MethodOptimizer {
   private static boolean instructionKillsVar(IInstruction instr, int v) {
     if (instr instanceof StoreInstruction) {
       StoreInstruction st = (StoreInstruction) instr;
-      return st.getVarIndex() == v || (Util.getWordSize(st.getType()) == 2 && st.getVarIndex() + 1 == v);
+      return st.getVarIndex() == v
+          || (Util.getWordSize(st.getType()) == 2 && st.getVarIndex() + 1 == v);
     } else {
       return false;
     }
@@ -218,7 +224,9 @@ public final class MethodOptimizer {
   private void forwardDups() {
     for (int i = 0; i < instructions.length; i++) {
       IInstruction instr = instructions[i];
-      if (instr instanceof DupInstruction && ((DupInstruction) instr).getDelta() == 0 && uniqueStackDefLocations[i][0] >= 0
+      if (instr instanceof DupInstruction
+          && ((DupInstruction) instr).getDelta() == 0
+          && uniqueStackDefLocations[i][0] >= 0
           && instructions[uniqueStackDefLocations[i][0]] instanceof LoadInstruction) {
         int source = uniqueStackDefLocations[i][0];
         final LoadInstruction li = (LoadInstruction) instructions[source];
@@ -241,13 +249,15 @@ public final class MethodOptimizer {
             }
 
             if (!killed) {
-              editor.insertBefore(j, new MethodEditor.Patch() {
-                @Override
-                public void emitTo(Output w) {
-                  w.emit(PopInstruction.make(1));
-                  w.emit(li);
-                }
-              });
+              editor.insertBefore(
+                  j,
+                  new MethodEditor.Patch() {
+                    @Override
+                    public void emitTo(Output w) {
+                      w.emit(PopInstruction.make(1));
+                      w.emit(li);
+                    }
+                  });
             }
           }
         }
@@ -258,7 +268,9 @@ public final class MethodOptimizer {
   private void pushBackLocalStores() {
     for (int i = 0; i < instructions.length; i++) {
       IInstruction instr = instructions[i];
-      if (instr instanceof StoreInstruction && uniqueStackDefLocations[i][0] >= 0 && uniqueStackDefLocations[i][0] != i - 1
+      if (instr instanceof StoreInstruction
+          && uniqueStackDefLocations[i][0] >= 0
+          && uniqueStackDefLocations[i][0] != i - 1
           && uniqueStackUseLocations[uniqueStackDefLocations[i][0]] == i) {
         final StoreInstruction s = (StoreInstruction) instr;
         int source = uniqueStackDefLocations[i][0];
@@ -280,33 +292,40 @@ public final class MethodOptimizer {
           final String type = s.getType();
           final int newVar = LocalAllocator.allocate(data, type);
           // put a store to the newVar right after the source
-          editor.insertAfter(source, new MethodEditor.Patch() {
-            @Override
-            public void emitTo(Output w) {
-              w.emit(StoreInstruction.make(type, newVar));
-            }
-          });
+          editor.insertAfter(
+              source,
+              new MethodEditor.Patch() {
+                @Override
+                public void emitTo(Output w) {
+                  w.emit(StoreInstruction.make(type, newVar));
+                }
+              });
           // load newVar before storing to correct variable
-          editor.insertBefore(i, new MethodEditor.Patch() {
-            @Override
-            public void emitTo(Output w) {
-              w.emit(LoadInstruction.make(type, newVar));
-            }
-          });
+          editor.insertBefore(
+              i,
+              new MethodEditor.Patch() {
+                @Override
+                public void emitTo(Output w) {
+                  w.emit(LoadInstruction.make(type, newVar));
+                }
+              });
         } else {
           // remove store instruction
-          editor.replaceWith(i, new MethodEditor.Patch() {
-            @Override
-            public void emitTo(Output w) {
-            }
-          });
+          editor.replaceWith(
+              i,
+              new MethodEditor.Patch() {
+                @Override
+                public void emitTo(Output w) {}
+              });
           // replace it right after the source
-          editor.insertAfter(source, new MethodEditor.Patch() {
-            @Override
-            public void emitTo(Output w) {
-              w.emit(s);
-            }
-          });
+          editor.insertAfter(
+              source,
+              new MethodEditor.Patch() {
+                @Override
+                public void emitTo(Output w) {
+                  w.emit(s);
+                }
+              });
         }
       }
     }
@@ -335,7 +354,8 @@ public final class MethodOptimizer {
     for (int i = 0; i < instructions.length; i++) {
       uniqueStackDefLocations[i] = new int[instructions[i].getPoppedCount()];
       int popped = instructions[i].getPoppedCount();
-      System.arraycopy(abstractStacks[i], stackSizes[i] - popped, uniqueStackDefLocations[i], 0, popped);
+      System.arraycopy(
+          abstractStacks[i], stackSizes[i] - popped, uniqueStackDefLocations[i], 0, popped);
     }
 
     uniqueStackUseLocations = new int[instructions.length];
@@ -364,7 +384,8 @@ public final class MethodOptimizer {
     }
   }
 
-  private void followStackDef(int[][] abstractDefStacks, int def, int instruction, int stackPointer) {
+  private void followStackDef(
+      int[][] abstractDefStacks, int def, int instruction, int stackPointer) {
     while (true) {
       int[] stack = abstractDefStacks[instruction];
       if (stackPointer >= stack.length) {
@@ -384,13 +405,13 @@ public final class MethodOptimizer {
       }
 
       int[] targets = instructions[instruction].getBranchTargets();
-      for (int i = 0; i < targets.length; i++) {
-        followStackDef(abstractDefStacks, def, targets[i], stackPointer);
+      for (int target : targets) {
+        followStackDef(abstractDefStacks, def, target, stackPointer);
       }
 
       ExceptionHandler[] hs = handlers[instruction];
-      for (int i = 0; i < hs.length; i++) {
-        followStackDef(abstractDefStacks, -1, hs[i].getHandler(), 0);
+      for (ExceptionHandler element : hs) {
+        followStackDef(abstractDefStacks, -1, element.getHandler(), 0);
       }
 
       if (!instructions[instruction].isFallThrough()) {
@@ -400,7 +421,8 @@ public final class MethodOptimizer {
     }
   }
 
-  private void followStackUse(int[][] abstractUseStacks, int use, int instruction, int stackPointer) {
+  private void followStackUse(
+      int[][] abstractUseStacks, int use, int instruction, int stackPointer) {
     while (true) {
       int[] stack = abstractUseStacks[instruction];
       if (stackPointer >= stack.length) {
@@ -418,8 +440,8 @@ public final class MethodOptimizer {
       }
 
       int[] back = backEdges[instruction];
-      for (int i = 0; i < back.length; i++) {
-        followStackUse(abstractUseStacks, use, back[i], stackPointer);
+      for (int element : back) {
+        followStackUse(abstractUseStacks, use, element, stackPointer);
       }
 
       if (instruction == 0 || !instructions[instruction - 1].isFallThrough()) {
@@ -447,8 +469,8 @@ public final class MethodOptimizer {
       bits.set(from);
 
       int[] targets = instructions[from].getBranchTargets();
-      for (int i = 0; i < targets.length; i++) {
-        getReachableInstructions(bits, targets[i], to);
+      for (int target : targets) {
+        getReachableInstructions(bits, target, to);
       }
 
       if (!instructions[from].isFallThrough()) {
@@ -467,8 +489,8 @@ public final class MethodOptimizer {
       bits.set(to);
 
       int[] targets = backEdges[to];
-      for (int i = 0; i < targets.length; i++) {
-        getReachingInstructions(bits, from, targets[i]);
+      for (int target : targets) {
+        getReachingInstructions(bits, from, target);
       }
 
       if (to == 0 || !instructions[to - 1].isFallThrough()) {

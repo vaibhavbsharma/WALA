@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2002 - 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,25 +7,20 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.util.perf;
 
-/**
- * Basic class to time events
- */
+/** Basic class to time events */
 public class Stopwatch {
 
   protected int count;
 
-  /**
-   * elapsed time in nanoseconds
-   */
+  /** elapsed time in nanoseconds */
   private long elapsedTime;
 
   private long startTime;
 
-  public Stopwatch() {
-  }
+  public Stopwatch() {}
 
   public void start() {
     startTime = System.nanoTime();
@@ -37,27 +32,23 @@ public class Stopwatch {
     elapsedTime += (endTime - startTime);
   }
 
-  /**
-   * @return elapsed time in ms
-   */
+  /** @return elapsed time in ms */
   public long getElapsedMillis() {
     return elapsedTime / 1000000;
   }
-  
-  /**
-   * @return number of times this stopwatch was stopped
-   */
+
+  /** @return number of times this stopwatch was stopped */
   public int getCount() {
     return count;
   }
-  
+
   @Override
   public String toString() {
-    StringBuffer sb = new StringBuffer();
-    sb.append("total: " + getElapsedMillis());
-    if (count > 0){
-      sb.append(", inv: " + count);
-      sb.append(", avg: " + getElapsedMillis()/count);
+    StringBuilder sb = new StringBuilder();
+    sb.append("total: ").append(getElapsedMillis());
+    if (count > 0) {
+      sb.append(", inv: ").append(count);
+      sb.append(", avg: ").append(getElapsedMillis() / count);
     }
     return sb.toString();
   }

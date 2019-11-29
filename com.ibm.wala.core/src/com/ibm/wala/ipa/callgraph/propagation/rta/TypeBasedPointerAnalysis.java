@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2002 - 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,12 +7,8 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.ipa.callgraph.propagation.rta;
-
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.Map;
 
 import com.ibm.wala.classLoader.IClass;
 import com.ibm.wala.ipa.callgraph.AnalysisOptions;
@@ -38,9 +34,12 @@ import com.ibm.wala.util.debug.Assertions;
 import com.ibm.wala.util.intset.BimodalMutableIntSet;
 import com.ibm.wala.util.intset.MutableMapping;
 import com.ibm.wala.util.intset.OrdinalSet;
+import java.util.Collection;
+import java.util.Map;
 
 /**
- * A trivial field-based pointer analysis solution, which only uses the information of which types (classes) are live.
+ * A trivial field-based pointer analysis solution, which only uses the information of which types
+ * (classes) are live.
  */
 public class TypeBasedPointerAnalysis extends AbstractPointerAnalysis {
 
@@ -48,31 +47,27 @@ public class TypeBasedPointerAnalysis extends AbstractPointerAnalysis {
 
   private final TypeBasedHeapModel heapModel;
 
-  /**
-   * Map: IClass -> OrdinalSet
-   */
+  /** Map: IClass -&gt; OrdinalSet */
   private final Map<IClass, OrdinalSet<InstanceKey>> pointsTo = HashMapFactory.make();
 
   /**
-   * @param klasses Collection<IClass>
+   * @param klasses {@code Collection<IClass>}
    * @throws AssertionError if klasses is null
    */
-  private TypeBasedPointerAnalysis(AnalysisOptions options, Collection<IClass> klasses, CallGraph cg) throws AssertionError {
+  private TypeBasedPointerAnalysis(
+      AnalysisOptions options, Collection<IClass> klasses, CallGraph cg) throws AssertionError {
     super(cg, makeInstanceKeys(klasses));
     this.klasses = klasses;
     heapModel = new TypeBasedHeapModel(options, klasses, cg);
   }
 
-  /**
-   * @param c Collection<IClass>
-   */
+  /** @param c {@code Collection<IClass>} */
   private static MutableMapping<InstanceKey> makeInstanceKeys(Collection<IClass> c) {
     if (c == null) {
       throw new IllegalArgumentException("null c");
     }
     MutableMapping<InstanceKey> result = MutableMapping.make();
-    for (Iterator<IClass> it = c.iterator(); it.hasNext();) {
-      IClass klass = it.next();
+    for (IClass klass : c) {
       if (!klass.isAbstract() && !klass.isInterface()) {
         result.add(new ConcreteTypeKey(klass));
       }
@@ -80,8 +75,8 @@ public class TypeBasedPointerAnalysis extends AbstractPointerAnalysis {
     return result;
   }
 
-  public static TypeBasedPointerAnalysis make(AnalysisOptions options, Collection<IClass> klasses, CallGraph cg)
-      throws AssertionError {
+  public static TypeBasedPointerAnalysis make(
+      AnalysisOptions options, Collection<IClass> klasses, CallGraph cg) throws AssertionError {
     return new TypeBasedPointerAnalysis(options, klasses, cg);
   }
 
@@ -103,15 +98,14 @@ public class TypeBasedPointerAnalysis extends AbstractPointerAnalysis {
     }
   }
 
-  /**
-   * Compute the set of {@link InstanceKey}s which may represent a particular type.
-   */
+  /** Compute the set of {@link InstanceKey}s which may represent a particular type. */
   private OrdinalSet<InstanceKey> computeOrdinalInstanceSet(IClass type) {
     Collection<IClass> klasses = null;
     if (type.isInterface()) {
       klasses = getCallGraph().getClassHierarchy().getImplementors(type.getReference());
     } else {
-      Collection<IClass> sc = getCallGraph().getClassHierarchy().computeSubClasses(type.getReference());
+      Collection<IClass> sc =
+          getCallGraph().getClassHierarchy().computeSubClasses(type.getReference());
       klasses = HashSetFactory.make();
       for (IClass c : sc) {
         if (!c.isInterface()) {
@@ -128,25 +122,26 @@ public class TypeBasedPointerAnalysis extends AbstractPointerAnalysis {
         } else {
           // just add Object[], since with array typing rules we have no idea
           // the exact type of array the reference is pointing to
-          c.add(klass.getClassHierarchy().lookupClass(TypeReference.JavaLangObject.getArrayTypeForElementType()));
+          c.add(
+              klass
+                  .getClassHierarchy()
+                  .lookupClass(TypeReference.JavaLangObject.getArrayTypeForElementType()));
         }
       } else if (this.klasses.contains(klass)) {
         c.add(klass);
       }
-
     }
     OrdinalSet<InstanceKey> result = toOrdinalInstanceKeySet(c);
     return result;
   }
 
-  private OrdinalSet<InstanceKey> toOrdinalInstanceKeySet(Collection c) {
+  private OrdinalSet<InstanceKey> toOrdinalInstanceKeySet(Collection<IClass> c) {
     BimodalMutableIntSet s = new BimodalMutableIntSet();
-    for (Iterator it = c.iterator(); it.hasNext();) {
-      IClass klass = (IClass) it.next();
+    for (IClass klass : c) {
       int index = getInstanceKeyMapping().add(new ConcreteTypeKey(klass));
       s.add(index);
     }
-    return new OrdinalSet<InstanceKey>(s, getInstanceKeyMapping());
+    return new OrdinalSet<>(s, getInstanceKeyMapping());
   }
 
   private IClass inferType(PointerKey key) {
@@ -170,7 +165,9 @@ public class TypeBasedPointerAnalysis extends AbstractPointerAnalysis {
       return getCallGraph().getClassHierarchy().lookupClass(TypeReference.JavaLangException);
     } else if (key instanceof ReturnValueKey) {
       ReturnValueKey r = (ReturnValueKey) key;
-      return getCallGraph().getClassHierarchy().lookupClass(r.getNode().getMethod().getReturnType());
+      return getCallGraph()
+          .getClassHierarchy()
+          .lookupClass(r.getNode().getMethod().getReturnType());
     } else {
       Assertions.UNREACHABLE("inferType " + key.getClass());
       return null;
@@ -196,5 +193,4 @@ public class TypeBasedPointerAnalysis extends AbstractPointerAnalysis {
   public IClassHierarchy getClassHierarchy() {
     return heapModel.getClassHierarchy();
   }
-
 }

@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2002 - 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,12 +7,8 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.ipa.callgraph.propagation;
-
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
 
 import com.ibm.wala.analysis.reflection.IllegalArgumentExceptionContext;
 import com.ibm.wala.classLoader.CallSiteReference;
@@ -49,171 +45,149 @@ import com.ibm.wala.util.intset.IntSetUtil;
 import com.ibm.wala.util.intset.MutableIntSet;
 import com.ibm.wala.util.warnings.Warning;
 import com.ibm.wala.util.warnings.Warnings;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
 
 /**
- * This abstract base class provides the general algorithm for a call graph builder that relies on propagation through an iterative
- * dataflow solver
- * 
- * TODO: This implementation currently keeps all points to sets live ... even those for local variables that do not span
- * interprocedural boundaries. This may be too space-inefficient .. we can consider recomputing local sets on demand.
+ * This abstract base class provides the general algorithm for a call graph builder that relies on
+ * propagation through an iterative dataflow solver
+ *
+ * <p>TODO: This implementation currently keeps all points to sets live ... even those for local
+ * variables that do not span interprocedural boundaries. This may be too space-inefficient .. we
+ * can consider recomputing local sets on demand.
  */
 public abstract class PropagationCallGraphBuilder implements CallGraphBuilder<InstanceKey> {
-  private final static boolean DEBUG_ALL = false;
+  private static final boolean DEBUG_ALL = false;
 
-  final static boolean DEBUG_ASSIGN = DEBUG_ALL | false;
+  static final boolean DEBUG_ASSIGN = DEBUG_ALL | false;
 
-  private final static boolean DEBUG_ARRAY_LOAD = DEBUG_ALL | false;
+  private static final boolean DEBUG_ARRAY_LOAD = DEBUG_ALL | false;
 
-  private final static boolean DEBUG_ARRAY_STORE = DEBUG_ALL | false;
+  private static final boolean DEBUG_ARRAY_STORE = DEBUG_ALL | false;
 
-  private final static boolean DEBUG_FILTER = DEBUG_ALL | false;
+  private static final boolean DEBUG_FILTER = DEBUG_ALL | false;
 
-  final protected static boolean DEBUG_GENERAL = DEBUG_ALL | false;
+  protected static final boolean DEBUG_GENERAL = DEBUG_ALL | false;
 
-  private final static boolean DEBUG_GET = DEBUG_ALL | false;
+  private static final boolean DEBUG_GET = DEBUG_ALL | false;
 
-  private final static boolean DEBUG_PUT = DEBUG_ALL | false;
+  private static final boolean DEBUG_PUT = DEBUG_ALL | false;
 
-  private final static boolean DEBUG_ENTRYPOINTS = DEBUG_ALL | false;
+  private static final boolean DEBUG_ENTRYPOINTS = DEBUG_ALL | false;
 
-  /**
-   * Meta-data regarding how pointers are modeled
-   */
+  /** Meta-data regarding how pointers are modeled */
   protected PointerKeyFactory pointerKeyFactory;
 
-  /**
-   * The object that represents the java.lang.Object class
-   */
-  final private IClass JAVA_LANG_OBJECT;
+  /** The object that represents the java.lang.Object class */
+  private final IClass JAVA_LANG_OBJECT;
 
-  /**
-   * Governing class hierarchy
-   */
+  /** Governing class hierarchy */
   public final IClassHierarchy cha;
 
-  /**
-   * Special rules for bypassing Java calls
-   */
-  final protected AnalysisOptions options;
+  /** Special rules for bypassing Java calls */
+  protected final AnalysisOptions options;
 
-  /**
-   * Cache of IRs and things
-   */
+  /** Cache of IRs and things */
   private final IAnalysisCacheView analysisCache;
 
-  /**
-   * Set of nodes that have already been traversed for constraints
-   */
-  final private Set<CGNode> alreadyVisited = HashSetFactory.make();
+  /** Set of nodes that have already been traversed for constraints */
+  private final Set<CGNode> alreadyVisited = HashSetFactory.make();
 
   /**
-   * At any given time, the set of nodes that have been discovered but not yet processed for constraints
+   * At any given time, the set of nodes that have been discovered but not yet processed for
+   * constraints
    */
   private Set<CGNode> discoveredNodes = HashSetFactory.make();
 
-  /**
-   * Set of calls (CallSiteReferences) that are created by entrypoints
-   */
-  final protected Set<CallSiteReference> entrypointCallSites = HashSetFactory.make();
+  /** Set of calls (CallSiteReferences) that are created by entrypoints */
+  protected final Set<CallSiteReference> entrypointCallSites = HashSetFactory.make();
 
-  /**
-   * The system of constraints used to build this graph
-   */
+  /** The system of constraints used to build this graph */
   protected PropagationSystem system;
 
   public PropagationSystem getSystem() {
     return system;
   }
 
-  /**
-   * Algorithm used to solve the system of constraints
-   */
+  /** Algorithm used to solve the system of constraints */
   private IPointsToSolver solver;
 
-  /**
-   * The call graph under construction
-   */
+  /** The call graph under construction */
   protected final ExplicitCallGraph callGraph;
 
-  /**
-   * Singleton operator for assignments
-   */
-  public final static AssignOperator assignOperator = new AssignOperator();
+  /** Singleton operator for assignments */
+  public static final AssignOperator assignOperator = new AssignOperator();
 
-  /**
-   * singleton operator for filter
-   */
+  /** singleton operator for filter */
   public final FilterOperator filterOperator = new FilterOperator();
 
-  /**
-   * singleton operator for inverse filter
-   */
+  /** singleton operator for inverse filter */
   protected final InverseFilterOperator inverseFilterOperator = new InverseFilterOperator();
 
-  /**
-   * An object which interprets methods in context
-   */
+  /** An object which interprets methods in context */
   private SSAContextInterpreter contextInterpreter;
 
-  /**
-   * A context selector which may use information derived from the propagation-based dataflow.
-   */
+  /** A context selector which may use information derived from the propagation-based dataflow. */
   protected ContextSelector contextSelector;
 
-  /**
-   * An object that abstracts how to model instances in the heap.
-   */
+  /** An object that abstracts how to model instances in the heap. */
   protected InstanceKeyFactory instanceKeyFactory;
 
   /**
-   * Algorithmic choice: should the GetfieldOperator and PutfieldOperator cache its previous history to reduce work?
+   * Algorithmic choice: should the GetfieldOperator and PutfieldOperator cache its previous history
+   * to reduce work?
    */
-  final private boolean rememberGetPutHistory = true;
+  private final boolean rememberGetPutHistory = true;
 
   /**
-   * @param cha governing class hierarchy
    * @param options governing call graph construction options
    * @param pointerKeyFactory factory which embodies pointer abstraction policy
    */
-  protected PropagationCallGraphBuilder(IClassHierarchy cha, AnalysisOptions options, IAnalysisCacheView cache,
+  protected PropagationCallGraphBuilder(
+      IMethod abstractRootMethod,
+      AnalysisOptions options,
+      IAnalysisCacheView cache,
       PointerKeyFactory pointerKeyFactory) {
-    if (cha == null) {
+    if (abstractRootMethod == null) {
       throw new IllegalArgumentException("cha is null");
     }
     if (options == null) {
       throw new IllegalArgumentException("options is null");
     }
     assert cache != null;
-    this.cha = cha;
+    this.cha = abstractRootMethod.getClassHierarchy();
     this.options = options;
     this.analysisCache = cache;
     // we need pointer keys to handle reflection
     assert pointerKeyFactory != null;
     this.pointerKeyFactory = pointerKeyFactory;
-    callGraph = createEmptyCallGraph(cha, options);
+    callGraph = createEmptyCallGraph(abstractRootMethod, options);
     try {
       callGraph.init();
     } catch (CancelException e) {
       if (DEBUG_GENERAL) {
-        System.err.println("Could not initialize the call graph due to node number constraints: " + e.getMessage());
+        System.err.println(
+            "Could not initialize the call graph due to node number constraints: "
+                + e.getMessage());
       }
     }
     callGraph.setInterpreter(contextInterpreter);
     JAVA_LANG_OBJECT = cha.lookupClass(TypeReference.JavaLangObject);
   }
 
-  protected ExplicitCallGraph createEmptyCallGraph(IClassHierarchy cha, AnalysisOptions options) {
-    return new ExplicitCallGraph(cha, options, getAnalysisCache());
+  protected ExplicitCallGraph createEmptyCallGraph(
+      IMethod abstractRootMethod, AnalysisOptions options) {
+    return new ExplicitCallGraph(abstractRootMethod, options, getAnalysisCache());
   }
 
-  /**
-   * @return true iff the klass represents java.lang.Object
-   */
+  /** @return true iff the klass represents java.lang.Object */
   protected boolean isJavaLangObject(IClass klass) {
     return (klass.getReference().equals(TypeReference.JavaLangObject));
   }
 
-  public CallGraph makeCallGraph(AnalysisOptions options) throws IllegalArgumentException, CancelException {
+  public CallGraph makeCallGraph(AnalysisOptions options)
+      throws IllegalArgumentException, CancelException {
     return makeCallGraph(options, null);
   }
 
@@ -221,8 +195,8 @@ public abstract class PropagationCallGraphBuilder implements CallGraphBuilder<In
    * @see com.ibm.wala.ipa.callgraph.CallGraphBuilder#makeCallGraph(com.ibm.wala.ipa.callgraph.AnalysisOptions)
    */
   @Override
-  public CallGraph makeCallGraph(AnalysisOptions options, IProgressMonitor monitor) throws IllegalArgumentException,
-      CallGraphBuilderCancelException {
+  public CallGraph makeCallGraph(AnalysisOptions options, IProgressMonitor monitor)
+      throws IllegalArgumentException, CallGraphBuilderCancelException {
     if (options == null) {
       throw new IllegalArgumentException("options is null");
     }
@@ -244,12 +218,12 @@ public abstract class PropagationCallGraphBuilder implements CallGraphBuilder<In
     discoveredNodes.add(callGraph.getFakeRootNode());
 
     // Set up the initially reachable methods and classes
-    for (Iterator it = options.getEntrypoints().iterator(); it.hasNext();) {
-      Entrypoint E = (Entrypoint) it.next();
+    for (Entrypoint E : options.getEntrypoints()) {
       if (DEBUG_ENTRYPOINTS) {
         System.err.println("Entrypoint: " + E);
       }
-      SSAAbstractInvokeInstruction call = E.addCall((AbstractRootMethod) callGraph.getFakeRootNode().getMethod());
+      SSAAbstractInvokeInstruction call =
+          E.addCall((AbstractRootMethod) callGraph.getFakeRootNode().getMethod());
 
       if (call == null) {
         Warnings.add(EntrypointResolutionWarning.create(E));
@@ -257,24 +231,28 @@ public abstract class PropagationCallGraphBuilder implements CallGraphBuilder<In
         entrypointCallSites.add(call.getCallSite());
       }
     }
-    
-/** BEGIN Custom change: throw exception on empty entry points. This is a severe issue that should not go undetected! */
+
+    /*
+     * BEGIN Custom change: throw exception on empty entry points. This is a severe issue that
+     * should not go undetected!
+     */
     if (entrypointCallSites.isEmpty()) {
-      throw new IllegalStateException("Could not create a entrypoint callsites: " +   Warnings.asString());
-    }  
-/** END Custom change: throw exception on empty entry points. This is a severe issue that should not go undetected! */
+      throw new IllegalStateException(
+          "Could not create a entrypoint callsites: " + Warnings.asString());
+    }
+    /*
+     * END Custom change: throw exception on empty entry points. This is a severe issue that should
+     * not go undetected!
+     */
     customInit();
 
     solver = makeSolver();
     try {
       solver.solve(monitor);
-    } catch (CancelException e) {
-      CallGraphBuilderCancelException c = CallGraphBuilderCancelException.createCallGraphBuilderCancelException(e, callGraph,
-          system.extractPointerAnalysis(this));
-      throw c;
-    } catch (CancelRuntimeException e) {
-      CallGraphBuilderCancelException c = CallGraphBuilderCancelException.createCallGraphBuilderCancelException(e, callGraph,
-          system.extractPointerAnalysis(this));
+    } catch (CancelException | CancelRuntimeException e) {
+      CallGraphBuilderCancelException c =
+          CallGraphBuilderCancelException.createCallGraphBuilderCancelException(
+              e, callGraph, system.extractPointerAnalysis(this));
       throw c;
     }
 
@@ -287,9 +265,7 @@ public abstract class PropagationCallGraphBuilder implements CallGraphBuilder<In
 
   protected abstract IPointsToSolver makeSolver();
 
-  /**
-   * A warning for when we fail to resolve a call to an entrypoint
-   */
+  /** A warning for when we fail to resolve a call to an entrypoint */
   private static class EntrypointResolutionWarning extends Warning {
 
     final Entrypoint entrypoint;
@@ -309,23 +285,21 @@ public abstract class PropagationCallGraphBuilder implements CallGraphBuilder<In
     }
   }
 
-  protected void customInit() {
-  }
+  protected void customInit() {}
 
   /**
    * Add constraints for a node.
-   * @param monitor 
-   * 
+   *
    * @return true iff any new constraints are added.
    */
-  protected abstract boolean addConstraintsFromNode(CGNode n, IProgressMonitor monitor) throws CancelException;
+  protected abstract boolean addConstraintsFromNode(CGNode n, IProgressMonitor monitor)
+      throws CancelException;
 
   /**
-   * Add constraints from newly discovered nodes. Note: the act of adding constraints may discover new nodes, so this routine is
-   * iterative.
-   * 
+   * Add constraints from newly discovered nodes. Note: the act of adding constraints may discover
+   * new nodes, so this routine is iterative.
+   *
    * @return true iff any new constraints are added.
-   * @throws CancelException 
    */
   protected boolean addConstraintsFromNewNodes(IProgressMonitor monitor) throws CancelException {
     boolean result = false;
@@ -341,46 +315,54 @@ public abstract class PropagationCallGraphBuilder implements CallGraphBuilder<In
   }
 
   /**
-   * @return the PointerKey that acts as a representative for the class of pointers that includes the local variable identified by
-   *         the value number parameter.
+   * @return the PointerKey that acts as a representative for the class of pointers that includes
+   *     the local variable identified by the value number parameter.
    */
   public PointerKey getPointerKeyForLocal(CGNode node, int valueNumber) {
     return pointerKeyFactory.getPointerKeyForLocal(node, valueNumber);
   }
 
   /**
-   * @return the PointerKey that acts as a representative for the class of pointers that includes the local variable identified by
-   *         the value number parameter.
+   * @return the PointerKey that acts as a representative for the class of pointers that includes
+   *     the local variable identified by the value number parameter.
    */
-  public FilteredPointerKey getFilteredPointerKeyForLocal(CGNode node, int valueNumber, FilteredPointerKey.TypeFilter filter) {
+  public FilteredPointerKey getFilteredPointerKeyForLocal(
+      CGNode node, int valueNumber, FilteredPointerKey.TypeFilter filter) {
     assert filter != null;
     return pointerKeyFactory.getFilteredPointerKeyForLocal(node, valueNumber, filter);
   }
 
-  public FilteredPointerKey getFilteredPointerKeyForLocal(CGNode node, int valueNumber, IClass filter) {
-    return getFilteredPointerKeyForLocal(node, valueNumber, new FilteredPointerKey.SingleClassFilter(filter));
+  public FilteredPointerKey getFilteredPointerKeyForLocal(
+      CGNode node, int valueNumber, IClass filter) {
+    return getFilteredPointerKeyForLocal(
+        node, valueNumber, new FilteredPointerKey.SingleClassFilter(filter));
   }
 
-  public FilteredPointerKey getFilteredPointerKeyForLocal(CGNode node, int valueNumber, InstanceKey filter) {
-    return getFilteredPointerKeyForLocal(node, valueNumber, new FilteredPointerKey.SingleInstanceFilter(filter));
+  public FilteredPointerKey getFilteredPointerKeyForLocal(
+      CGNode node, int valueNumber, InstanceKey filter) {
+    return getFilteredPointerKeyForLocal(
+        node, valueNumber, new FilteredPointerKey.SingleInstanceFilter(filter));
   }
 
   /**
-   * @return the PointerKey that acts as a representative for the class of pointers that includes the return value for a node
+   * @return the PointerKey that acts as a representative for the class of pointers that includes
+   *     the return value for a node
    */
   public PointerKey getPointerKeyForReturnValue(CGNode node) {
     return pointerKeyFactory.getPointerKeyForReturnValue(node);
   }
 
   /**
-   * @return the PointerKey that acts as a representative for the class of pointers that includes the exceptional return value
+   * @return the PointerKey that acts as a representative for the class of pointers that includes
+   *     the exceptional return value
    */
   public PointerKey getPointerKeyForExceptionalReturnValue(CGNode node) {
     return pointerKeyFactory.getPointerKeyForExceptionalReturnValue(node);
   }
 
   /**
-   * @return the PointerKey that acts as a representative for the class of pointers that includes the contents of the static field
+   * @return the PointerKey that acts as a representative for the class of pointers that includes
+   *     the contents of the static field
    */
   public PointerKey getPointerKeyForStaticField(IField f) {
     assert f != null : "null FieldReference";
@@ -388,8 +370,8 @@ public abstract class PropagationCallGraphBuilder implements CallGraphBuilder<In
   }
 
   /**
-   * @return the PointerKey that acts as a representation for the class of pointers that includes the given instance field. null if
-   *         there's some problem.
+   * @return the PointerKey that acts as a representation for the class of pointers that includes
+   *     the given instance field. null if there's some problem.
    * @throws IllegalArgumentException if I is null
    * @throws IllegalArgumentException if field is null
    */
@@ -413,10 +395,10 @@ public abstract class PropagationCallGraphBuilder implements CallGraphBuilder<In
 
   /**
    * TODO: expand this API to differentiate between different array indices
-   * 
+   *
    * @param I an InstanceKey representing an abstract array
-   * @return the PointerKey that acts as a representation for the class of pointers that includes the given array contents, or null
-   *         if none found.
+   * @return the PointerKey that acts as a representation for the class of pointers that includes
+   *     the given array contents, or null if none found.
    * @throws IllegalArgumentException if I is null
    */
   public PointerKey getPointerKeyForArrayContents(InstanceKey I) {
@@ -432,26 +414,29 @@ public abstract class PropagationCallGraphBuilder implements CallGraphBuilder<In
 
   /**
    * Handle assign of a particular exception instance into an exception variable
-   * 
+   *
    * @param exceptionVar points-to set for a variable representing a caught exception
    * @param catchClasses set of TypeReferences that the exceptionVar may catch
    * @param e a particular exception instance
    */
-  protected void assignInstanceToCatch(PointerKey exceptionVar, Set<IClass> catchClasses, InstanceKey e) {
+  protected void assignInstanceToCatch(
+      PointerKey exceptionVar, Set<IClass> catchClasses, InstanceKey e) {
     if (catches(catchClasses, e.getConcreteType(), cha)) {
       system.newConstraint(exceptionVar, e);
     }
   }
 
   /**
-   * Generate a set of constraints to represent assignment to an exception variable in a catch clause. Note that we use
-   * FilterOperator to filter out types that the exception handler doesn't catch.
-   * 
+   * Generate a set of constraints to represent assignment to an exception variable in a catch
+   * clause. Note that we use FilterOperator to filter out types that the exception handler doesn't
+   * catch.
+   *
    * @param exceptionVar points-to set for a variable representing a caught exception
    * @param catchClasses set of TypeReferences that the exceptionVar may catch
    * @param e points-to-set representing a thrown exception that might be caught.
    */
-  protected void addAssignmentsForCatchPointerKey(PointerKey exceptionVar, Set<IClass> catchClasses, PointerKey e) {
+  protected void addAssignmentsForCatchPointerKey(
+      PointerKey exceptionVar, Set<IClass> catchClasses, PointerKey e) {
     if (DEBUG_GENERAL) {
       System.err.println("addAssignmentsForCatch: " + catchClasses);
     }
@@ -470,9 +455,7 @@ public abstract class PropagationCallGraphBuilder implements CallGraphBuilder<In
     }
   }
 
-  /**
-   * A warning for when we fail to resolve a call to an entrypoint
-   */
+  /** A warning for when we fail to resolve a call to an entrypoint */
   @SuppressWarnings("unused")
   private static class ExceptionLookupFailure extends Warning {
 
@@ -493,10 +476,8 @@ public abstract class PropagationCallGraphBuilder implements CallGraphBuilder<In
     }
   }
 
-  /**
-   * A pointer key that delegates to an untyped variant, but adds a type filter
-   */
-  public final static class TypedPointerKey implements FilteredPointerKey {
+  /** A pointer key that delegates to an untyped variant, but adds a type filter */
+  public static final class TypedPointerKey implements FilteredPointerKey {
 
     private final IClass type;
 
@@ -540,7 +521,7 @@ public abstract class PropagationCallGraphBuilder implements CallGraphBuilder<In
 
     @Override
     public String toString() {
-      return "{ " + base + " type: " + type + "}";
+      return "{ " + base + " type: " + type + '}';
     }
 
     public PointerKey getBase() {
@@ -583,24 +564,22 @@ public abstract class PropagationCallGraphBuilder implements CallGraphBuilder<In
   }
 
   /**
-   * The FilterOperator is a filtered set-union. i.e. the LHS is `unioned' with the RHS, but filtered by the set associated with
-   * this operator instance. The filter is the set of InstanceKeys corresponding to the target type of this cast. This is still
-   * monotonic.
-   * 
-   * LHS U= (RHS n k)
-   * 
-   * 
-   * Unary op: <lhs>:= Cast_k( <rhs>)
-   * 
-   * (Again, technically a binary op -- see note for Assign)
-   * 
-   * TODO: these need to be canonicalized.
-   * 
+   * The FilterOperator is a filtered set-union. i.e. the LHS is `unioned' with the RHS, but
+   * filtered by the set associated with this operator instance. The filter is the set of
+   * InstanceKeys corresponding to the target type of this cast. This is still monotonic.
+   *
+   * <p>LHS U= (RHS n k)
+   *
+   * <p>Unary op: &lt;lhs&gt;:= Cast_k( &lt;rhs&gt;)
+   *
+   * <p>(Again, technically a binary op -- see note for Assign)
+   *
+   * <p>TODO: these need to be canonicalized.
    */
-  public class FilterOperator extends UnaryOperator<PointsToSetVariable> implements IPointerOperator {
+  public class FilterOperator extends UnaryOperator<PointsToSetVariable>
+      implements IPointerOperator {
 
-    protected FilterOperator() {
-    }
+    protected FilterOperator() {}
 
     /*
      * @see com.ibm.wala.dataflow.UnaryOperator#evaluate(com.ibm.wala.dataflow.IVariable, com.ibm.wala.dataflow.IVariable)
@@ -611,8 +590,8 @@ public abstract class PropagationCallGraphBuilder implements CallGraphBuilder<In
       FilteredPointerKey pk = (FilteredPointerKey) lhs.getPointerKey();
 
       if (DEBUG_FILTER) {
-        String S = "EVAL Filter " + lhs.getPointerKey() + " " + rhs.getPointerKey();
-        S += "\nEVAL      " + lhs + " " + rhs;
+        String S = "EVAL Filter " + lhs.getPointerKey() + ' ' + rhs.getPointerKey();
+        S += "\nEVAL      " + lhs + ' ' + rhs;
         System.err.println(S);
       }
       if (rhs.size() == 0) {
@@ -653,7 +632,6 @@ public abstract class PropagationCallGraphBuilder implements CallGraphBuilder<In
     public int hashCode() {
       return 88651;
     }
-
   }
 
   @Override
@@ -673,9 +651,7 @@ public abstract class PropagationCallGraphBuilder implements CallGraphBuilder<In
     return callGraph;
   }
 
-  /**
-   * Subclasses must register the context interpreter before building a call graph.
-   */
+  /** Subclasses must register the context interpreter before building a call graph. */
   public void setContextInterpreter(SSAContextInterpreter interpreter) {
     contextInterpreter = interpreter;
     callGraph.setInterpreter(interpreter);
@@ -697,12 +673,12 @@ public abstract class PropagationCallGraphBuilder implements CallGraphBuilder<In
     return pointerKeyFactory;
   }
 
-/** BEGIN Custom change: setter for pointerkey factory */
+  /* BEGIN Custom change: setter for pointerkey factory */
   public void setPointerKeyFactory(PointerKeyFactory pkFact) {
     pointerKeyFactory = pkFact;
   }
 
-/** END Custom change: setter for pointerkey factory */
+  /* END Custom change: setter for pointerkey factory */
   public RTAContextInterpreter getContextInterpreter() {
     return contextInterpreter;
   }
@@ -712,8 +688,8 @@ public abstract class PropagationCallGraphBuilder implements CallGraphBuilder<In
    * @param iKey an abstraction of the receiver of the call (or null if not applicable)
    * @return the CGNode to which this particular call should dispatch.
    */
-  protected CGNode getTargetForCall(CGNode caller, CallSiteReference site, IClass recv, InstanceKey iKey[]) {
-
+  protected CGNode getTargetForCall(
+      CGNode caller, CallSiteReference site, IClass recv, InstanceKey iKey[]) {
     IMethod targetMethod = options.getMethodTargetSelector().getCalleeTarget(caller, site, recv);
 
     // this most likely indicates an exclusion at work; the target selector
@@ -722,8 +698,8 @@ public abstract class PropagationCallGraphBuilder implements CallGraphBuilder<In
       return null;
     }
     Context targetContext = contextSelector.getCalleeTarget(caller, site, targetMethod, iKey);
-    
-    if (targetContext instanceof IllegalArgumentExceptionContext) {
+
+    if (targetContext == null || targetContext.isA(IllegalArgumentExceptionContext.class)) {
       return null;
     }
     try {
@@ -732,10 +708,8 @@ public abstract class PropagationCallGraphBuilder implements CallGraphBuilder<In
       return null;
     }
   }
-  
-  /**
-   * @return the context selector for this call graph builder
-   */
+
+  /** @return the context selector for this call graph builder */
   public ContextSelector getContextSelector() {
     return contextSelector;
   }
@@ -753,21 +727,23 @@ public abstract class PropagationCallGraphBuilder implements CallGraphBuilder<In
   }
 
   /**
-   * @return the InstanceKey that acts as a representative for the class of objects that includes objects allocated at the given new
-   *         instruction in the given node
+   * @return the InstanceKey that acts as a representative for the class of objects that includes
+   *     objects allocated at the given new instruction in the given node
    */
   public InstanceKey getInstanceKeyForAllocation(CGNode node, NewSiteReference allocation) {
     return instanceKeyFactory.getInstanceKeyForAllocation(node, allocation);
   }
 
   /**
-   * @param dim the dimension of the array whose instance we would like to model. dim == 0 represents the first dimension, e.g., the
-   *          [Object; instances in [[Object; e.g., the [[Object; instances in [[[Object; dim == 1 represents the second dimension,
-   *          e.g., the [Object instances in [[[Object;
-   * @return the InstanceKey that acts as a representative for the class of array contents objects that includes objects allocated
-   *         at the given new instruction in the given node
+   * @param dim the dimension of the array whose instance we would like to model. dim == 0
+   *     represents the first dimension, e.g., the [Object; instances in [[Object; e.g., the
+   *     [[Object; instances in [[[Object; dim == 1 represents the second dimension, e.g., the
+   *     [Object instances in [[[Object;
+   * @return the InstanceKey that acts as a representative for the class of array contents objects
+   *     that includes objects allocated at the given new instruction in the given node
    */
-  public InstanceKey getInstanceKeyForMultiNewArray(CGNode node, NewSiteReference allocation, int dim) {
+  public InstanceKey getInstanceKeyForMultiNewArray(
+      CGNode node, NewSiteReference allocation, int dim) {
     return instanceKeyFactory.getInstanceKeyForMultiNewArray(node, allocation, dim);
   }
 
@@ -787,9 +763,7 @@ public abstract class PropagationCallGraphBuilder implements CallGraphBuilder<In
     alreadyVisited.add(node);
   }
 
-  /**
-   * record that we've discovered a node
-   */
+  /** record that we've discovered a node */
   public void markDiscovered(CGNode node) {
     discoveredNodes.add(node);
   }
@@ -803,9 +777,7 @@ public abstract class PropagationCallGraphBuilder implements CallGraphBuilder<In
     return discoveredNodes.contains(node) && !alreadyVisited.contains(node);
   }
 
-  /**
-   * Binary op: <dummy>:= ArrayLoad( &lt;arrayref>) Side effect: Creates new equations.
-   */
+  /** Binary op: &lt;dummy&gt;:= ArrayLoad( &lt;arrayref&gt;) Side effect: Creates new equations. */
   public final class ArrayLoadOperator extends UnarySideEffect implements IPointerOperator {
     protected final MutableIntSet priorInstances = rememberGetPutHistory ? IntSetUtil.make() : null;
 
@@ -823,11 +795,12 @@ public abstract class PropagationCallGraphBuilder implements CallGraphBuilder<In
     public byte evaluate(PointsToSetVariable rhs) {
       if (DEBUG_ARRAY_LOAD) {
         PointsToSetVariable def = getFixedSet();
-        String S = "EVAL ArrayLoad " + rhs.getPointerKey() + " " + def.getPointerKey();
+        String S = "EVAL ArrayLoad " + rhs.getPointerKey() + ' ' + def.getPointerKey();
         System.err.println(S);
-        System.err.println("EVAL ArrayLoad " + def + " " + rhs);
+        System.err.println("EVAL ArrayLoad " + def + ' ' + rhs);
         if (priorInstances != null) {
-          System.err.println("prior instances: " + priorInstances + " " + priorInstances.getClass());
+          System.err.println(
+              "prior instances: " + priorInstances + ' ' + priorInstances.getClass());
         }
       }
 
@@ -839,28 +812,26 @@ public abstract class PropagationCallGraphBuilder implements CallGraphBuilder<In
       final PointerKey dVal = def.getPointerKey();
 
       final MutableBoolean sideEffect = new MutableBoolean();
-      IntSetAction action = new IntSetAction() {
-        @Override
-        public void act(int i) {
-          InstanceKey I = system.getInstanceKey(i);
-          if (!I.getConcreteType().isArrayClass()) {
-            return;
-          }
-          TypeReference C = I.getConcreteType().getReference().getArrayElementType();
-          if (C.isPrimitiveType()) {
-            return;
-          }
-          PointerKey p = getPointerKeyForArrayContents(I);
-          if (p == null) {
-            return;
-          }
+      IntSetAction action =
+          i -> {
+            InstanceKey I = system.getInstanceKey(i);
+            if (!I.getConcreteType().isArrayClass()) {
+              return;
+            }
+            TypeReference C = I.getConcreteType().getReference().getArrayElementType();
+            if (C.isPrimitiveType()) {
+              return;
+            }
+            PointerKey p = getPointerKeyForArrayContents(I);
+            if (p == null) {
+              return;
+            }
 
-          if (DEBUG_ARRAY_LOAD) {
-            System.err.println("ArrayLoad add assign: " + dVal + " " + p);
-          }
-          sideEffect.b |= system.newFieldRead(dVal, assignOperator, p);
-        }
-      };
+            if (DEBUG_ARRAY_LOAD) {
+              System.err.println("ArrayLoad add assign: " + dVal + ' ' + p);
+            }
+            sideEffect.b |= system.newFieldRead(dVal, assignOperator, p);
+          };
       if (priorInstances != null) {
         rhs.getValue().foreachExcluding(priorInstances, action);
         priorInstances.addAll(rhs.getValue());
@@ -896,7 +867,7 @@ public abstract class PropagationCallGraphBuilder implements CallGraphBuilder<In
   }
 
   /**
-   * Binary op: <dummy>:= ArrayStore( &lt;arrayref>) Side effect: Creates new equations.
+   * Binary op: &lt;dummy&gt;:= ArrayStore( &lt;arrayref&gt;) Side effect: Creates new equations.
    */
   public final class ArrayStoreOperator extends UnarySideEffect implements IPointerOperator {
     @Override
@@ -913,9 +884,9 @@ public abstract class PropagationCallGraphBuilder implements CallGraphBuilder<In
     public byte evaluate(PointsToSetVariable rhs) {
       if (DEBUG_ARRAY_STORE) {
         PointsToSetVariable val = getFixedSet();
-        String S = "EVAL ArrayStore " + rhs.getPointerKey() + " " + val.getPointerKey();
+        String S = "EVAL ArrayStore " + rhs.getPointerKey() + ' ' + val.getPointerKey();
         System.err.println(S);
-        System.err.println("EVAL ArrayStore " + rhs + " " + getFixedSet());
+        System.err.println("EVAL ArrayStore " + rhs + ' ' + getFixedSet());
       }
 
       if (rhs.size() == 0) {
@@ -927,8 +898,7 @@ public abstract class PropagationCallGraphBuilder implements CallGraphBuilder<In
 
       List<InstanceKey> instances = system.getInstances(rhs.getValue());
       boolean sideEffect = false;
-      for (Iterator<InstanceKey> it = instances.iterator(); it.hasNext();) {
-        InstanceKey I = it.next();
+      for (InstanceKey I : instances) {
         if (!I.getConcreteType().isArrayClass()) {
           continue;
         }
@@ -941,11 +911,11 @@ public abstract class PropagationCallGraphBuilder implements CallGraphBuilder<In
         }
         IClass contents = getClassHierarchy().lookupClass(C);
         if (contents == null) {
-          assert false : "null type for " + C + " " + I.getConcreteType();
+          assert false : "null type for " + C + ' ' + I.getConcreteType();
         }
         PointerKey p = getPointerKeyForArrayContents(I);
         if (DEBUG_ARRAY_STORE) {
-          System.err.println("ArrayStore add filtered-assign: " + p + " " + pVal);
+          System.err.println("ArrayStore add filtered-assign: " + p + ' ' + pVal);
         }
 
         // note that the following is idempotent
@@ -980,9 +950,7 @@ public abstract class PropagationCallGraphBuilder implements CallGraphBuilder<In
     }
   }
 
-  /**
-   * Binary op: <dummy>:= GetField( <ref>) Side effect: Creates new equations.
-   */
+  /** Binary op: &lt;dummy&gt;:= GetField( &lt;ref&gt;) Side effect: Creates new equations. */
   public class GetFieldOperator extends UnarySideEffect implements IPointerOperator {
     private final IField field;
 
@@ -996,14 +964,22 @@ public abstract class PropagationCallGraphBuilder implements CallGraphBuilder<In
 
     @Override
     public String toString() {
-      return "GetField " + getField() + "," + getFixedSet().getPointerKey();
+      return "GetField " + getField() + ',' + getFixedSet().getPointerKey();
     }
 
     @Override
     public byte evaluate(PointsToSetVariable rhs) {
       if (DEBUG_GET) {
-        String S = "EVAL GetField " + getField() + " " + getFixedSet().getPointerKey() + " " + rhs.getPointerKey() + getFixedSet()
-            + " " + rhs;
+        String S =
+            "EVAL GetField "
+                + getField()
+                + ' '
+                + getFixedSet().getPointerKey()
+                + ' '
+                + rhs.getPointerKey()
+                + getFixedSet()
+                + ' '
+                + rhs;
         System.err.println(S);
       }
 
@@ -1016,29 +992,28 @@ public abstract class PropagationCallGraphBuilder implements CallGraphBuilder<In
 
       IntSet value = filterInstances(ref.getValue());
       if (DEBUG_GET) {
-        System.err.println("filtered value: " + value + " " + value.getClass());
+        System.err.println("filtered value: " + value + ' ' + value.getClass());
         if (priorInstances != null) {
-          System.err.println("prior instances: " + priorInstances + " " + priorInstances.getClass());
+          System.err.println(
+              "prior instances: " + priorInstances + ' ' + priorInstances.getClass());
         }
       }
       final MutableBoolean sideEffect = new MutableBoolean();
-      IntSetAction action = new IntSetAction() {
-        @Override
-        public void act(int i) {
-          InstanceKey I = system.getInstanceKey(i);
-          if (!representsNullType(I)) {
-            PointerKey p = getPointerKeyForInstanceField(I, getField());
+      IntSetAction action =
+          i -> {
+            InstanceKey I = system.getInstanceKey(i);
+            if (!representsNullType(I)) {
+              PointerKey p = getPointerKeyForInstanceField(I, getField());
 
-            if (p != null) {
-              if (DEBUG_GET) {
-                String S = "Getfield add constraint " + dVal + " " + p;
-                System.err.println(S);
+              if (p != null) {
+                if (DEBUG_GET) {
+                  String S = "Getfield add constraint " + dVal + ' ' + p;
+                  System.err.println(S);
+                }
+                sideEffect.b |= system.newFieldRead(dVal, assignOperator, p);
               }
-              sideEffect.b |= system.newFieldRead(dVal, assignOperator, p);
             }
-          }
-        }
-      };
+          };
       if (priorInstances != null) {
         value.foreachExcluding(priorInstances, action);
         priorInstances.addAll(value);
@@ -1049,9 +1024,7 @@ public abstract class PropagationCallGraphBuilder implements CallGraphBuilder<In
       return (byte) (NOT_CHANGED | sideEffectMask);
     }
 
-    /**
-     * Subclasses can override as needed
-     */
+    /** Subclasses can override as needed */
     protected IntSet filterInstances(IntSet value) {
       return value;
     }
@@ -1089,9 +1062,7 @@ public abstract class PropagationCallGraphBuilder implements CallGraphBuilder<In
     }
   }
 
-  /**
-   * Operator that represents a putfield
-   */
+  /** Operator that represents a putfield */
   public class PutFieldOperator extends UnarySideEffect implements IPointerOperator {
     private final IField field;
 
@@ -1119,8 +1090,16 @@ public abstract class PropagationCallGraphBuilder implements CallGraphBuilder<In
     @Override
     public byte evaluate(PointsToSetVariable rhs) {
       if (DEBUG_PUT) {
-        String S = "EVAL PutField " + getField() + " " + (getFixedSet()).getPointerKey() + " " + rhs.getPointerKey()
-            + getFixedSet() + " " + rhs;
+        String S =
+            "EVAL PutField "
+                + getField()
+                + ' '
+                + (getFixedSet()).getPointerKey()
+                + ' '
+                + rhs.getPointerKey()
+                + getFixedSet()
+                + ' '
+                + rhs;
         System.err.println(S);
       }
 
@@ -1137,26 +1116,24 @@ public abstract class PropagationCallGraphBuilder implements CallGraphBuilder<In
         Assertions.UNREACHABLE();
       }
       final MutableBoolean sideEffect = new MutableBoolean();
-      IntSetAction action = new IntSetAction() {
-        @Override
-        public void act(int i) {
-          InstanceKey I = system.getInstanceKey(i);
-          if (!representsNullType(I)) {
-            if (DEBUG_PUT) {
-              String S = "Putfield consider instance " + I;
-              System.err.println(S);
-            }
-            PointerKey p = getPointerKeyForInstanceField(I, getField());
-            if (p != null) {
+      IntSetAction action =
+          i -> {
+            InstanceKey I = system.getInstanceKey(i);
+            if (!representsNullType(I)) {
               if (DEBUG_PUT) {
-                String S = "Putfield add constraint " + p + " " + pVal;
-                System.err.println(S);
+                String S1 = "Putfield consider instance " + I;
+                System.err.println(S1);
               }
-              sideEffect.b |= system.newFieldWrite(p, assign, pVal);
+              PointerKey p = getPointerKeyForInstanceField(I, getField());
+              if (p != null) {
+                if (DEBUG_PUT) {
+                  String S2 = "Putfield add constraint " + p + ' ' + pVal;
+                  System.err.println(S2);
+                }
+                sideEffect.b |= system.newFieldWrite(p, assign, pVal);
+              }
             }
-          }
-        }
-      };
+          };
       if (priorInstances != null) {
         value.foreachExcluding(priorInstances, action);
         priorInstances.addAll(value);
@@ -1167,9 +1144,7 @@ public abstract class PropagationCallGraphBuilder implements CallGraphBuilder<In
       return (byte) (NOT_CHANGED | sideEffectMask);
     }
 
-    /**
-     * Subclasses can override as needed
-     */
+    /** Subclasses can override as needed */
     protected IntSet filterInstances(IntSet value) {
       return value;
     }
@@ -1190,15 +1165,14 @@ public abstract class PropagationCallGraphBuilder implements CallGraphBuilder<In
     }
 
     /**
-     * subclasses (e.g. XTA) can override this to enforce a filtered assignment. returns null if there's a problem.
+     * subclasses (e.g. XTA) can override this to enforce a filtered assignment. returns null if
+     * there's a problem.
      */
     public UnaryOperator<PointsToSetVariable> getPutAssignmentOperator() {
       return assignOperator;
     }
 
-    /**
-     * @return Returns the field.
-     */
+    /** @return Returns the field. */
     protected IField getField() {
       return field;
     }
@@ -1209,13 +1183,12 @@ public abstract class PropagationCallGraphBuilder implements CallGraphBuilder<In
     }
   }
 
-  /**
-   * Update the points-to-set for a field to include a particular instance key.
-   */
-  public final class InstancePutFieldOperator extends UnaryOperator<PointsToSetVariable> implements IPointerOperator {
-    final private IField field;
+  /** Update the points-to-set for a field to include a particular instance key. */
+  public final class InstancePutFieldOperator extends UnaryOperator<PointsToSetVariable>
+      implements IPointerOperator {
+    private final IField field;
 
-    final private InstanceKey instance;
+    private final InstanceKey instance;
 
     protected final MutableIntSet priorInstances = rememberGetPutHistory ? IntSetUtil.make() : null;
 
@@ -1229,9 +1202,7 @@ public abstract class PropagationCallGraphBuilder implements CallGraphBuilder<In
       this.instance = instance;
     }
 
-    /**
-     * Simply add the instance to each relevant points-to set.
-     */
+    /** Simply add the instance to each relevant points-to set. */
     @Override
     public byte evaluate(PointsToSetVariable dummyLHS, PointsToSetVariable var) {
       PointsToSetVariable ref = var;
@@ -1240,18 +1211,16 @@ public abstract class PropagationCallGraphBuilder implements CallGraphBuilder<In
       }
       IntSet value = ref.getValue();
       final MutableBoolean sideEffect = new MutableBoolean();
-      IntSetAction action = new IntSetAction() {
-        @Override
-        public void act(int i) {
-          InstanceKey I = system.getInstanceKey(i);
-          if (!representsNullType(I)) {
-            PointerKey p = getPointerKeyForInstanceField(I, field);
-            if (p != null) {
-              sideEffect.b |= system.newConstraint(p, instance);
+      IntSetAction action =
+          i -> {
+            InstanceKey I = system.getInstanceKey(i);
+            if (!representsNullType(I)) {
+              PointerKey p = getPointerKeyForInstanceField(I, field);
+              if (p != null) {
+                sideEffect.b |= system.newConstraint(p, instance);
+              }
             }
-          }
-        }
-      };
+          };
       if (priorInstances != null) {
         value.foreachExcluding(priorInstances, action);
         priorInstances.addAll(value);
@@ -1286,11 +1255,10 @@ public abstract class PropagationCallGraphBuilder implements CallGraphBuilder<In
     }
   }
 
-  /**
-   * Update the points-to-set for an array contents to include a particular instance key.
-   */
-  public final class InstanceArrayStoreOperator extends UnaryOperator<PointsToSetVariable> implements IPointerOperator {
-    final private InstanceKey instance;
+  /** Update the points-to-set for an array contents to include a particular instance key. */
+  public final class InstanceArrayStoreOperator extends UnaryOperator<PointsToSetVariable>
+      implements IPointerOperator {
+    private final InstanceKey instance;
 
     protected final MutableIntSet priorInstances = rememberGetPutHistory ? IntSetUtil.make() : null;
 
@@ -1303,9 +1271,7 @@ public abstract class PropagationCallGraphBuilder implements CallGraphBuilder<In
       this.instance = instance;
     }
 
-    /**
-     * Simply add the instance to each relevant points-to set.
-     */
+    /** Simply add the instance to each relevant points-to set. */
     @Override
     public byte evaluate(PointsToSetVariable dummyLHS, PointsToSetVariable var) {
       PointsToSetVariable arrayref = var;
@@ -1314,36 +1280,34 @@ public abstract class PropagationCallGraphBuilder implements CallGraphBuilder<In
       }
       IntSet value = arrayref.getValue();
       final MutableBoolean sideEffect = new MutableBoolean();
-      IntSetAction action = new IntSetAction() {
-        @Override
-        public void act(int i) {
-          InstanceKey I = system.getInstanceKey(i);
-          if (!I.getConcreteType().isArrayClass()) {
-            return;
-          }
-          if (I instanceof ZeroLengthArrayInNode) {
-            return;
-          }
-          TypeReference C = I.getConcreteType().getReference().getArrayElementType();
-          if (C.isPrimitiveType()) {
-            return;
-          }
-          IClass contents = getClassHierarchy().lookupClass(C);
-          if (contents == null) {
-            assert false : "null type for " + C + " " + I.getConcreteType();
-          }
-          PointerKey p = getPointerKeyForArrayContents(I);
-          if (contents.isInterface()) {
-            if (getClassHierarchy().implementsInterface(instance.getConcreteType(), contents)) {
-              sideEffect.b |= system.newConstraint(p, instance);
+      IntSetAction action =
+          i -> {
+            InstanceKey I = system.getInstanceKey(i);
+            if (!I.getConcreteType().isArrayClass()) {
+              return;
             }
-          } else {
-            if (getClassHierarchy().isSubclassOf(instance.getConcreteType(), contents)) {
-              sideEffect.b |= system.newConstraint(p, instance);
+            if (I instanceof ZeroLengthArrayInNode) {
+              return;
             }
-          }
-        }
-      };
+            TypeReference C = I.getConcreteType().getReference().getArrayElementType();
+            if (C.isPrimitiveType()) {
+              return;
+            }
+            IClass contents = getClassHierarchy().lookupClass(C);
+            if (contents == null) {
+              assert false : "null type for " + C + ' ' + I.getConcreteType();
+            }
+            PointerKey p = getPointerKeyForArrayContents(I);
+            if (contents.isInterface()) {
+              if (getClassHierarchy().implementsInterface(instance.getConcreteType(), contents)) {
+                sideEffect.b |= system.newConstraint(p, instance);
+              }
+            } else {
+              if (getClassHierarchy().isSubclassOf(instance.getConcreteType(), contents)) {
+                sideEffect.b |= system.newConstraint(p, instance);
+              }
+            }
+          };
       if (priorInstances != null) {
         value.foreachExcluding(priorInstances, action);
         priorInstances.addAll(value);
@@ -1433,7 +1397,7 @@ public abstract class PropagationCallGraphBuilder implements CallGraphBuilder<In
 
     /*
      * simply check if rhs contains a malleable.
-     * 
+     *
      * @see com.ibm.wala.dataflow.UnaryOperator#evaluate(com.ibm.wala.dataflow.IVariable, com.ibm.wala.dataflow.IVariable)
      */
     @Override
@@ -1444,8 +1408,9 @@ public abstract class PropagationCallGraphBuilder implements CallGraphBuilder<In
 
       boolean debug = false;
       if (DEBUG_FILTER) {
-        String S = "EVAL InverseFilter/" + filter + " " + lhs.getPointerKey() + " " + rhs.getPointerKey();
-        S += "\nEVAL      " + lhs + " " + rhs;
+        String S =
+            "EVAL InverseFilter/" + filter + ' ' + lhs.getPointerKey() + ' ' + rhs.getPointerKey();
+        S += "\nEVAL      " + lhs + ' ' + rhs;
         System.err.println(S);
       }
       if (rhs.size() == 0) {
@@ -1467,16 +1432,14 @@ public abstract class PropagationCallGraphBuilder implements CallGraphBuilder<In
     return solver;
   }
 
-  /**
-   * Add constraints when the interpretation of a node changes (e.g. reflection)
-   * @param monitor 
-   * @throws CancelException 
-   */
-  public void addConstraintsFromChangedNode(CGNode node, IProgressMonitor monitor) throws CancelException {
+  /** Add constraints when the interpretation of a node changes (e.g. reflection) */
+  public void addConstraintsFromChangedNode(CGNode node, IProgressMonitor monitor)
+      throws CancelException {
     unconditionallyAddConstraintsFromNode(node, monitor);
   }
 
-  protected abstract boolean unconditionallyAddConstraintsFromNode(CGNode node, IProgressMonitor monitor) throws CancelException;
+  protected abstract boolean unconditionallyAddConstraintsFromNode(
+      CGNode node, IProgressMonitor monitor) throws CancelException;
 
   protected static class MutableBoolean {
     // a horrendous hack since we don't have closures
@@ -1487,5 +1450,4 @@ public abstract class PropagationCallGraphBuilder implements CallGraphBuilder<In
   public IAnalysisCacheView getAnalysisCache() {
     return analysisCache;
   }
-
 }

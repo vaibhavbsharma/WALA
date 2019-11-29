@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2002 - 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,21 +7,18 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.util.warnings;
 
+import com.ibm.wala.util.collections.HashSetFactory;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.TreeSet;
 
-import com.ibm.wala.util.collections.HashSetFactory;
-
-/**
- * A global, static dictionary of warnings
- */
+/** A global, static dictionary of warnings */
 public class Warnings {
 
-  private final static Collection<Warning> warnings = HashSetFactory.make();
+  private static final Collection<Warning> warnings = HashSetFactory.make();
 
   public static synchronized boolean add(Warning w) {
     return warnings.add(w);
@@ -32,14 +29,13 @@ public class Warnings {
   }
 
   public static synchronized String asString() {
-    TreeSet<Warning> T = new TreeSet<Warning>();
-    T.addAll(warnings);
+    TreeSet<Warning> T = new TreeSet<>(warnings);
     Iterator<Warning> it = T.iterator();
-    StringBuffer result = new StringBuffer();
+    StringBuilder result = new StringBuilder();
     for (int i = 1; i <= T.size(); i++) {
       result.append(i).append(". ");
       result.append(it.next());
-      result.append("\n");
+      result.append('\n');
     }
     return result.toString();
   }

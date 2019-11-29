@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,12 +7,8 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.ipa.slicer;
-
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
 
 import com.ibm.wala.ipa.callgraph.propagation.AbstractFieldPointerKey;
 import com.ibm.wala.ipa.callgraph.propagation.PointerKey;
@@ -21,18 +17,17 @@ import com.ibm.wala.types.TypeReference;
 import com.ibm.wala.util.collections.HashSetFactory;
 import com.ibm.wala.util.config.SetOfClasses;
 import com.ibm.wala.util.debug.Assertions;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 
-/**
- * heap locations that should be excluded from data dependence during slicing
- */
+/** heap locations that should be excluded from data dependence during slicing */
 public class HeapExclusions {
 
   private static final boolean VERBOSE = false;
 
-  /**
-   * used only for verbose processing.
-   */
-  private final static Collection<TypeReference> considered = HashSetFactory.make();
+  /** used only for verbose processing. */
+  private static final Collection<TypeReference> considered = HashSetFactory.make();
 
   private final SetOfClasses set;
 
@@ -53,7 +48,13 @@ public class HeapExclusions {
       if (p instanceof AbstractFieldPointerKey) {
         AbstractFieldPointerKey f = (AbstractFieldPointerKey) p;
         if (f.getInstanceKey().getConcreteType() != null) {
-          if (!set.contains(f.getInstanceKey().getConcreteType().getReference().getName().toString().substring(1))) {
+          if (!set.contains(
+              f.getInstanceKey()
+                  .getConcreteType()
+                  .getReference()
+                  .getName()
+                  .toString()
+                  .substring(1))) {
             result.add(p);
             if (VERBOSE) {
               verboseAction(p);
@@ -64,7 +65,8 @@ public class HeapExclusions {
         }
       } else if (p instanceof StaticFieldKey) {
         StaticFieldKey sf = (StaticFieldKey) p;
-        if (!set.contains(sf.getField().getDeclaringClass().getReference().getName().toString().substring(1))) {
+        if (!set.contains(
+            sf.getField().getDeclaringClass().getReference().getName().toString().substring(1))) {
           result.add(p);
           if (VERBOSE) {
             verboseAction(p);
@@ -75,7 +77,6 @@ public class HeapExclusions {
       } else {
         Assertions.UNREACHABLE(s.getClass().toString());
       }
-
     }
     return result;
   }

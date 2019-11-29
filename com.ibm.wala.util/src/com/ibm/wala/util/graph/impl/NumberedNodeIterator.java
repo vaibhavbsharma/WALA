@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2002 - 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,26 +7,22 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.util.graph.impl;
-
-import java.util.Iterator;
-import java.util.NoSuchElementException;
 
 import com.ibm.wala.util.graph.NumberedNodeManager;
 import com.ibm.wala.util.intset.IntIterator;
 import com.ibm.wala.util.intset.IntSet;
+import java.util.Iterator;
+import java.util.NoSuchElementException;
 
-/**
- */
+/** */
 public class NumberedNodeIterator<T> implements Iterator<T> {
   final IntIterator numbers;
 
   final NumberedNodeManager<T> nodeManager;
 
-  /**
-   * @throws IllegalArgumentException if s is null
-   */
+  /** @throws IllegalArgumentException if s is null */
   public NumberedNodeIterator(IntSet s, NumberedNodeManager<T> nodeManager) {
     if (s == null) {
       throw new IllegalArgumentException("s is null");

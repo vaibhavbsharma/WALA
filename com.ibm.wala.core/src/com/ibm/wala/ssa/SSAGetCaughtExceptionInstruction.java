@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2002 - 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,15 +7,15 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.ssa;
 
-
 /**
- * A "catch" instruction, inserted at the head of a catch block, which assigns a pending exception object to a local variable.
- * 
- * In SSA {@link IR}s, these instructions do <em>not</em> appear in the normal instruction array returned by IR.getInstructions();
- * instead these instructions live in {@link ISSABasicBlock}.
+ * A "catch" instruction, inserted at the head of a catch block, which assigns a pending exception
+ * object to a local variable.
+ *
+ * <p>In SSA {@link IR}s, these instructions do <em>not</em> appear in the normal instruction array
+ * returned by IR.getInstructions(); instead these instructions live in {@link ISSABasicBlock}.
  */
 public class SSAGetCaughtExceptionInstruction extends SSAInstruction {
   private final int exceptionValueNumber;
@@ -31,20 +31,15 @@ public class SSAGetCaughtExceptionInstruction extends SSAInstruction {
   @Override
   public SSAInstruction copyForSSA(SSAInstructionFactory insts, int[] defs, int[] uses) {
     assert defs == null || defs.length == 1;
-    return insts.GetCaughtExceptionInstruction(iindex, bbNumber, defs == null ? exceptionValueNumber : defs[0]);
+    return insts.GetCaughtExceptionInstruction(
+        iIndex(), bbNumber, defs == null ? exceptionValueNumber : defs[0]);
   }
 
   @Override
   public String toString(SymbolTable symbolTable) {
-    StringBuffer s = new StringBuffer();
-    s.append(getValueString(symbolTable, exceptionValueNumber)).append(" = getCaughtException ");
-    return s.toString();
+    return getValueString(symbolTable, exceptionValueNumber) + " = getCaughtException ";
   }
 
-  /**
-   * @see com.ibm.wala.ssa.SSAInstruction#visit(IVisitor)
-   * @throws IllegalArgumentException if v is null
-   */
   @Override
   public void visit(IVisitor v) {
     if (v == null) {
@@ -55,16 +50,14 @@ public class SSAGetCaughtExceptionInstruction extends SSAInstruction {
 
   /**
    * Returns the result.
-   * 
+   *
    * @return int
    */
   public int getException() {
     return exceptionValueNumber;
   }
 
-  /**
-   * @see com.ibm.wala.ssa.SSAInstruction#getDef()
-   */
+  /** @see com.ibm.wala.ssa.SSAInstruction#getDef() */
   @Override
   public boolean hasDef() {
     return true;
@@ -102,5 +95,4 @@ public class SSAGetCaughtExceptionInstruction extends SSAInstruction {
   public boolean isFallThrough() {
     return true;
   }
-
 }

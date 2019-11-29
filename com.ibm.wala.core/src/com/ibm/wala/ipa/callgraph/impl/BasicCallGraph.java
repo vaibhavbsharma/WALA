@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2002 - 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,21 +7,18 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.ipa.callgraph.impl;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
-
 import com.ibm.wala.analysis.reflection.JavaTypeContext;
+import com.ibm.wala.analysis.typeInference.TypeAbstraction;
 import com.ibm.wala.classLoader.CallSiteReference;
 import com.ibm.wala.classLoader.IMethod;
 import com.ibm.wala.ipa.callgraph.CGNode;
 import com.ibm.wala.ipa.callgraph.CallGraph;
 import com.ibm.wala.ipa.callgraph.Context;
+import com.ibm.wala.ipa.callgraph.ContextKey;
+import com.ibm.wala.ipa.callgraph.propagation.InstanceKey;
 import com.ibm.wala.ipa.callgraph.propagation.ReceiverInstanceContext;
 import com.ibm.wala.ipa.cha.IClassHierarchy;
 import com.ibm.wala.shrikeBT.IInvokeInstruction;
@@ -29,6 +26,7 @@ import com.ibm.wala.types.MethodReference;
 import com.ibm.wala.util.CancelException;
 import com.ibm.wala.util.collections.HashMapFactory;
 import com.ibm.wala.util.collections.HashSetFactory;
+import com.ibm.wala.util.collections.Iterator2Iterable;
 import com.ibm.wala.util.collections.NonNullSingletonIterator;
 import com.ibm.wala.util.debug.Assertions;
 import com.ibm.wala.util.debug.UnimplementedError;
@@ -37,48 +35,45 @@ import com.ibm.wala.util.graph.NumberedNodeManager;
 import com.ibm.wala.util.graph.impl.DelegatingNumberedNodeManager;
 import com.ibm.wala.util.graph.impl.NodeWithNumber;
 import com.ibm.wala.util.graph.traverse.DFS;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
 
-/**
- * Basic data structure support for a call graph.
- */
+/** Basic data structure support for a call graph. */
 public abstract class BasicCallGraph<T> extends AbstractNumberedGraph<CGNode> implements CallGraph {
 
   private static final boolean DEBUG = false;
 
-  private final DelegatingNumberedNodeManager<CGNode> nodeManager = new DelegatingNumberedNodeManager<CGNode>();
+  private final DelegatingNumberedNodeManager<CGNode> nodeManager =
+      new DelegatingNumberedNodeManager<>();
 
-  /**
-   * A fake root node for the graph
-   */
+  /** A fake root node for the graph */
   private CGNode fakeRoot;
 
-  /**
-   * A node which handles all calls to class initializers
-   */
+  /** A node which handles all calls to class initializers */
   private CGNode fakeWorldClinit;
 
-  /**
-   * An object that handles context interpreter functions
-   */
+  /** An object that handles context interpreter functions */
   private T interpreter;
 
-  /**
-   * Set of nodes that are entrypoints for this analysis
-   */
+  /** Set of nodes that are entrypoints for this analysis */
   private final Set<CGNode> entrypointNodes = HashSetFactory.make();
 
   /**
-   * A mapping from Key to NodeImpls in the graph. Note that each node is created on demand. This Map does not include the root
-   * node.
+   * A mapping from Key to NodeImpls in the graph. Note that each node is created on demand. This
+   * Map does not include the root node.
    */
-  final private Map<Key, CGNode> nodes = HashMapFactory.make();
+  private final Map<Key, CGNode> nodes = HashMapFactory.make();
 
   /**
    * A mapping from MethodReference to Set of nodes that represent this methodReference.
-   * 
-   * TODO: rhs of mapping doesn't have to be a set if it's a singleton; could be a node instead.
-   * 
-   * TODO: this is a bit redundant with the nodes Map. Restructure these data structures for space efficiency.
+   *
+   * <p>TODO: rhs of mapping doesn't have to be a set if it's a singleton; could be a node instead.
+   *
+   * <p>TODO: this is a bit redundant with the nodes Map. Restructure these data structures for
+   * space efficiency.
    */
   protected final Map<MethodReference, Set<CGNode>> mr2Nodes = HashMapFactory.make();
 
@@ -97,9 +92,11 @@ public abstract class BasicCallGraph<T> extends AbstractNumberedGraph<CGNode> im
       registerNode(k, fakeWorldClinit);
 
       // add a call from fakeRoot to fakeWorldClinit
-      CallSiteReference site = CallSiteReference.make(1, fakeWorldClinit.getMethod().getReference(),
-          IInvokeInstruction.Dispatch.STATIC);
-      // note that the result of addInvocation is a different site, with a different program counter!
+      CallSiteReference site =
+          CallSiteReference.make(
+              1, fakeWorldClinit.getMethod().getReference(), IInvokeInstruction.Dispatch.STATIC);
+      // note that the result of addInvocation is a different site, with a different program
+      // counter!
       site = ((AbstractRootMethod) fakeRoot.getMethod()).addInvocation(null, site).getCallSite();
       fakeRoot.addTarget(site, fakeWorldClinit);
     }
@@ -111,7 +108,7 @@ public abstract class BasicCallGraph<T> extends AbstractNumberedGraph<CGNode> im
 
   /**
    * Use with extreme care.
-   * 
+   *
    * @throws CancelException TODO
    */
   public abstract CGNode findOrCreateNode(IMethod method, Context C) throws CancelException;
@@ -150,40 +147,30 @@ public abstract class BasicCallGraph<T> extends AbstractNumberedGraph<CGNode> im
     return fakeWorldClinit;
   }
 
-  /**
-   * record that a node is an entrypoint
-   */
+  /** record that a node is an entrypoint */
   public void registerEntrypoint(CGNode node) {
     entrypointNodes.add(node);
   }
 
-  /**
-   * Note: not all successors of the root node are entrypoints
-   */
+  /** Note: not all successors of the root node are entrypoints */
   @Override
   public Collection<CGNode> getEntrypointNodes() {
     return entrypointNodes;
   }
 
-  /**
-   * A class that represents the a normal node in a call graph.
-   */
-  public abstract class NodeImpl extends NodeWithNumber implements CGNode {
+  /** A class that represents the a normal node in a call graph. */
+  public abstract static class NodeImpl extends NodeWithNumber implements CGNode {
 
-    /**
-     * The method this node represents.
-     */
+    /** The method this node represents. */
     protected final IMethod method;
 
-    /**
-     * The context this node represents.
-     */
+    /** The context this node represents. */
     private final Context context;
 
     protected NodeImpl(IMethod method, Context C) {
       this.method = method;
       this.context = C;
-      if (method != null && !method.isSynthetic() && method.isAbstract()) {
+      if (method != null && !method.isWalaSynthetic() && method.isAbstract()) {
         assert !method.isAbstract() : "Abstract method " + method;
       }
       assert C != null;
@@ -194,21 +181,15 @@ public abstract class BasicCallGraph<T> extends AbstractNumberedGraph<CGNode> im
       return method;
     }
 
-    /**
-     * @see java.lang.Object#equals(Object)
-     */
+    /** @see java.lang.Object#equals(Object) */
     @Override
     public abstract boolean equals(Object obj);
 
-    /**
-     * @see java.lang.Object#hashCode()
-     */
+    /** @see java.lang.Object#hashCode() */
     @Override
     public abstract int hashCode();
 
-    /**
-     * @see java.lang.Object#toString()
-     */
+    /** @see java.lang.Object#toString() */
     @Override
     public String toString() {
       return "Node: " + method.toString() + " Context: " + context.toString();
@@ -219,6 +200,7 @@ public abstract class BasicCallGraph<T> extends AbstractNumberedGraph<CGNode> im
       return context;
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     public abstract boolean addTarget(CallSiteReference reference, CGNode target);
 
@@ -230,26 +212,25 @@ public abstract class BasicCallGraph<T> extends AbstractNumberedGraph<CGNode> im
 
   @Override
   public String toString() {
-    StringBuffer result = new StringBuffer("");
-    for (Iterator i = DFS.iterateDiscoverTime(this, new NonNullSingletonIterator<CGNode>(getFakeRootNode())); i.hasNext();) {
-      CGNode n = (CGNode) i.next();
-      result.append(nodeToString(this, n) + "\n");
+    StringBuilder result = new StringBuilder();
+    for (CGNode n :
+        Iterator2Iterable.make(
+            DFS.iterateDiscoverTime(this, new NonNullSingletonIterator<>(getFakeRootNode())))) {
+      result.append(nodeToString(this, n)).append('\n');
     }
     return result.toString();
   }
 
   public static String nodeToString(CallGraph CG, CGNode n) {
-    StringBuffer result = new StringBuffer(n.toString() +  "\n");
-     if (n.getMethod() != null) {
-      for (Iterator sites = n.iterateCallSites(); sites.hasNext();) {
-        CallSiteReference site = (CallSiteReference) sites.next();
-        Iterator targets = CG.getPossibleTargets(n, site).iterator();
+    StringBuilder result = new StringBuilder(n.toString() + '\n');
+    if (n.getMethod() != null) {
+      for (CallSiteReference site : Iterator2Iterable.make(n.iterateCallSites())) {
+        Iterator<CGNode> targets = CG.getPossibleTargets(n, site).iterator();
         if (targets.hasNext()) {
-          result.append(" - " + site + "\n");
+          result.append(" - ").append(site).append('\n');
         }
-        for (; targets.hasNext();) {
-          CGNode target = (CGNode) targets.next();
-          result.append("     -> " + target + "\n");
+        for (CGNode target : Iterator2Iterable.make(targets)) {
+          result.append("     -> ").append(target).append('\n');
         }
       }
     }
@@ -261,16 +242,14 @@ public abstract class BasicCallGraph<T> extends AbstractNumberedGraph<CGNode> im
     Assertions.UNREACHABLE();
   }
 
-  /**
-   * @return NodeImpl, or null if none found
-   */
+  /** @return NodeImpl, or null if none found */
   @Override
   public CGNode getNode(IMethod method, Context C) {
     Key key = new Key(method, C);
     return getNode(key);
   }
 
-  protected final static class Key {
+  protected static final class Key {
     private final IMethod m;
 
     private final Context C;
@@ -296,20 +275,18 @@ public abstract class BasicCallGraph<T> extends AbstractNumberedGraph<CGNode> im
 
     @Override
     public String toString() {
-      return "{" + m + "," + C + "}";
+      return "{" + m + ',' + C + '}';
     }
-
   }
 
   @Override
   public Set<CGNode> getNodes(MethodReference m) {
     IMethod im = getClassHierarchy().resolveMethod(m);
-    if (im == null) {
-      return Collections.emptySet();
+    if (im != null) {
+      m = im.getReference();
     }
-    Set<CGNode> result = mr2Nodes.get(im.getReference());
-    Set<CGNode> empty = Collections.emptySet();
-    return (result == null) ? empty : result;
+    Set<CGNode> result = mr2Nodes.get(m);
+    return (result == null) ? Collections.emptySet() : result;
   }
 
   /**
@@ -325,7 +302,7 @@ public abstract class BasicCallGraph<T> extends AbstractNumberedGraph<CGNode> im
 
   /**
    * We override this since this class supports remove() on nodes, but the superclass doesn't.
-   * 
+   *
    * @see com.ibm.wala.util.graph.Graph#getNumberOfNodes()
    */
   @Override
@@ -335,7 +312,7 @@ public abstract class BasicCallGraph<T> extends AbstractNumberedGraph<CGNode> im
 
   /**
    * We override this since this class supports remove() on nodes, but the superclass doesn't.
-   * 
+   *
    * @see com.ibm.wala.util.graph.Graph#iterator()
    */
   @Override
@@ -344,10 +321,10 @@ public abstract class BasicCallGraph<T> extends AbstractNumberedGraph<CGNode> im
   }
 
   /**
-   * This implementation is necessary because the underlying SparseNumberedGraph may not support node membership tests.
-   * 
+   * This implementation is necessary because the underlying SparseNumberedGraph may not support
+   * node membership tests.
+   *
    * @throws IllegalArgumentException if N is null
-   * 
    */
   @Override
   public boolean containsNode(CGNode N) {
@@ -365,37 +342,52 @@ public abstract class BasicCallGraph<T> extends AbstractNumberedGraph<CGNode> im
   protected NumberedNodeManager<CGNode> getNodeManager() {
     return nodeManager;
   }
-  
-  public void summarizeByPackage() {
-   Map<String, Integer> packages = HashMapFactory.make();
-   for(CGNode n : this) { 
-     String nm = n.getMethod().getDeclaringClass().getName().toString() + "/" + n.getMethod().getName() + "/" + n.getContext().getClass().toString();
-  
-     if (n.getContext() instanceof ReceiverInstanceContext) {
-       nm = nm + "/" + ((ReceiverInstanceContext)n.getContext()).getReceiver().getConcreteType().getName();
-     } else if (n.getContext() instanceof JavaTypeContext) {
-       nm = nm + "/" + ((JavaTypeContext)n.getContext()).getType().getTypeReference().getName();
-     }
-     
-     do {
-       if (packages.containsKey(nm)) {
-         packages.put(nm, 1 + packages.get(nm));
-       } else {
-         packages.put(nm, 1);
-       }
-       
-       if (nm.indexOf('/') < 0) {
-         break;
-       }
-       
-       nm = nm.substring(0, nm.lastIndexOf('/'));
-     } while (true);
-   }
-   
-   System.err.println("dump of CG");
-   for(Map.Entry<String, Integer> e : packages.entrySet()) {
-     System.err.println(e.getValue().intValue() + " " + e.getKey());
-   }
-  }
 
+  public void summarizeByPackage() {
+    Map<String, Integer> packages = HashMapFactory.make();
+    for (CGNode n : this) {
+      final StringBuilder nmBuilder =
+          new StringBuilder(n.getMethod().getDeclaringClass().getName().toString())
+              .append('/')
+              .append(n.getMethod().getName())
+              .append('/')
+              .append(n.getContext().getClass().toString());
+
+      if (n.getContext().isA(ReceiverInstanceContext.class)) {
+        nmBuilder
+            .append('/')
+            .append(
+                ((InstanceKey) n.getContext().get(ContextKey.RECEIVER))
+                    .getConcreteType()
+                    .getName());
+      } else if (n.getContext() instanceof JavaTypeContext) {
+        nmBuilder
+            .append('/')
+            .append(
+                ((TypeAbstraction) n.getContext().get(ContextKey.RECEIVER))
+                    .getTypeReference()
+                    .getName());
+      }
+      String nm = nmBuilder.toString();
+
+      do {
+        if (packages.containsKey(nm)) {
+          packages.put(nm, 1 + packages.get(nm));
+        } else {
+          packages.put(nm, 1);
+        }
+
+        if (nm.indexOf('/') < 0) {
+          break;
+        }
+
+        nm = nm.substring(0, nm.lastIndexOf('/'));
+      } while (true);
+    }
+
+    System.err.println("dump of CG");
+    for (Map.Entry<String, Integer> e : packages.entrySet()) {
+      System.err.println(e + " " + e.getKey());
+    }
+  }
 }

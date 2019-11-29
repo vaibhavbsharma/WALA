@@ -1,4 +1,4 @@
-/******************************************************************************
+/*
  * Copyright (c) 2002 - 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,11 +7,8 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *****************************************************************************/
+ */
 package com.ibm.wala.cast.ir.cfg;
-
-import java.util.Collection;
-import java.util.List;
 
 import com.ibm.wala.cfg.ControlFlowGraph;
 import com.ibm.wala.cfg.IBasicBlock;
@@ -20,8 +17,11 @@ import com.ibm.wala.util.graph.AbstractNumberedGraph;
 import com.ibm.wala.util.graph.NumberedEdgeManager;
 import com.ibm.wala.util.graph.NumberedNodeManager;
 import com.ibm.wala.util.intset.BitVector;
+import java.util.Collection;
+import java.util.List;
 
-public class DelegatingCFG<I, T extends IBasicBlock<I>> extends AbstractNumberedGraph<T> implements ControlFlowGraph<I, T> {
+public class DelegatingCFG<I, T extends IBasicBlock<I>> extends AbstractNumberedGraph<T>
+    implements ControlFlowGraph<I, T> {
 
   protected final ControlFlowGraph<I, T> parent;
 
@@ -93,5 +93,4 @@ public class DelegatingCFG<I, T extends IBasicBlock<I>> extends AbstractNumbered
   public Collection<T> getNormalPredecessors(T b) {
     return parent.getNormalPredecessors(b);
   }
-
 }

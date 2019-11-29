@@ -1,4 +1,4 @@
-/******************************************************************************
+/*
  * Copyright (c) 2002 - 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,7 +7,7 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *****************************************************************************/
+ */
 /*
  * Created on Sep 21, 2005
  */
@@ -16,6 +16,6 @@ package com.ibm.wala.cast.java.types;
 import com.ibm.wala.cast.tree.CAstType;
 
 public interface JavaType extends CAstType.Class {
-    @Override
-    boolean isInterface();
+  @Override
+  boolean isInterface();
 }

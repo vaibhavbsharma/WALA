@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2002 - 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,21 +7,16 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.util.intset;
 
-import java.util.Iterator;
+import java.util.Arrays;
 import java.util.TreeSet;
 
-/**
- * An object that creates mutable sparse int sets.
- */
+/** An object that creates mutable sparse int sets. */
 public class MutableSparseLongSetFactory implements MutableLongSetFactory {
 
-  /**
-   * @param set
-   * @throws IllegalArgumentException  if set is null
-   */
+  /** @throws IllegalArgumentException if set is null */
   @Override
   public MutableLongSet make(long[] set) {
     if (set == null) {
@@ -32,14 +27,13 @@ public class MutableSparseLongSetFactory implements MutableLongSetFactory {
     } else {
       // XXX not very efficient.
       TreeSet<Long> T = new TreeSet<>();
-      for (int i = 0; i < set.length; i++) {
-        T.add(Long.valueOf(set[i]));
+      for (long element : set) {
+        T.add(element);
       }
       long[] copy = new long[T.size()];
       int i = 0;
-      for (Iterator<Long> it = T.iterator(); it.hasNext();) {
-        Long I = it.next();
-        copy[i++] = I.longValue();
+      for (Long I : T) {
+        copy[i++] = I;
       }
       MutableSparseLongSet result = new MutableSparseLongSet(copy);
       return result;
@@ -49,8 +43,7 @@ public class MutableSparseLongSetFactory implements MutableLongSetFactory {
   @Override
   public MutableLongSet parse(String string) throws NumberFormatException {
     int[] backingStore = SparseIntSet.parseIntArray(string);
-    long[] bs = new long[ backingStore.length ];
-    for(int i = 0; i < bs.length; i++) bs[i] = backingStore[i];
+    long[] bs = Arrays.stream(backingStore).asLongStream().toArray();
     return new MutableSparseLongSet(bs);
   }
 
@@ -72,5 +65,4 @@ public class MutableSparseLongSetFactory implements MutableLongSetFactory {
   public MutableLongSet make() {
     return new MutableSparseLongSet();
   }
-
 }

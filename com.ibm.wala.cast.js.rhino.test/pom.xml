@@ -5,7 +5,7 @@
     <parent>
         <groupId>com.ibm.wala</groupId>
         <artifactId>WALA</artifactId>
-        <version>1.4.4-SNAPSHOT</version>
+        <version>1.5.5-SNAPSHOT</version>
     </parent>
   <artifactId>com.ibm.wala.cast.js.rhino.test</artifactId>
   <packaging>eclipse-plugin</packaging>
@@ -22,6 +22,8 @@
               <testClassesDirectory>${project.build.outputDirectory}</testClassesDirectory>
               <argLine>-Xmx800M -ea</argLine>
               <redirectTestOutputToFile>true</redirectTestOutputToFile>
+	      <forkCount>2</forkCount>
+	      <reuseForks>false</reuseForks>
               <additionalClasspathElements>
                 <additionalClasspathElement>${basedir}/../com.ibm.wala.cast.js.test.data/examples-src</additionalClasspathElement>
               </additionalClasspathElements>
@@ -38,7 +40,19 @@
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
-      <version>4.11</version>
+      <version>4.12</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>net.htmlparser.jericho</groupId>
+      <artifactId>jericho-html</artifactId>
+      <version>3.2</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>commons-io</groupId>
+      <artifactId>commons-io</artifactId>
+      <version>2.4</version>
       <scope>test</scope>
     </dependency>
   </dependencies> 

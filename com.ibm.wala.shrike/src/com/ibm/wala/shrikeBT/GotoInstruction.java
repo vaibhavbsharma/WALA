@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2002,2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,28 +7,26 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.shrikeBT;
 
-/**
- * This class represents goto and goto_w instructions.
- */
+import java.util.Arrays;
+
+/** This class represents goto and goto_w instructions. */
 public final class GotoInstruction extends Instruction {
-  final private int[] label;
+  private final int[] label;
 
   protected GotoInstruction(int label) {
     super(OP_goto);
-    int[] l = { label };
+    int[] l = {label};
     this.label = l;
   }
 
-  private final static GotoInstruction[] preallocated = preallocate();
+  private static final GotoInstruction[] preallocated = preallocate();
 
   private static GotoInstruction[] preallocate() {
     GotoInstruction[] r = new GotoInstruction[256];
-    for (int i = 0; i < r.length; i++) {
-      r[i] = new GotoInstruction(i);
-    }
+    Arrays.setAll(r, GotoInstruction::new);
     return r;
   }
 
@@ -83,7 +81,7 @@ public final class GotoInstruction extends Instruction {
 
   @Override
   public String toString() {
-    return "Goto(" + getLabel() + ")";
+    return "Goto(" + getLabel() + ')';
   }
 
   @Override

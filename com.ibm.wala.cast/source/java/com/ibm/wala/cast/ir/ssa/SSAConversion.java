@@ -1,4 +1,4 @@
-/******************************************************************************
+/*
  * Copyright (c) 2002 - 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,22 +7,13 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *****************************************************************************/
+ */
 package com.ibm.wala.cast.ir.ssa;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
-
-import com.ibm.wala.cast.ir.ssa.AstIRFactory;
 import com.ibm.wala.cast.ir.ssa.analysis.LiveAnalysis;
 import com.ibm.wala.cast.loader.AstMethod;
 import com.ibm.wala.cast.loader.AstMethod.DebuggingInformation;
 import com.ibm.wala.cast.loader.AstMethod.LexicalInformation;
-import com.ibm.wala.ssa.IR.SSA2LocalMap;
 import com.ibm.wala.ssa.SSACFG;
 import com.ibm.wala.ssa.SSAInstruction;
 import com.ibm.wala.ssa.SSAOptions;
@@ -30,16 +21,20 @@ import com.ibm.wala.ssa.SSAPhiInstruction;
 import com.ibm.wala.ssa.SymbolTable;
 import com.ibm.wala.util.collections.HashMapFactory;
 import com.ibm.wala.util.collections.HashSetFactory;
+import com.ibm.wala.util.collections.IteratorUtil;
 import com.ibm.wala.util.intset.BitVector;
 import com.ibm.wala.util.intset.BitVectorIntSet;
 import com.ibm.wala.util.intset.IntSet;
 import com.ibm.wala.util.intset.IntSetUtil;
 import com.ibm.wala.util.intset.MutableIntSet;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Julian Dolby
- * 
- * Standard SSA conversion for local value numbers.
+ *     <p>Standard SSA conversion for local value numbers.
  */
 public class SSAConversion extends AbstractSSAConversion {
 
@@ -63,10 +58,10 @@ public class SSAConversion extends AbstractSSAConversion {
 
   private final LiveAnalysis.Result liveness;
 
-  private SSA2LocalMap computedLocalMap;
+  private SSAInformation computedLocalMap;
 
-  private Map<Integer,Integer> assignments = HashMapFactory.make();
-  
+  private Map<Integer, Integer> assignments = HashMapFactory.make();
+
   //
   // Copy propagation history
   //
@@ -75,10 +70,18 @@ public class SSAConversion extends AbstractSSAConversion {
 
   private final ArrayList<CopyPropagationRecord> R[];
 
-  private static class UseRecord {
+  public static class UseRecord {
     final int instructionIndex;
 
     final int useNumber;
+
+    public int getInstructionIndex() {
+      return instructionIndex;
+    }
+
+    public int getUseNumber() {
+      return useNumber;
+    }
 
     private UseRecord(int instructionIndex, int useNumber) {
       this.useNumber = useNumber;
@@ -87,9 +90,9 @@ public class SSAConversion extends AbstractSSAConversion {
 
     @Override
     public String toString() {
-      return "[use " + useNumber + " of " + instructionIndex + "]";
+      return "[use " + useNumber + " of " + instructionIndex + ']';
     }
-    
+
     @Override
     public int hashCode() {
       return useNumber * instructionIndex;
@@ -97,12 +100,13 @@ public class SSAConversion extends AbstractSSAConversion {
 
     @Override
     public boolean equals(Object o) {
-      return (o instanceof UseRecord) && instructionIndex == ((UseRecord) o).instructionIndex
+      return (o instanceof UseRecord)
+          && instructionIndex == ((UseRecord) o).instructionIndex
           && useNumber == ((UseRecord) o).useNumber;
     }
   }
 
-  private class PhiUseRecord {
+  public static class PhiUseRecord {
     final int BBnumber;
 
     final int phiNumber;
@@ -115,11 +119,23 @@ public class SSAConversion extends AbstractSSAConversion {
       this.useNumber = useNumber;
     }
 
+    public int getBBnumber() {
+      return BBnumber;
+    }
+
+    public int getPhiNumber() {
+      return phiNumber;
+    }
+
+    public int getUseNumber() {
+      return useNumber;
+    }
+
     @Override
     public String toString() {
-      return "[use " + useNumber + " of " + phiNumber + " of block " + BBnumber + "]";
+      return "[use " + useNumber + " of " + phiNumber + " of block " + BBnumber + ']';
     }
-    
+
     @Override
     public int hashCode() {
       return phiNumber * BBnumber * useNumber;
@@ -127,12 +143,14 @@ public class SSAConversion extends AbstractSSAConversion {
 
     @Override
     public boolean equals(Object o) {
-      return (o instanceof PhiUseRecord) && BBnumber == ((PhiUseRecord) o).BBnumber && phiNumber == ((PhiUseRecord) o).phiNumber
+      return (o instanceof PhiUseRecord)
+          && BBnumber == ((PhiUseRecord) o).BBnumber
+          && phiNumber == ((PhiUseRecord) o).phiNumber
           && useNumber == ((PhiUseRecord) o).useNumber;
     }
   }
 
-  private class CopyPropagationRecord {
+  public class CopyPropagationRecord {
     final int rhs;
 
     final int instructionIndex;
@@ -141,16 +159,32 @@ public class SSAConversion extends AbstractSSAConversion {
 
     private final Set<CopyPropagationRecord> childRecords = HashSetFactory.make(1);
 
+    public int getRhs() {
+      return rhs;
+    }
+
+    public int getInstructionIndex() {
+      return instructionIndex;
+    }
+
+    public Set<Object> getRenamedUses() {
+      return renamedUses;
+    }
+
+    public Set<CopyPropagationRecord> getChildRecords() {
+      return childRecords;
+    }
+
     @Override
     public String toString() {
-      StringBuffer sb = new StringBuffer("<vn " + rhs + " at " + instructionIndex);
+      StringBuilder sb = new StringBuilder("<vn " + rhs + " at " + instructionIndex);
       for (CopyPropagationRecord c : childRecords) {
-        sb.append("\n " + c.toString());
+        sb.append("\n ").append(c.toString());
       }
-      sb.append(">");
+      sb.append('>');
       return sb.toString();
     }
-    
+
     @Override
     public int hashCode() {
       return instructionIndex;
@@ -158,26 +192,44 @@ public class SSAConversion extends AbstractSSAConversion {
 
     @Override
     public boolean equals(Object o) {
-      return (o instanceof CopyPropagationRecord) && instructionIndex == ((CopyPropagationRecord) o).instructionIndex;
+      return (o instanceof CopyPropagationRecord)
+          && instructionIndex == ((CopyPropagationRecord) o).instructionIndex;
     }
 
     private CopyPropagationRecord(int instructionIndex, int rhs) {
       if (DEBUG_UNDO)
-        System.err.println(("new copy record for instruction #" + instructionIndex + ", rhs value is " + rhs));
+        System.err.println(
+            ("new copy record for instruction #" + instructionIndex + ", rhs value is " + rhs));
       this.rhs = rhs;
       this.instructionIndex = instructionIndex;
     }
 
     private void addChild(CopyPropagationRecord rec) {
       if (DEBUG_UNDO)
-        System.err.println(("(" + rec.instructionIndex + "," + rec.rhs + ") is a child of (" + instructionIndex + "," + rhs + ")"));
+        System.err.println(
+            ("("
+                + rec.instructionIndex
+                + ','
+                + rec.rhs
+                + ") is a child of ("
+                + instructionIndex
+                + ','
+                + rhs
+                + ')'));
       childRecords.add(rec);
     }
 
     private void addUse(int instructionIndex, int use) {
       if (DEBUG_UNDO)
-        System.err.println(("propagated use of (" + this.instructionIndex + "," + this.rhs + ") at use #" + use + " of instruction #"
-        + instructionIndex));
+        System.err.println(
+            ("propagated use of ("
+                + this.instructionIndex
+                + ','
+                + this.rhs
+                + ") at use #"
+                + use
+                + " of instruction #"
+                + instructionIndex));
       UseRecord rec = new UseRecord(instructionIndex, use);
       copyPropagationMap.put(rec, this);
       renamedUses.add(rec);
@@ -193,13 +245,14 @@ public class SSAConversion extends AbstractSSAConversion {
       int c = getNumberOfUses(inst);
       int[] newUses = new int[c];
       for (int i = 0; i < c; i++) {
-        if (i == use)
-          newUses[i] = val;
-        else
-          newUses[i] = getUse(inst, i);
+        if (i == use) newUses[i] = val;
+        else newUses[i] = getUse(inst, i);
       }
 
-      return inst.copyForSSA(CFG.getMethod().getDeclaringClass().getClassLoader().getInstructionFactory(), null, newUses);
+      return inst.copyForSSA(
+          CFG.getMethod().getDeclaringClass().getClassLoader().getInstructionFactory(),
+          null,
+          newUses);
     }
 
     private void undo(int rhs) {
@@ -208,17 +261,18 @@ public class SSAConversion extends AbstractSSAConversion {
       instructions[instructionIndex] = new AssignInstruction(instructionIndex, lhs, rhs);
 
       if (DEBUG_UNDO)
-        System.err.println(("recreating assignment at " + instructionIndex + " as " + lhs + " = " + rhs));
+        System.err.println(
+            ("recreating assignment at " + instructionIndex + " as " + lhs + " = " + rhs));
 
-      for (Iterator<Object> uses = renamedUses.iterator(); uses.hasNext();) {
-        Object x = uses.next();
+      for (Object x : renamedUses) {
         if (x instanceof UseRecord) {
           UseRecord use = (UseRecord) x;
           int idx = use.instructionIndex;
           SSAInstruction inst = instructions[idx];
 
           if (DEBUG_UNDO)
-            System.err.println(("Changing use #" + use.useNumber + " of inst #" + idx + " to val " + lhs));
+            System.err.println(
+                ("Changing use #" + use.useNumber + " of inst #" + idx + " to val " + lhs));
 
           if (use.useNumber >= 0) {
             instructions[idx] = undo(inst, use.useNumber, lhs);
@@ -231,13 +285,14 @@ public class SSAConversion extends AbstractSSAConversion {
           int bb = use.BBnumber;
           int phi = use.phiNumber;
           SSACFG.BasicBlock BB = CFG.getNode(bb);
-          BB.addPhiForLocal(phi, (SSAPhiInstruction) undo(BB.getPhiForLocal(phi), use.useNumber, lhs));
+          BB.addPhiForLocal(
+              phi, (SSAPhiInstruction) undo(BB.getPhiForLocal(phi), use.useNumber, lhs));
           copyPropagationMap.remove(use);
         }
       }
 
-      for (Iterator<CopyPropagationRecord> cs = childRecords.iterator(); cs.hasNext();) {
-        cs.next().undo(lhs);
+      for (CopyPropagationRecord copyPropagationRecord : childRecords) {
+        copyPropagationRecord.undo(lhs);
       }
     }
 
@@ -248,12 +303,13 @@ public class SSAConversion extends AbstractSSAConversion {
   }
 
   public static void undoCopyPropagation(AstIRFactory.AstIR ir, int instruction, int use) {
-    SSAInformation info = (SSAInformation) ir.getLocalMap();
+    SSAInformation info = ir.getLocalMap();
     info.undoCopyPropagation(instruction, use);
   }
 
-  public static void copyUse(AstIRFactory.AstIR ir, int fromInst, int fromUse, int toInst, int toUse) {
-    SSAInformation info = (SSAInformation) ir.getLocalMap();
+  public static void copyUse(
+      AstIRFactory.AstIR ir, int fromInst, int fromUse, int toInst, int toUse) {
+    SSAInformation info = ir.getLocalMap();
     info.copyUse(fromInst, fromUse, toInst, toUse);
   }
 
@@ -270,26 +326,26 @@ public class SSAConversion extends AbstractSSAConversion {
     
     @Override
     public String[] getLocalNames(int pc, int vn) {
-      
+
       if (computedNames[vn] != null) {
         return computedNames[vn];
       }
-      
+
       int v = skip(vn) || vn >= valueMap.length ? vn : valueMap[vn];
       String[][] namesData = debugInfo.getSourceNamesForValues();
       String[] vNames = namesData[v];
       Set<String> x = HashSetFactory.make();
       x.addAll(Arrays.asList(vNames));
- 
+
       MutableIntSet vals = IntSetUtil.make();
       while (assignments.containsKey(v) && !vals.contains(v)) {
         vals.add(v);
         v = assignments.get(v);
         vNames = namesData[v];
-        x.addAll(Arrays.asList(vNames));        
+        x.addAll(Arrays.asList(vNames));
       }
 
-      return computedNames[vn] = x.toArray(new String[x.size()]);
+      return computedNames[vn] = x.toArray(new String[0]);
     }
 
     private void undoCopyPropagation(int instructionIndex, int useNumber) {
@@ -310,18 +366,21 @@ public class SSAConversion extends AbstractSSAConversion {
       }
     }
 
-    private Map<Object, CopyPropagationRecord> getCopyHistory() {
+    public Map<Object, CopyPropagationRecord> getCopyHistory() {
       return copyPropagationMap;
     }
-    
+
     @Override
     public String toString() {
-      StringBuffer sb = new StringBuffer( super.toString() );
-      
-      for(Map.Entry<Object, CopyPropagationRecord> x : copyPropagationMap.entrySet()) {
-        sb.append(x.getKey().toString() + " --> " + x.getValue().toString() + "\n");
+      StringBuilder sb = new StringBuilder(super.toString());
+
+      for (Map.Entry<Object, CopyPropagationRecord> x : copyPropagationMap.entrySet()) {
+        sb.append(x.getKey().toString())
+            .append(" --> ")
+            .append(x.getValue().toString())
+            .append('\n');
       }
-      
+
       return sb.toString();
     }
   }
@@ -340,9 +399,9 @@ public class SSAConversion extends AbstractSSAConversion {
   private static <T> void push(ArrayList<T> stack, T elt) {
     stack.add(elt);
   }
-  
+
   private static <T> T peek(ArrayList<T> stack) {
-    return stack.get(stack.size()-1); 
+    return stack.get(stack.size() - 1);
   }
 
   //
@@ -396,13 +455,11 @@ public class SSAConversion extends AbstractSSAConversion {
   @Override
   protected void placeNewPhiAt(int value, SSACFG.BasicBlock Y) {
     int[] params = new int[CFG.getPredNodeCount(Y)];
-    for (int i = 0; i < params.length; i++)
-      params[i] = value;
+    Arrays.fill(params, value);
 
     SSAPhiInstruction phi = new SSAPhiInstruction(SSAInstruction.NO_INDEX, value, params);
 
-    if (DEBUG)
-      System.err.println(("Placing " + phi + " at " + Y));
+    if (DEBUG) System.err.println(("Placing " + phi + " at " + Y));
 
     addPhi(Y, phi);
   }
@@ -419,7 +476,11 @@ public class SSAConversion extends AbstractSSAConversion {
 
   @Override
   protected SSAPhiInstruction repairPhiDefs(SSAPhiInstruction phi, int[] newDefs) {
-    return (SSAPhiInstruction) phi.copyForSSA(CFG.getMethod().getDeclaringClass().getClassLoader().getInstructionFactory(), newDefs, null);
+    return (SSAPhiInstruction)
+        phi.copyForSSA(
+            CFG.getMethod().getDeclaringClass().getClassLoader().getInstructionFactory(),
+            newDefs,
+            null);
   }
 
   @Override
@@ -446,7 +507,7 @@ public class SSAConversion extends AbstractSSAConversion {
     int rhs = getUse(inst, 0);
 
     assignments.put(rhs, lhs);
-    
+
     CopyPropagationRecord rec = new CopyPropagationRecord(index, newRhs);
     push(R[lhs], rec);
     if (topR(rhs) != null) {
@@ -467,7 +528,7 @@ public class SSAConversion extends AbstractSSAConversion {
       for (int j = 0; j < lexicalUses.length; j++) {
         int lexicalUse = lexicalUses[j];
         if (lexicalUse != -1 && !skip(lexicalUse)) {
-          if (S.length <= lexicalUse ||  S[lexicalUse].isEmpty()) {
+          if (S.length <= lexicalUse || S[lexicalUse].isEmpty()) {
             lexicalUses[j] = -1;
           } else {
             int newUse = top(lexicalUse);
@@ -484,8 +545,13 @@ public class SSAConversion extends AbstractSSAConversion {
   }
 
   @Override
-  protected void repairInstructionDefs(SSAInstruction inst, int index, int[] newDefs, int[] newUses) {
-    instructions[index] = inst.copyForSSA(CFG.getMethod().getDeclaringClass().getClassLoader().getInstructionFactory(), newDefs, newUses);
+  protected void repairInstructionDefs(
+      SSAInstruction inst, int index, int[] newDefs, int[] newUses) {
+    instructions[index] =
+        inst.copyForSSA(
+            CFG.getMethod().getDeclaringClass().getClassLoader().getInstructionFactory(),
+            newDefs,
+            newUses);
   }
 
   @Override
@@ -504,13 +570,12 @@ public class SSAConversion extends AbstractSSAConversion {
       return false;
     }
 
-    if (index == -1)
-      return true;
+    if (index == -1) return true;
 
     int[] lexicalUses = lexicalInfo.getExposedUses(index);
     if (lexicalUses != null) {
-      for (int j = 0; j < lexicalUses.length; j++) {
-        if (!skip(lexicalUses[j])) {
+      for (int lexicalUs : lexicalUses) {
+        if (!skip(lexicalUs)) {
           return false;
         }
       }
@@ -519,17 +584,11 @@ public class SSAConversion extends AbstractSSAConversion {
     return true;
   }
 
-  /**
-   * @param ir
-   * @param options
-   */
   @SuppressWarnings("unchecked")
   private SSAConversion(AstMethod M, AstIRFactory.AstIR ir, SSAOptions options) {
     super(ir, options);
-    HashMap<Object, CopyPropagationRecord> m = HashMapFactory.make();
-    this.copyPropagationMap = (ir.getLocalMap() instanceof SSAInformation) ? ((SSAInformation) ir.getLocalMap()).getCopyHistory()
-        : m;
-
+    Map<Object, CopyPropagationRecord> m = HashMapFactory.make();
+    this.copyPropagationMap = (ir.getLocalMap() != null) ? ir.getLocalMap().getCopyHistory() : m;
     this.ir = ir;
     this.debugInfo = M.debugInfo();
     this.lexicalInfo = ir.lexicalInfo();
@@ -539,10 +598,7 @@ public class SSAConversion extends AbstractSSAConversion {
     for (int i = 0; i < CFG.getNumberOfNodes(); i++) {
       SSACFG.BasicBlock bb = CFG.getNode(i);
       if (bb.hasPhi()) {
-        int n = 0;
-        for (Iterator<SSAPhiInstruction> X = bb.iteratePhis(); X.hasNext(); n++)
-          X.next();
-        phiCounts[i] = n;
+        phiCounts[i] = IteratorUtil.count(bb.iteratePhis());
       }
     }
 
@@ -551,9 +607,9 @@ public class SSAConversion extends AbstractSSAConversion {
     int[] exitLive = lexicalInfo.getExitExposedUses();
     BitVector v = new BitVector();
     if (exitLive != null) {
-      for (int i = 0; i < exitLive.length; i++) {
-        if (exitLive[i] > -1) {
-          v.set(exitLive[i]);
+      for (int element : exitLive) {
+        if (element > -1) {
+          v.set(element);
         }
       }
     }
@@ -566,8 +622,7 @@ public class SSAConversion extends AbstractSSAConversion {
 
   @Override
   protected int getNextNewValueNumber() {
-    while (symtab.isConstant(nextSSAValue) || skip(nextSSAValue))
-      ++nextSSAValue;
+    while (symtab.isConstant(nextSSAValue) || skip(nextSSAValue)) ++nextSSAValue;
     symtab.ensureSymbol(nextSSAValue);
     int v = nextSSAValue++;
     return v;
@@ -582,13 +637,12 @@ public class SSAConversion extends AbstractSSAConversion {
     }
 
     int[] params = symtab.getParameterValueNumbers();
-    for (int i = 0; i < params.length; i++) {
-      if (!skip(params[i])) {
-        S[params[i]].push(params[i]);
-        valueMap[params[i]] = params[i];
+    for (int param : params) {
+      if (!skip(param)) {
+        S[param].push(param);
+        valueMap[param] = param;
       }
     }
-
   }
 
   @Override
@@ -615,7 +669,7 @@ public class SSAConversion extends AbstractSSAConversion {
     super.fail(v);
   }
 
-  public SSA2LocalMap getComputedLocalMap() {
+  public SSAInformation getComputedLocalMap() {
     return computedLocalMap;
   }
 
@@ -630,10 +684,10 @@ public class SSAConversion extends AbstractSSAConversion {
           int[] lexicalUses = lexicalInfo.getExposedUses(i);
           if (lexicalUses != null) {
             System.err.print(("extra uses for " + instructions[i] + ": "));
-            for (int j = 0; j < lexicalUses.length; j++) {
-              System.err.print((new Integer(lexicalUses[j]).toString() + " "));
+            for (int lexicalUse : lexicalUses) {
+              System.err.print((Integer.valueOf(lexicalUse).toString() + ' '));
             }
-            System.err.println("");
+            System.err.println();
           }
         }
       }
@@ -646,13 +700,14 @@ public class SSAConversion extends AbstractSSAConversion {
     SSAInstruction[] insts = ir.getInstructions();
     MutableIntSet foundOne = new BitVectorIntSet();
     MutableIntSet foundTwo = new BitVectorIntSet();
-    for (int i = 0; i < insts.length; i++) {
-      SSAInstruction inst = insts[i];
+    for (SSAInstruction inst : insts) {
       if (inst != null) {
         for (int j = 0; j < inst.getNumberOfDefs(); j++) {
           int def = inst.getDef(j);
           if (def != -1) {
-            if (foundOne.contains(def) || ir.getSymbolTable().isConstant(def) || def <= ir.getNumberOfParameters()
+            if (foundOne.contains(def)
+                || ir.getSymbolTable().isConstant(def)
+                || def <= ir.getNumberOfParameters()
                 || inst instanceof AssignInstruction) {
               foundTwo.add(def);
             } else {
@@ -666,39 +721,28 @@ public class SSAConversion extends AbstractSSAConversion {
     return foundTwo;
   }
 
-  public static SSA2LocalMap convert(AstMethod M, AstIRFactory.AstIR ir, SSAOptions options) {
+  public static SSAInformation convert(AstMethod M, AstIRFactory.AstIR ir, SSAOptions options) {
     return convert(M, ir, options, valuesToConvert(ir));
   }
 
-  public static SSA2LocalMap convert(AstMethod M, final AstIRFactory.AstIR ir, SSAOptions options, final IntSet values) {
-    try {
-      if (DEBUG) {
-        System.err.println(("starting conversion for " + values));
-        System.err.println(ir);
-      }
-      if (DEBUG_UNDO)
-        System.err.println((">>> starting " + ir.getMethod()));
-      SSAConversion ssa = new SSAConversion(M, ir, options) {
-        final int limit = ir.getSymbolTable().getMaxValueNumber();
-
-        @Override
-        protected boolean skip(int i) {
-          return (i >= 0) && (i <= limit) && (!values.contains(i));
-        }
-      };
-      ssa.perform();
-      if (DEBUG_UNDO)
-        System.err.println(("<<< done " + ir.getMethod()));
-      return ssa.getComputedLocalMap();
-    } catch (RuntimeException e) {
-//      System.err.println(("exception " + e + " while converting:"));
-//      System.err.println(ir);
-      throw e;
-    } catch (Error e) {
-//      System.err.println(("error " + e + " while converting:"));
-//      System.err.println(ir);
-      throw e;
+  public static SSAInformation convert(
+      AstMethod M, final AstIRFactory.AstIR ir, SSAOptions options, final IntSet values) {
+    if (DEBUG) {
+      System.err.println(("starting conversion for " + values));
+      System.err.println(ir);
     }
-  }
+    if (DEBUG_UNDO) System.err.println((">>> starting " + ir.getMethod()));
+    SSAConversion ssa =
+        new SSAConversion(M, ir, options) {
+          final int limit = ir.getSymbolTable().getMaxValueNumber();
 
+          @Override
+          protected boolean skip(int i) {
+            return (i >= 0) && (i <= limit) && (!values.contains(i));
+          }
+        };
+    ssa.perform();
+    if (DEBUG_UNDO) System.err.println(("<<< done " + ir.getMethod()));
+    return ssa.getComputedLocalMap();
+  }
 }

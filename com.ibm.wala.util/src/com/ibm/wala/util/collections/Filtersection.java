@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2002 - 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,18 +7,16 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.util.collections;
 
-import com.ibm.wala.util.Predicate;
+import java.util.function.Predicate;
 
-/**
- * intersection of two filters
- */
-public class Filtersection<T> extends Predicate<T> {
+/** intersection of two filters */
+public class Filtersection<T> implements Predicate<T> {
 
-  final private Predicate<T> a;
-  final private Predicate<T> b;
+  private final Predicate<T> a;
+  private final Predicate<T> b;
 
   public Filtersection(Predicate<T> a, Predicate<T> b) {
     this.a = a;
@@ -35,5 +33,4 @@ public class Filtersection<T> extends Predicate<T> {
   public boolean test(T o) {
     return a.test(o) && b.test(o);
   }
-
 }

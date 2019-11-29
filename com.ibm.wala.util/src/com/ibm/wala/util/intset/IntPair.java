@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2002 - 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,12 +7,10 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.util.intset;
 
-/**
- * A pair of ints. Note that an IntPair has value semantics.
- */
+/** A pair of ints. Note that an IntPair has value semantics. */
 public class IntPair {
   final int x;
 
@@ -23,16 +21,12 @@ public class IntPair {
     this.y = y;
   }
 
-  /**
-   * @return Returns the x.
-   */
+  /** @return Returns the x. */
   public int getX() {
     return x;
   }
 
-  /**
-   * @return Returns the y.
-   */
+  /** @return Returns the y. */
   public int getY() {
     return y;
   }
@@ -57,7 +51,7 @@ public class IntPair {
 
   @Override
   public String toString() {
-    return "[" + x + "," + y + "]";
+    return "[" + x + ',' + y + ']';
   }
 
   public static IntPair make(int x, int y) {

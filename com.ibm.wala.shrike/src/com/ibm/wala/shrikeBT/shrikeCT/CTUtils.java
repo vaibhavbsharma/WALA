@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2002,2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,7 +7,7 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.shrikeBT.shrikeCT;
 
 import com.ibm.wala.shrikeBT.Constants;
@@ -19,15 +19,16 @@ import com.ibm.wala.shrikeCT.ClassWriter.Element;
 import com.ibm.wala.shrikeCT.CodeWriter;
 import com.ibm.wala.shrikeCT.InvalidClassFileException;
 import com.ibm.wala.shrikeCT.LineNumberTableWriter;
+import java.util.Arrays;
 
 /**
  * This is a dumping ground for useful functions that manipulate class info.
- * 
+ *
  * @author roca@us.ibm.com
  */
 public class CTUtils {
-  public static void addClassToHierarchy(ClassHierarchyStore store, ClassReader cr) throws InvalidClassFileException,
-      IllegalArgumentException {
+  public static void addClassToHierarchy(ClassHierarchyStore store, ClassReader cr)
+      throws InvalidClassFileException, IllegalArgumentException {
     if (store == null) {
       throw new IllegalArgumentException("store is null");
     }
@@ -42,19 +43,23 @@ public class CTUtils {
     if ("java/io/File".equals(cr.getName()) || "java/lang/Throwable".equals(cr.getName())) {
       System.err.println(superName);
     }
-    store.setClassInfo(CTDecoder.convertClassToType(cr.getName()), (cr.getAccessFlags() & Constants.ACC_INTERFACE) != 0, (cr
-        .getAccessFlags() & Constants.ACC_FINAL) != 0, superName != null ? CTDecoder.convertClassToType(superName) : null,
+    store.setClassInfo(
+        CTDecoder.convertClassToType(cr.getName()),
+        (cr.getAccessFlags() & Constants.ACC_INTERFACE) != 0,
+        (cr.getAccessFlags() & Constants.ACC_FINAL) != 0,
+        superName != null ? CTDecoder.convertClassToType(superName) : null,
         superInterfaces);
   }
 
   /**
    * Compile and add a method to a {@link ClassWriter}.
-   * 
+   *
    * @param md the method data
    * @param classWriter the target class writer
-   * @param rawLines line number information if available, otherwise <code>null</code>
+   * @param rawLines line number information if available, otherwise {@code null}
    */
-  public static void compileAndAddMethodToClassWriter(MethodData md, ClassWriter classWriter, ClassWriter.Element rawLines) {
+  public static void compileAndAddMethodToClassWriter(
+      MethodData md, ClassWriter classWriter, ClassWriter.Element rawLines) {
     if (classWriter == null) {
       throw new IllegalArgumentException("classWriter is null");
     }
@@ -69,28 +74,26 @@ public class CTUtils {
     code.setMaxLocals(output.getMaxLocals());
     code.setCode(output.getCode());
     code.setRawHandlers(output.getRawHandlers());
-  
+
     LineNumberTableWriter lines = null;
     // I guess it is the line numbers in the java files.
     if (rawLines == null) {
       // add fake line numbers: just map each bytecode instruction to its own
       // 'line'
-  
+
       // NOTE:Should not use md.getInstructions().length, because the
       // the length of the created code can be smaller than the md's instruction
       // length
-  
+
       // WRONG: int[] newLineMap = new int[md.getInstructions().length];
       int[] newLineMap = new int[code.getCodeLength()];
-      for (int i = 0; i < newLineMap.length; i++) {
-        newLineMap[i] = i;
-      }
+      Arrays.setAll(newLineMap, i -> i);
       int[] rawTable = LineNumberTableWriter.makeRawTable(newLineMap);
       lines = new LineNumberTableWriter(classWriter);
       lines.setRawTable(rawTable);
     }
-    code.setAttributes(new ClassWriter.Element[] { rawLines == null ? lines : rawLines });
-    Element[] elements = { code };
+    code.setAttributes(new ClassWriter.Element[] {rawLines == null ? lines : rawLines});
+    Element[] elements = {code};
     // System.out.println("Name:"+md.getName()+" Sig:"+md.getSignature());
     classWriter.addMethod(md.getAccess(), md.getName(), md.getSignature(), elements);
   }

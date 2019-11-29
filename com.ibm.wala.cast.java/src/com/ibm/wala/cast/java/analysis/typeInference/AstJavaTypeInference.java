@@ -1,4 +1,4 @@
-/******************************************************************************
+/*
  * Copyright (c) 2002 - 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,7 +7,7 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *****************************************************************************/
+ */
 package com.ibm.wala.cast.java.analysis.typeInference;
 
 import com.ibm.wala.analysis.typeInference.ConeType;
@@ -22,7 +22,6 @@ import com.ibm.wala.cast.java.ssa.AstJavaInstructionVisitor;
 import com.ibm.wala.cast.java.ssa.AstJavaInvokeInstruction;
 import com.ibm.wala.cast.java.ssa.EnclosingObjectReference;
 import com.ibm.wala.classLoader.IClass;
-import com.ibm.wala.fixpoint.IVariable;
 import com.ibm.wala.shrikeBT.IBinaryOpInstruction;
 import com.ibm.wala.ssa.IR;
 import com.ibm.wala.ssa.SSABinaryOpInstruction;
@@ -34,14 +33,21 @@ public class AstJavaTypeInference extends AstTypeInference {
 
   protected IClass stringClass;
 
-  protected class AstJavaTypeOperatorFactory extends AstTypeOperatorFactory implements AstJavaInstructionVisitor {
+  protected class AstJavaTypeOperatorFactory extends AstTypeOperatorFactory
+      implements AstJavaInstructionVisitor {
     @Override
     public void visitBinaryOp(SSABinaryOpInstruction instruction) {
       if (doPrimitives) {
         IBinaryOpInstruction.IOperator op = instruction.getOperator();
-        if (op == CAstBinaryOp.EQ || op == CAstBinaryOp.NE || op == CAstBinaryOp.LT
-            || op == CAstBinaryOp.GE || op == CAstBinaryOp.GT || op == CAstBinaryOp.LE) {
-          result = new DeclaredTypeOperator(language.getPrimitive(language.getConstantType(Boolean.TRUE)));
+        if (op == CAstBinaryOp.EQ
+            || op == CAstBinaryOp.NE
+            || op == CAstBinaryOp.LT
+            || op == CAstBinaryOp.GE
+            || op == CAstBinaryOp.GT
+            || op == CAstBinaryOp.LE) {
+          result =
+              new DeclaredTypeOperator(
+                  language.getPrimitive(language.getConstantType(Boolean.TRUE)));
         } else {
           result = new PrimAndStringOp();
         }
@@ -84,7 +90,7 @@ public class AstJavaTypeInference extends AstTypeInference {
   public class AstJavaTypeVarFactory extends TypeVarFactory {
 
     @Override
-    public IVariable makeVariable(int valueNumber) {
+    public TypeVariable makeVariable(int valueNumber) {
       SymbolTable st = ir.getSymbolTable();
       if (st.isStringConstant(valueNumber)) {
         IClass klass = cha.lookupClass(TypeReference.JavaLangString);
@@ -94,7 +100,6 @@ public class AstJavaTypeInference extends AstTypeInference {
         return super.makeVariable(valueNumber);
       }
     }
-
   }
 
   public AstJavaTypeInference(IR ir, boolean doPrimitives) {
@@ -125,16 +130,14 @@ public class AstJavaTypeInference extends AstTypeInference {
 
   protected class PrimAndStringOp extends PrimitivePropagateOperator {
 
-    private PrimAndStringOp() {
-    }
+    private PrimAndStringOp() {}
 
     @Override
     public byte evaluate(TypeVariable lhs, TypeVariable[] rhs) {
       TypeAbstraction meet = null;
 
-      for (int i = 0; i < rhs.length; i++) {
-        if (rhs[i] != null) {
-          TypeVariable r = rhs[i];
+      for (TypeVariable r : rhs) {
+        if (r != null) {
           TypeAbstraction ta = r.getType();
           if (ta instanceof PointType) {
             if (ta.getType().equals(getStringClass())) {
@@ -167,7 +170,7 @@ public class AstJavaTypeInference extends AstTypeInference {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.ibm.wala.dataflow.Operator#hashCode()
      */
     @Override
@@ -177,7 +180,7 @@ public class AstJavaTypeInference extends AstTypeInference {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see com.ibm.wala.dataflow.Operator#equals(java.lang.Object)
      */
     @Override
@@ -185,5 +188,4 @@ public class AstJavaTypeInference extends AstTypeInference {
       return o != null && o.getClass().equals(getClass());
     }
   }
-
 }

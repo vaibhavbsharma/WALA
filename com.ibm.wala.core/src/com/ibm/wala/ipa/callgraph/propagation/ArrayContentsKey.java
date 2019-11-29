@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2002 - 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,14 +7,12 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.ipa.callgraph.propagation;
 
 import com.ibm.wala.classLoader.ArrayClass;
 
-/**
- * A {@link PointerKey} which represents the contents of an array instance.
- */
+/** A {@link PointerKey} which represents the contents of an array instance. */
 public final class ArrayContentsKey extends AbstractFieldPointerKey implements FilteredPointerKey {
   public ArrayContentsKey(InstanceKey instance) {
     super(instance);

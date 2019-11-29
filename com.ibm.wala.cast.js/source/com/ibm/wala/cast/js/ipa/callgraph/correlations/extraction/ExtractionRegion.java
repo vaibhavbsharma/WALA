@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2011 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,7 +7,7 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 
 package com.ibm.wala.cast.js.ipa.callgraph.correlations.extraction;
 
@@ -15,16 +15,15 @@ import java.util.List;
 
 /**
  * A region for the {@link ClosureExtractor} to extract.
- * 
- * @author mschaefer
  *
+ * @author mschaefer
  */
 public class ExtractionRegion {
   private int start, end;
-  
+
   // parameters for the extracted method
   private final List<String> parameters;
-  
+
   // variables that should be made local to the extracted method if possible
   private final List<String> locals;
 

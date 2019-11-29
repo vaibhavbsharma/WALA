@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2002,2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,18 +7,16 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.shrikeBT;
 
-/**
- * This class represents the ?aload instructions.
- */
-final public class ArrayLoadInstruction extends Instruction implements IArrayLoadInstruction {
+/** This class represents the ?aload instructions. */
+public final class ArrayLoadInstruction extends Instruction implements IArrayLoadInstruction {
   protected ArrayLoadInstruction(short opcode) {
     super(opcode);
   }
 
-  private final static ArrayLoadInstruction[] preallocated = preallocate();
+  private static final ArrayLoadInstruction[] preallocated = preallocate();
 
   private static ArrayLoadInstruction[] preallocate() {
     ArrayLoadInstruction[] r = new ArrayLoadInstruction[OP_saload - OP_iaload + 2];
@@ -59,7 +57,7 @@ final public class ArrayLoadInstruction extends Instruction implements IArrayLoa
 
   @Override
   public String toString() {
-    return "ArrayLoad(" + getType() + ")";
+    return "ArrayLoad(" + getType() + ')';
   }
 
   @Override
@@ -106,12 +104,12 @@ final public class ArrayLoadInstruction extends Instruction implements IArrayLoa
   }
 
   /**
-   * Java bytecode does not permit this. 
+   * Java bytecode does not permit this.
+   *
    * @see com.ibm.wala.shrikeBT.IMemoryOperation#isAddressOf()
    */
   @Override
   public boolean isAddressOf() {
     return false;
   }
-
 }

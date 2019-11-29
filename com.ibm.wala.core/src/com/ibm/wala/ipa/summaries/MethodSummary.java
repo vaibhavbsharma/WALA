@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2002 - 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,67 +7,47 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.ipa.summaries;
-
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.Map;
 
 import com.ibm.wala.ssa.ConstantValue;
 import com.ibm.wala.ssa.SSAInstruction;
-import com.ibm.wala.types.MemberReference;
 import com.ibm.wala.types.MethodReference;
 import com.ibm.wala.types.TypeReference;
 import com.ibm.wala.util.collections.HashMapFactory;
+import com.ibm.wala.util.strings.Atom;
 import com.ibm.wala.util.warnings.Warning;
+import java.util.ArrayList;
+import java.util.Map;
 
-/**
- * Summary information for a method.
- */
+/** Summary information for a method. */
 public class MethodSummary {
 
-  protected final static SSAInstruction[] NO_STATEMENTS = new SSAInstruction[0];
+  protected static final SSAInstruction[] NO_STATEMENTS = new SSAInstruction[0];
 
-  /**
-   * The method summarized
-   */
-  final private MethodReference method;
+  /** The method summarized */
+  private final MethodReference method;
 
-  /**
-   * List of statements that define this method summary
-   */
+  /** List of statements that define this method summary */
   private ArrayList<SSAInstruction> statements;
 
-  /**
-   * Map: value number -> constant
-   */
+  /** Map: value number -&gt; constant */
   private Map<Integer, ConstantValue> constantValues;
 
-  /**
-   * The next available program counter value.
-   */
-  private int nextProgramCounter = 0;
-
-  /**
-   * Some reason this method summary indicates a problem.
-   */
+  /** Some reason this method summary indicates a problem. */
   private String poison;
 
-  /**
-   * An indication of how severe the poison problem is.
-   */
+  /** An indication of how severe the poison problem is. */
   private byte poisonLevel;
 
-  /**
-   * Is this a static method?
-   */
+  /** Is this a static method? */
   private boolean isStatic = false;
 
-  /**
-   * Is this a "factory" method?
-   */
+  /** Is this a "factory" method? */
   private boolean isFactory = false;
+
+  /** Known names for values */
+  private Map<Integer, Atom> valueNames = null;
 
   public MethodSummary(MethodReference method) {
     if (method == null) {
@@ -75,30 +55,41 @@ public class MethodSummary {
     }
     this.method = method;
   }
-  
+
+  public void setValueNames(Map<Integer, Atom> nameTable) {
+    this.valueNames = nameTable;
+  }
+
+  public Map<Integer, Atom> getValueNames() {
+    return valueNames;
+  }
+
+  public Atom getValue(Integer v) {
+    return valueNames != null && valueNames.containsKey(v) ? valueNames.get(v) : null;
+  }
+
   public int getNumberOfStatements() {
     return (statements == null ? 0 : statements.size());
   }
 
   public void addStatement(SSAInstruction statement) {
     if (statements == null) {
-      statements = new ArrayList<SSAInstruction>();
+      statements = new ArrayList<>();
     }
     statements.add(statement);
   }
 
   public void addConstant(Integer vn, ConstantValue value) {
-    if (constantValues == null)
-      constantValues = HashMapFactory.make(5);
+    if (constantValues == null) constantValues = HashMapFactory.make(5);
     constantValues.put(vn, value);
   }
 
   /**
    * Returns the method.
-   * 
+   *
    * @return MethodReference
    */
-  public MemberReference getMethod() {
+  public MethodReference getMethod() {
     return method;
   }
 
@@ -107,9 +98,6 @@ public class MethodSummary {
     return false;
   }
 
-  /**
-   * @param reason
-   */
   public void addPoison(String reason) {
     this.poison = reason;
   }
@@ -132,25 +120,14 @@ public class MethodSummary {
   }
 
   public SSAInstruction[] getStatements() {
-    if (statements == null) {
-      return NO_STATEMENTS;
-    } else {
-      SSAInstruction[] result = new SSAInstruction[statements.size()];
-      Iterator<SSAInstruction> it = statements.iterator();
-      for (int i = 0; i < result.length; i++) {
-        result[i] = it.next();
-      }
-      return result;
-    }
+    return statements == null ? NO_STATEMENTS : statements.toArray(new SSAInstruction[0]);
   }
 
   public Map<Integer, ConstantValue> getConstants() {
     return constantValues;
   }
 
-  /**
-   * @return the number of parameters, including the implicit 'this'
-   */
+  /** @return the number of parameters, including the implicit 'this' */
   public int getNumberOfParameters() {
     return (isStatic()) ? method.getNumberOfParameters() : method.getNumberOfParameters() + 1;
   }
@@ -169,12 +146,10 @@ public class MethodSummary {
 
   @Override
   public String toString() {
-    return "[Summary: " + method + "]";
+    return "[Summary: " + method + ']';
   }
 
-  /**
-   * Note that by convention, getParameterType(0) == this for non-static methods.
-   */
+  /** Note that by convention, getParameterType(0) == this for non-static methods. */
   public TypeReference getParameterType(int i) {
     if (isStatic()) {
       return method.getParameterType(i);
@@ -187,15 +162,9 @@ public class MethodSummary {
     }
   }
 
-  public int getNextProgramCounter() {
-    return nextProgramCounter++;
-  }
-
   /**
-   * Record if this is a "factory" method; meaning it returns some object which we know little about ... usually we'll resolve this
-   * based on downstream uses of the object
-   * 
-   * @param b
+   * Record if this is a "factory" method; meaning it returns some object which we know little about
+   * ... usually we'll resolve this based on downstream uses of the object
    */
   public void setFactory(boolean b) {
     this.isFactory = b;
@@ -204,5 +173,4 @@ public class MethodSummary {
   public boolean isFactory() {
     return isFactory;
   }
-
 }

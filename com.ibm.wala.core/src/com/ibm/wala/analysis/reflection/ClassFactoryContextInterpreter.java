@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2008 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,13 +7,10 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.analysis.reflection;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.Map;
-
+import com.ibm.wala.analysis.typeInference.TypeAbstraction;
 import com.ibm.wala.cfg.ControlFlowGraph;
 import com.ibm.wala.cfg.InducedCFG;
 import com.ibm.wala.classLoader.CallSiteReference;
@@ -21,6 +18,8 @@ import com.ibm.wala.classLoader.IClass;
 import com.ibm.wala.classLoader.IMethod;
 import com.ibm.wala.classLoader.NewSiteReference;
 import com.ibm.wala.ipa.callgraph.CGNode;
+import com.ibm.wala.ipa.callgraph.Context;
+import com.ibm.wala.ipa.callgraph.ContextKey;
 import com.ibm.wala.ipa.callgraph.propagation.SSAContextInterpreter;
 import com.ibm.wala.ipa.summaries.SyntheticIR;
 import com.ibm.wala.ssa.DefUse;
@@ -38,19 +37,23 @@ import com.ibm.wala.types.TypeReference;
 import com.ibm.wala.util.collections.EmptyIterator;
 import com.ibm.wala.util.collections.HashMapFactory;
 import com.ibm.wala.util.collections.NonNullSingletonIterator;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.Map;
 
 /**
- * An {@link SSAContextInterpreter} specialized to interpret reflective class factories (e.g. Class.forName()) in a
- * {@link JavaTypeContext} which represents the point-type of the class object created by the call.
+ * An {@link SSAContextInterpreter} specialized to interpret reflective class factories (e.g.
+ * Class.forName()) in a {@link JavaTypeContext} which represents the point-type of the class object
+ * created by the call.
  */
 public class ClassFactoryContextInterpreter implements SSAContextInterpreter {
 
   private static final boolean DEBUG = false;
 
-/** BEGIN Custom change: caching */
+  /* BEGIN Custom change: caching */
   private final Map<String, IR> cache = HashMapFactory.make();
-  
-/** END Custom change: caching */
+
+  /* END Custom change: caching */
   @Override
   public IR getIR(CGNode node) {
     if (node == null) {
@@ -60,21 +63,19 @@ public class ClassFactoryContextInterpreter implements SSAContextInterpreter {
     if (DEBUG) {
       System.err.println("generating IR for " + node);
     }
-/** BEGIN Custom change: caching */
-    
-    
-    final JavaTypeContext context = (JavaTypeContext) node.getContext();
+    /* BEGIN Custom change: caching */
+    final Context context = node.getContext();
     final IMethod method = node.getMethod();
-    final String hashKey = method.toString() + "@" + context.toString();
-    
+    final String hashKey = method.toString() + '@' + context.toString();
+
     IR result = cache.get(hashKey);
-    
+
     if (result == null) {
       result = makeIR(method, context);
       cache.put(hashKey, result);
     }
-    
-/** END Custom change: caching */
+
+    /* END Custom change: caching */
     return result;
   }
 
@@ -97,7 +98,7 @@ public class ClassFactoryContextInterpreter implements SSAContextInterpreter {
     if (node == null) {
       throw new IllegalArgumentException("node is null");
     }
-    if (!(node.getContext() instanceof JavaTypeContext)) {
+    if (!(node.getContext().isA(JavaTypeContext.class))) {
       return false;
     }
     return ClassFactoryContextSelector.isClassFactory(node.getMethod().getReference());
@@ -112,10 +113,10 @@ public class ClassFactoryContextInterpreter implements SSAContextInterpreter {
       throw new IllegalArgumentException("node is null");
     }
     assert understands(node);
-    JavaTypeContext context = (JavaTypeContext) node.getContext();
-    TypeReference tr = context.getType().getTypeReference();
+    TypeReference tr =
+        ((TypeAbstraction) node.getContext().get(ContextKey.RECEIVER)).getTypeReference();
     if (tr != null) {
-      return new NonNullSingletonIterator<NewSiteReference>(NewSiteReference.make(0, tr));
+      return new NonNullSingletonIterator<>(NewSiteReference.make(0, tr));
     }
     return EmptyIterator.instance();
   }
@@ -129,14 +130,20 @@ public class ClassFactoryContextInterpreter implements SSAContextInterpreter {
     return EmptyIterator.instance();
   }
 
-  private static SSAInstruction[] makeStatements(JavaTypeContext context) {
-    SSAInstructionFactory insts = context.getType().getType().getClassLoader().getInstructionFactory();
-    ArrayList<SSAInstruction> statements = new ArrayList<SSAInstruction>();
+  private static SSAInstruction[] makeStatements(Context context) {
+    SSAInstructionFactory insts =
+        ((TypeAbstraction) context.get(ContextKey.RECEIVER))
+            .getType()
+            .getClassLoader()
+            .getInstructionFactory();
+    ArrayList<SSAInstruction> statements = new ArrayList<>();
     // vn1 is the string parameter
     int retValue = 2;
-    TypeReference tr = context.getType().getTypeReference();
+    TypeReference tr = ((TypeAbstraction) context.get(ContextKey.RECEIVER)).getTypeReference();
     if (tr != null) {
-      SSALoadMetadataInstruction l = insts.LoadMetadataInstruction(statements.size(), retValue, TypeReference.JavaLangClass, tr);
+      SSALoadMetadataInstruction l =
+          insts.LoadMetadataInstruction(
+              statements.size(), retValue, TypeReference.JavaLangClass, tr);
       statements.add(l);
       SSAReturnInstruction R = insts.ReturnInstruction(statements.size(), retValue, false);
       statements.add(R);
@@ -149,9 +156,15 @@ public class ClassFactoryContextInterpreter implements SSAContextInterpreter {
     return result;
   }
 
-  private static IR makeIR(IMethod method, JavaTypeContext context) {
+  private static IR makeIR(IMethod method, Context context) {
     SSAInstruction instrs[] = makeStatements(context);
-    return new SyntheticIR(method, context, new InducedCFG(instrs, method, context), instrs, SSAOptions.defaultOptions(), null);
+    return new SyntheticIR(
+        method,
+        context,
+        new InducedCFG(instrs, method, context),
+        instrs,
+        SSAOptions.defaultOptions(),
+        null);
   }
 
   @Override

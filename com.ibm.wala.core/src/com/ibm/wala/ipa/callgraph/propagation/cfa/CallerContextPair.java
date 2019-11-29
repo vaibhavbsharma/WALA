@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2002 - 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,7 +7,7 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 
 package com.ibm.wala.ipa.callgraph.propagation.cfa;
 
@@ -17,17 +17,16 @@ import com.ibm.wala.ipa.callgraph.ContextItem;
 import com.ibm.wala.ipa.callgraph.ContextKey;
 
 /**
- * This is a {@link Context} which is defined by a pair consisting of <caller node, base context>.
- * 
- * The base context is typically some special case; e.g., a JavaTypeContext used for reflection.
+ * This is a {@link Context} which is defined by a pair consisting of &lt;caller node, base
+ * context&gt;.
+ *
+ * <p>The base context is typically some special case; e.g., a JavaTypeContext used for reflection.
  */
 public class CallerContextPair extends CallerContext {
 
   private final Context baseContext;
 
-  /**
-   * @param caller the node which defines this context.
-   */
+  /** @param caller the node which defines this context. */
   public CallerContextPair(CGNode caller, Context baseContext) {
     super(caller);
     this.baseContext = baseContext;
@@ -69,5 +68,4 @@ public class CallerContextPair extends CallerContext {
   public String toString() {
     return "Caller: " + getCaller() + ",Base:" + baseContext;
   }
-
 }

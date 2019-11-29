@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2007 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,15 +7,14 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.util.intset;
 
 import java.util.Iterator;
 import java.util.NoSuchElementException;
+import java.util.stream.Stream;
 
-/**
- * An ordinal set mapping, backed a delegate, but adding an offset to each index.
- */
+/** An ordinal set mapping, backed a delegate, but adding an offset to each index. */
 public class OffsetOrdinalSetMapping<T> implements OrdinalSetMapping<T> {
 
   private final OrdinalSetMapping<T> delegate;
@@ -77,4 +76,8 @@ public class OffsetOrdinalSetMapping<T> implements OrdinalSetMapping<T> {
     return delegate.iterator();
   }
 
+  @Override
+  public Stream<T> stream() {
+    return delegate.stream();
+  }
 }

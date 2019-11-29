@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2002,2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,45 +7,50 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.shrikeBT;
 
 /**
- * This class represents conditional branches. A conditional branch tests two integers or two object references for some
- * relationship, and takes the branch if the relationship holds.
+ * This class represents conditional branches. A conditional branch tests two integers or two object
+ * references for some relationship, and takes the branch if the relationship holds.
  */
-public final class ConditionalBranchInstruction extends Instruction implements IConditionalBranchInstruction {
+public final class ConditionalBranchInstruction extends Instruction
+    implements IConditionalBranchInstruction {
 
-  final private int label;
+  private final int label;
 
   protected ConditionalBranchInstruction(short opcode, int label) {
     super(opcode);
     this.label = label;
   }
 
-  public static ConditionalBranchInstruction make(String type, Operator operator, int label) throws IllegalArgumentException {
+  public static ConditionalBranchInstruction make(String type, Operator operator, int label)
+      throws IllegalArgumentException {
     int t = Util.getTypeIndex(type);
     short opcode;
 
     switch (t) {
-    case TYPE_int_index:
-      opcode = (short) (OP_if_icmpeq + (operator.ordinal() - Operator.EQ.ordinal()));
-      break;
-    case TYPE_Object_index:
-      if (operator != Operator.EQ && operator != Operator.NE) {
-        throw new IllegalArgumentException("Cannot test for condition " + operator + " on a reference");
-      }
-      opcode = (short) (OP_if_acmpeq + (operator.ordinal() - Operator.EQ.ordinal()));
-      break;
-    default:
-      throw new IllegalArgumentException("Cannot conditionally branch on a value of type " + type);
+      case TYPE_int_index:
+        opcode = (short) (OP_if_icmpeq + (operator.ordinal() - Operator.EQ.ordinal()));
+        break;
+      case TYPE_Object_index:
+        if (operator != Operator.EQ && operator != Operator.NE) {
+          throw new IllegalArgumentException(
+              "Cannot test for condition " + operator + " on a reference");
+        }
+        opcode = (short) (OP_if_acmpeq + (operator.ordinal() - Operator.EQ.ordinal()));
+        break;
+      default:
+        throw new IllegalArgumentException(
+            "Cannot conditionally branch on a value of type " + type);
     }
 
     return make(opcode, label);
   }
 
   // Relax from private to public by Xiangyu, to create ifeq
-  public static ConditionalBranchInstruction make(short opcode, int label) throws IllegalArgumentException {
+  public static ConditionalBranchInstruction make(short opcode, int label)
+      throws IllegalArgumentException {
     if (opcode < OP_ifeq || opcode > OP_if_acmpne) {
       throw new IllegalArgumentException("Illegal opcode: " + opcode);
     }
@@ -64,12 +69,12 @@ public final class ConditionalBranchInstruction extends Instruction implements I
 
   @Override
   public String toString() {
-    return "ConditionalBranch(" + getType() + "," + getOperator() + "," + label + ")";
+    return "ConditionalBranch(" + getType() + ',' + getOperator() + ',' + label + ')';
   }
 
   @Override
   public int[] getBranchTargets() {
-    int[] r = { label };
+    int[] r = {label};
     return r;
   }
 
@@ -112,8 +117,7 @@ public final class ConditionalBranchInstruction extends Instruction implements I
   @Override
   public int getPoppedCount() {
     // Xiangyu, to support if_eq (if_ne)...
-    if (opcode >= Constants.OP_ifeq && opcode <= Constants.OP_ifle)
-      return 1;
+    if (opcode >= Constants.OP_ifeq && opcode <= Constants.OP_ifle) return 1;
     return 2;
   }
 

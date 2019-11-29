@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2007 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,7 +7,7 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.ipa.callgraph.propagation.cfa;
 
 import com.ibm.wala.ipa.callgraph.Context;
@@ -26,7 +26,9 @@ public class CallStringContext implements Context {
 
   @Override
   public boolean equals(Object o) {
-    return (o instanceof CallStringContext) && ((CallStringContext) o).cs.equals(cs);
+    return (o instanceof Context)
+        && ((Context) o).isA(CallStringContext.class)
+        && ((Context) o).get(CallStringContextSelector.CALL_STRING).equals(cs);
   }
 
   @Override

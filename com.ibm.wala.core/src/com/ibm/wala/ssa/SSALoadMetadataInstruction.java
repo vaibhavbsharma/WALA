@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2002 - 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,7 +7,7 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.ssa;
 
 import com.ibm.wala.types.TypeReference;
@@ -20,17 +20,19 @@ public abstract class SSALoadMetadataInstruction extends SSAInstruction {
   private final int lval;
 
   /**
-   * A representation of the meta-data itself. For a loadClass operation, this would be a {@link TypeReference} representing the
-   * class object being manipulated
+   * A representation of the meta-data itself. For a loadClass operation, this would be a {@link
+   * TypeReference} representing the class object being manipulated
    */
   private final Object token;
 
   /**
-   * The type of the thing that this meta-data represents. For a loadClass instruction, entityType is java.lang.Class
+   * The type of the thing that this meta-data represents. For a loadClass instruction, entityType
+   * is java.lang.Class
    */
   private final TypeReference entityType;
 
-  protected SSALoadMetadataInstruction(int iindex, int lval, TypeReference entityType, Object token) {
+  protected SSALoadMetadataInstruction(
+      int iindex, int lval, TypeReference entityType, Object token) {
     super(iindex);
     this.lval = lval;
     this.token = token;
@@ -45,7 +47,8 @@ public abstract class SSALoadMetadataInstruction extends SSAInstruction {
     if (defs != null && defs.length == 0) {
       throw new IllegalArgumentException("(defs != null) and (defs.length == 0)");
     }
-    return insts.LoadMetadataInstruction(iindex, defs == null ? lval : defs[0], entityType, token);
+    return insts.LoadMetadataInstruction(
+        iIndex(), defs == null ? lval : defs[0], entityType, token);
   }
 
   @Override

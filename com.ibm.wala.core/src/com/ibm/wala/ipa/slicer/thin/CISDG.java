@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2007 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,13 +7,8 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.ipa.slicer.thin;
-
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
 
 import com.ibm.wala.ipa.callgraph.CGNode;
 import com.ibm.wala.ipa.callgraph.propagation.InstanceKey;
@@ -30,41 +25,40 @@ import com.ibm.wala.util.collections.IteratorUtil;
 import com.ibm.wala.util.collections.MapUtil;
 import com.ibm.wala.util.debug.Assertions;
 import com.ibm.wala.util.intset.IntSet;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Stream;
 
 /**
- * A context-insensitive SDG. This class assumes that it is given a normal NO_HEAP SDG. It adds context-insensitive heap information
- * directly from heap stores to corresponding loads, based on an underlying pointer analysis.
+ * A context-insensitive SDG. This class assumes that it is given a normal NO_HEAP SDG. It adds
+ * context-insensitive heap information directly from heap stores to corresponding loads, based on
+ * an underlying pointer analysis.
  */
 public class CISDG implements ISDG {
 
-  private final static boolean DEBUG = false;
+  private static final boolean DEBUG = false;
 
-  /**
-   * the basic SDG, without interprocedural heap edges
-   */
+  /** the basic SDG, without interprocedural heap edges */
   final SDG<InstanceKey> noHeap;
 
-  /**
-   * What pointer keys does each statement mod?
-   */
+  /** What pointer keys does each statement mod? */
   private final Map<Statement, Set<PointerKey>> ref;
 
-  /**
-   * What pointer keys does each statement ref?
-   */
+  /** What pointer keys does each statement ref? */
   private final Map<Statement, Set<PointerKey>> mod;
 
-  /**
-   * What statements write each pointer key?
-   */
+  /** What statements write each pointer key? */
   final Map<PointerKey, Set<Statement>> invMod;
 
-  /**
-   * What statements ref each pointer key?
-   */
+  /** What statements ref each pointer key? */
   final Map<PointerKey, Set<Statement>> invRef;
 
-  protected CISDG(SDG<InstanceKey> noHeap, Map<Statement, Set<PointerKey>> mod, Map<Statement, Set<PointerKey>> ref) {
+  protected CISDG(
+      SDG<InstanceKey> noHeap,
+      Map<Statement, Set<PointerKey>> mod,
+      Map<Statement, Set<PointerKey>> ref) {
     this.noHeap = noHeap;
     this.mod = mod;
     this.ref = ref;
@@ -198,7 +192,6 @@ public class CISDG implements ISDG {
   public int hashCode() {
     Assertions.UNREACHABLE();
     return noHeap.hashCode();
-
   }
 
   @Override
@@ -210,6 +203,11 @@ public class CISDG implements ISDG {
   @Override
   public Iterator<Statement> iterator() {
     return noHeap.iterator();
+  }
+
+  @Override
+  public Stream<Statement> stream() {
+    return noHeap.stream();
   }
 
   @Override

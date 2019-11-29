@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2002 - 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,15 +7,13 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.classLoader;
-
-import java.io.IOException;
-import java.util.Collection;
 
 import com.ibm.wala.classLoader.ShrikeClass.GetReader;
 import com.ibm.wala.ipa.cha.IClassHierarchy;
 import com.ibm.wala.shrikeBT.Decoder;
+import com.ibm.wala.shrikeBT.IInstruction;
 import com.ibm.wala.shrikeBT.IndirectionData;
 import com.ibm.wala.shrikeBT.shrikeCT.CTDecoder;
 import com.ibm.wala.shrikeCT.AnnotationsReader;
@@ -39,20 +37,17 @@ import com.ibm.wala.types.annotations.TypeAnnotation;
 import com.ibm.wala.types.generics.MethodTypeSignature;
 import com.ibm.wala.util.collections.HashSetFactory;
 import com.ibm.wala.util.debug.Assertions;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.Collection;
 
-/**
- * A wrapper around a Shrike object that represents a method
- */
-public final class ShrikeCTMethod extends ShrikeBTMethod implements IBytecodeMethod {
+/** A wrapper around a Shrike object that represents a method */
+public final class ShrikeCTMethod extends ShrikeBTMethod implements IBytecodeMethod<IInstruction> {
 
-  /**
-   * The index of this method in the declaring class's method list according to Shrike CT.
-   */
-  final private int shrikeMethodIndex;
+  /** The index of this method in the declaring class's method list according to Shrike CT. */
+  private final int shrikeMethodIndex;
 
-  /**
-   * JVM-level modifiers for this method a value of -1 means "uninitialized"
-   */
+  /** JVM-level modifiers for this method a value of -1 means "uninitialized" */
   private int modifiers = -1;
 
   private final IClassHierarchy cha;
@@ -135,8 +130,7 @@ public final class ShrikeCTMethod extends ShrikeBTMethod implements IBytecodeMet
   @Override
   public boolean hasExceptionHandler() {
     CodeReader reader = getCodeReader();
-    if (reader == null)
-      return false;
+    if (reader == null) return false;
     int[] handlers = reader.getRawHandlers();
     return handlers != null && handlers.length > 0;
   }
@@ -150,15 +144,14 @@ public final class ShrikeCTMethod extends ShrikeBTMethod implements IBytecodeMet
       return reader.getClasses();
     }
   }
-/** BEGIN Custom change: precise positions */
-  
+  /* BEGIN Custom change: precise positions */
   private static final class SPos implements SourcePosition {
     String fileName;
     final int firstLine;
     final int lastLine;
     final int firstCol;
     final int lastCol;
-    
+
     private SPos(String fileName, int firstLine, int lastLine, int firstCol, int lastCol) {
       this.firstLine = firstLine;
       this.lastLine = lastLine;
@@ -166,7 +159,6 @@ public final class ShrikeCTMethod extends ShrikeBTMethod implements IBytecodeMet
       this.lastCol = lastCol;
       this.fileName = fileName;
     }
-
 
     @Override
     public int getFirstCol() {
@@ -199,9 +191,8 @@ public final class ShrikeCTMethod extends ShrikeBTMethod implements IBytecodeMet
     }
 
     @Override
-    public int compareTo(Object o) {
-      if (o instanceof SourcePosition) {
-        SourcePosition p = (SourcePosition) o;
+    public int compareTo(SourcePosition p) {
+      if (p != null) {
         if (firstLine != p.getFirstLine()) {
           return firstLine - p.getFirstLine();
         } else if (firstCol != p.getFirstCol()) {
@@ -217,32 +208,31 @@ public final class ShrikeCTMethod extends ShrikeBTMethod implements IBytecodeMet
         return -1;
       }
     }
-    
+
     @Override
     public String toString() {
-      return fileName + "(" + firstLine + "," + firstCol + "-" + lastLine + "," + lastCol + ")";
+      return fileName + '(' + firstLine + ',' + firstCol + '-' + lastLine + ',' + lastCol + ')';
     }
   }
-/** END Custom change: precise positions */
-  
+  /* END Custom change: precise positions */
   @Override
   protected void processDebugInfo(BytecodeInfo bcInfo) throws InvalidClassFileException {
     CodeReader cr = getCodeReader();
     bcInfo.lineNumberMap = LineNumberTableReader.makeBytecodeToSourceMap(cr);
     bcInfo.localVariableMap = LocalVariableTableReader.makeVarMap(cr);
-/** BEGIN Custom change: precise bytecode positions */
-    
+    /* BEGIN Custom change: precise bytecode positions */
     Position param = null;
     try {
-        param = SourcePositionTableReader.findParameterPosition(shrikeMethodIndex, cr);
+      param = SourcePositionTableReader.findParameterPosition(shrikeMethodIndex, cr);
     } catch (IOException e) {
-        e.printStackTrace();
+      e.printStackTrace();
     }
-    
+
     bcInfo.paramPositionMap = new SPos[getNumberOfParameters()];
     if (param != null) {
-      String fileName = ((ShrikeClass)getDeclaringClass()).getSourceFileReader().getSourceFile();
-      SPos paramPos = new SPos(fileName, param.firstLine, param.lastLine, param.firstCol, param.lastCol);
+      String fileName = ((ShrikeClass) getDeclaringClass()).getSourceFileReader().getSourceFile();
+      SPos paramPos =
+          new SPos(fileName, param.firstLine, param.lastLine, param.firstCol, param.lastCol);
       for (int i = 0; i < getNumberOfParameters(); i++) {
         bcInfo.paramPositionMap[i] = paramPos;
       }
@@ -254,28 +244,29 @@ public final class ShrikeCTMethod extends ShrikeBTMethod implements IBytecodeMet
     } catch (IOException e) {
       e.printStackTrace();
     }
-    
+
     if (pos == null && bcInfo.lineNumberMap != null) {
       pos = SourcePositionTableReader.makeLineNumberToPositionMap(bcInfo.lineNumberMap);
     }
-    
+
     if (pos != null) {
       String sourceFile = null;
-      SourceFileReader reader = ((ShrikeClass)getDeclaringClass()).getSourceFileReader();
+      SourceFileReader reader = ((ShrikeClass) getDeclaringClass()).getSourceFileReader();
       if (reader != null) {
         sourceFile = reader.getSourceFile();
       }
       bcInfo.positionMap = new SPos[pos.length];
       for (int i = 0; i < pos.length; i++) {
         Position p = pos[i];
-        bcInfo.positionMap[i] = new SPos(sourceFile, p.firstLine, p.lastLine, p.firstCol, p.lastCol);
+        bcInfo.positionMap[i] =
+            new SPos(sourceFile, p.firstLine, p.lastLine, p.firstCol, p.lastCol);
       }
     }
-/** END Custom change: : precise bytecode positions */
+    /* END Custom change: : precise bytecode positions */
   }
 
   @Override
-  public String getLocalVariableName(int bcIndex, int localNumber){
+  public String getLocalVariableName(int bcIndex, int localNumber) {
     int[][] map = null;
     try {
       map = getBCInfo().localVariableMap;
@@ -284,8 +275,15 @@ public final class ShrikeCTMethod extends ShrikeBTMethod implements IBytecodeMet
     }
 
     if (localNumber > getMaxLocals()) {
-      throw new IllegalArgumentException("illegal local number: " + localNumber + ", method " + getDeclaringClass().getName() + 
-              "." + getName() + " uses at most " + getMaxLocals());
+      throw new IllegalArgumentException(
+          "illegal local number: "
+              + localNumber
+              + ", method "
+              + getDeclaringClass().getName()
+              + '.'
+              + getName()
+              + " uses at most "
+              + getMaxLocals());
     }
 
     if (map == null) {
@@ -314,7 +312,7 @@ public final class ShrikeCTMethod extends ShrikeBTMethod implements IBytecodeMet
 
   /*
    * TODO: cache for efficiency?
-   * 
+   *
    * @see com.ibm.wala.classLoader.IMethod#hasLocalVariableTable()
    */
   @Override
@@ -347,30 +345,15 @@ public final class ShrikeCTMethod extends ShrikeBTMethod implements IBytecodeMet
   }
 
   private CodeReader getCodeReader() {
-    return getReader("Code", new GetReader<CodeReader>() {
-      @Override
-      public CodeReader getReader(AttrIterator iter) throws InvalidClassFileException {
-        return new CodeReader(iter);
-      }
-    });
+    return getReader("Code", CodeReader::new);
   }
- 
+
   private ExceptionsReader getExceptionReader() {
-    return getReader("Exceptions", new GetReader<ExceptionsReader>() {
-      @Override
-      public ExceptionsReader getReader(AttrIterator iter) throws InvalidClassFileException {
-        return new ExceptionsReader(iter);
-      }
-    });
+    return getReader("Exceptions", ExceptionsReader::new);
   }
- 
+
   private SignatureReader getSignatureReader() {
-    return getReader("Signature", new GetReader<SignatureReader>() {
-      @Override
-      public SignatureReader getReader(AttrIterator iter) throws InvalidClassFileException {
-        return new SignatureReader(iter);
-      }
-    });
+    return getReader("Signature", SignatureReader::new);
   }
 
   private AnnotationsReader getAnnotationsReader(AnnotationType type) {
@@ -379,18 +362,21 @@ public final class ShrikeCTMethod extends ShrikeBTMethod implements IBytecodeMet
 
     return AnnotationsReader.getReaderForAnnotation(type, iter);
   }
-  
-  private TypeAnnotationsReader getTypeAnnotationsReaderAtMethodInfo(TypeAnnotationsReader.AnnotationType type) {
+
+  private TypeAnnotationsReader getTypeAnnotationsReaderAtMethodInfo(
+      TypeAnnotationsReader.AnnotationType type) {
     ClassReader.AttrIterator iter = new AttrIterator();
     getClassReader().initMethodAttributeIterator(shrikeMethodIndex, iter);
 
-    return TypeAnnotationsReader.getReaderForAnnotationAtMethodInfo(type, iter, getExceptionReader(), getSignatureReader());
+    return TypeAnnotationsReader.getReaderForAnnotationAtMethodInfo(
+        type, iter, getExceptionReader(), getSignatureReader());
   }
-  
-  private TypeAnnotationsReader getTypeAnnotationsReaderAtCode(TypeAnnotationsReader.AnnotationType type) {
+
+  private TypeAnnotationsReader getTypeAnnotationsReaderAtCode(
+      TypeAnnotationsReader.AnnotationType type) {
     final CodeReader codeReader = getCodeReader();
     if (codeReader == null) return null;
-    
+
     ClassReader.AttrIterator iter = new ClassReader.AttrIterator();
     codeReader.initAttributeIterator(iter);
     return TypeAnnotationsReader.getReaderForAnnotationAtCode(type, iter, getCodeReader());
@@ -417,69 +403,63 @@ public final class ShrikeCTMethod extends ShrikeBTMethod implements IBytecodeMet
 
   /**
    * TODO: cache?
-   * 
+   *
    * @return raw "Signature" attribute from the bytecode
-   * @throws InvalidClassFileException
    */
   private String getGenericsSignature() throws InvalidClassFileException {
     return computeGenericsSignature();
   }
 
-  /**
-   * UNDER CONSTRUCTION
-   * 
-   * @throws InvalidClassFileException
-   */
+  /** UNDER CONSTRUCTION */
   public MethodTypeSignature getMethodTypeSignature() throws InvalidClassFileException {
     String sig = getGenericsSignature();
     return sig == null ? null : MethodTypeSignature.make(sig);
   }
 
-  /**
-   * read the runtime-invisible annotations from the class file
-   */
+  /** read the runtime-invisible annotations from the class file */
   public Collection<Annotation> getRuntimeInvisibleAnnotations() throws InvalidClassFileException {
     return getAnnotations(true);
   }
 
-  /**
-   * read the runtime-visible annotations from the class file
-   */
+  /** read the runtime-visible annotations from the class file */
   public Collection<Annotation> getRuntimeVisibleAnnotations() throws InvalidClassFileException {
     return getAnnotations(false);
   }
 
   @Override
-  public Collection<Annotation> getAnnotations(boolean runtimeInvisible) throws InvalidClassFileException {
-    AnnotationsReader r = getAnnotationsReader(runtimeInvisible ? AnnotationType.RuntimeInvisibleAnnotations
-        : AnnotationType.RuntimeVisibleAnnotations);
-    return Annotation.getAnnotationsFromReader(r, getDeclaringClass().getClassLoader().getReference());
+  public Collection<Annotation> getAnnotations(boolean runtimeInvisible)
+      throws InvalidClassFileException {
+    AnnotationsReader r =
+        getAnnotationsReader(
+            runtimeInvisible
+                ? AnnotationType.RuntimeInvisibleAnnotations
+                : AnnotationType.RuntimeVisibleAnnotations);
+    return Annotation.getAnnotationsFromReader(
+        r, getDeclaringClass().getClassLoader().getReference());
   }
-  
-  public Collection<TypeAnnotation> getTypeAnnotationsAtMethodInfo(boolean runtimeInvisible) throws InvalidClassFileException {
-    TypeAnnotationsReader r = getTypeAnnotationsReaderAtMethodInfo(
-        runtimeInvisible ? TypeAnnotationsReader.AnnotationType.RuntimeInvisibleTypeAnnotations
-                         : TypeAnnotationsReader.AnnotationType.RuntimeVisibleTypeAnnotations
-    );
+
+  public Collection<TypeAnnotation> getTypeAnnotationsAtMethodInfo(boolean runtimeInvisible)
+      throws InvalidClassFileException {
+    TypeAnnotationsReader r =
+        getTypeAnnotationsReaderAtMethodInfo(
+            runtimeInvisible
+                ? TypeAnnotationsReader.AnnotationType.RuntimeInvisibleTypeAnnotations
+                : TypeAnnotationsReader.AnnotationType.RuntimeVisibleTypeAnnotations);
     final ClassLoaderReference clRef = getDeclaringClass().getClassLoader().getReference();
     return TypeAnnotation.getTypeAnnotationsFromReader(
-        r,
-        TypeAnnotation.targetConverterAtMethodInfo(clRef),
-        clRef
-    );
+        r, TypeAnnotation.targetConverterAtMethodInfo(clRef), clRef);
   }
-  
-  public Collection<TypeAnnotation> getTypeAnnotationsAtCode(boolean runtimeInvisible) throws InvalidClassFileException {
-    TypeAnnotationsReader r = getTypeAnnotationsReaderAtCode(
-        runtimeInvisible ? TypeAnnotationsReader.AnnotationType.RuntimeInvisibleTypeAnnotations
-                         : TypeAnnotationsReader.AnnotationType.RuntimeVisibleTypeAnnotations
-    );
+
+  public Collection<TypeAnnotation> getTypeAnnotationsAtCode(boolean runtimeInvisible)
+      throws InvalidClassFileException {
+    TypeAnnotationsReader r =
+        getTypeAnnotationsReaderAtCode(
+            runtimeInvisible
+                ? TypeAnnotationsReader.AnnotationType.RuntimeInvisibleTypeAnnotations
+                : TypeAnnotationsReader.AnnotationType.RuntimeVisibleTypeAnnotations);
     final ClassLoaderReference clRef = getDeclaringClass().getClassLoader().getReference();
     return TypeAnnotation.getTypeAnnotationsFromReader(
-        r,
-        TypeAnnotation.targetConverterAtCode(clRef, this),
-        clRef
-    );
+        r, TypeAnnotation.targetConverterAtCode(clRef, this), clRef);
   }
 
   @Override
@@ -489,28 +469,28 @@ public final class ShrikeCTMethod extends ShrikeBTMethod implements IBytecodeMet
       result.addAll(getAnnotations(true));
       result.addAll(getAnnotations(false));
     } catch (InvalidClassFileException e) {
-      
+
     }
     return result;
   }
 
   /**
-   * get annotations on parameters as an array of Collections, where each array
-   * element gives the annotations on the corresponding parameter. Note that the
-   * 'this' parameter for an instance method cannot have annotations.
+   * get annotations on parameters as an array of Collections, where each array element gives the
+   * annotations on the corresponding parameter. Note that the 'this' parameter for an instance
+   * method cannot have annotations.
    */
   @Override
   public Collection<Annotation>[] getParameterAnnotations() {
     int numAnnotatedParams = isStatic() ? getNumberOfParameters() : getNumberOfParameters() - 1;
     @SuppressWarnings("unchecked")
     Collection<Annotation>[] result = new Collection[numAnnotatedParams];
-    for (int i = 0; i < result.length; i++) {
-      result[i] = HashSetFactory.make();
-    }
+    Arrays.setAll(result, i -> HashSetFactory.make());
     try {
       ClassLoaderReference reference = getDeclaringClass().getClassLoader().getReference();
-      AnnotationsReader r = getAnnotationsReader(AnnotationType.RuntimeInvisibleParameterAnnotations);
-      Collection<Annotation>[] paramAnnots = Annotation.getParameterAnnotationsFromReader(r, reference);
+      AnnotationsReader r =
+          getAnnotationsReader(AnnotationType.RuntimeInvisibleParameterAnnotations);
+      Collection<Annotation>[] paramAnnots =
+          Annotation.getParameterAnnotationsFromReader(r, reference);
       if (paramAnnots != null) {
         assert paramAnnots.length == result.length : paramAnnots.length + " != " + result.length;
         for (int i = 0; i < result.length; i++) {
@@ -530,23 +510,23 @@ public final class ShrikeCTMethod extends ShrikeBTMethod implements IBytecodeMet
     }
     return result;
   }
-  
-  private static final IndirectionData NO_INDIRECTIONS = new IndirectionData() {
 
-    private final int[] NOTHING = new int[0];
-    
-    @Override
-    public int[] indirectlyReadLocals(int instructionIndex) {
-      return NOTHING;
-    }
+  private static final IndirectionData NO_INDIRECTIONS =
+      new IndirectionData() {
 
-    @Override
-    public int[] indirectlyWrittenLocals(int instructionIndex) {
-      return NOTHING;
-    }
-    
-  };
-  
+        private final int[] NOTHING = new int[0];
+
+        @Override
+        public int[] indirectlyReadLocals(int instructionIndex) {
+          return NOTHING;
+        }
+
+        @Override
+        public int[] indirectlyWrittenLocals(int instructionIndex) {
+          return NOTHING;
+        }
+      };
+
   @Override
   public IndirectionData getIndirectionData() {
     return NO_INDIRECTIONS;

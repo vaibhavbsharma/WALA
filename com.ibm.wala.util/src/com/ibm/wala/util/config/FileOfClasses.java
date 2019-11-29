@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2002 - 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,7 +7,7 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.util.config;
 
 import java.io.BufferedReader;
@@ -18,13 +18,11 @@ import java.nio.charset.StandardCharsets;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/**
- * An object which represents a set of classes read from a text file.
- */
+/** An object which represents a set of classes read from a text file. */
 public class FileOfClasses extends SetOfClasses {
 
   /* Serial version */
-  private static final long serialVersionUID = -3256390509887654322L;  
+  private static final long serialVersionUID = -3256390509887654322L;
 
   private static final boolean DEBUG = false;
 
@@ -33,26 +31,27 @@ public class FileOfClasses extends SetOfClasses {
   private String regex = null;
 
   private boolean needsCompile = false;
-  
+
   public FileOfClasses(InputStream input) throws IOException {
     if (input == null) {
       throw new IllegalArgumentException("null input");
     }
-    try (final BufferedReader is = new BufferedReader(new InputStreamReader(input, StandardCharsets.UTF_8))) {
-  
-      StringBuffer regex = null;
+    try (final BufferedReader is =
+        new BufferedReader(new InputStreamReader(input, StandardCharsets.UTF_8))) {
+
+      StringBuilder regex = null;
       String line;
       while ((line = is.readLine()) != null) {
-  
+
         if (line.startsWith("#")) continue;
-  
+
         if (regex == null) {
-          regex = new StringBuffer("(" + line + ")");
+          regex = new StringBuilder('(' + line + ')');
         } else {
-          regex.append("|(" + line + ")");
+          regex.append("|(").append(line).append(')');
         }
       }
-  
+
       if (regex != null) {
         this.regex = regex.toString();
         needsCompile = true;
@@ -79,9 +78,9 @@ public class FileOfClasses extends SetOfClasses {
     Matcher m = pattern.matcher(klassName);
     if (DEBUG) {
       if (m.matches()) {
-        System.err.println(klassName + " " + true);
+        System.err.println(klassName + ' ' + true);
       } else {
-        System.err.println(klassName + " " + false);
+        System.err.println(klassName + ' ' + false);
       }
     }
     return m.matches();
@@ -102,10 +101,9 @@ public class FileOfClasses extends SetOfClasses {
     }
     needsCompile = true;
   }
-  
+
   @Override
   public String toString() {
     return this.regex;
   }
-  
 }

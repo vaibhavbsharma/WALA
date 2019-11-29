@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2007 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,16 +7,15 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.ipa.cfg.exceptionpruning.filter;
-
-import java.util.Collection;
-import java.util.Collections;
 
 import com.ibm.wala.ipa.cfg.exceptionpruning.ExceptionFilter;
 import com.ibm.wala.ipa.cfg.exceptionpruning.FilteredException;
+import java.util.Collection;
+import java.util.Collections;
 
-public class DummyFilter<Instruction> implements ExceptionFilter<Instruction>{
+public class DummyFilter<Instruction> implements ExceptionFilter<Instruction> {
   @Override
   public boolean alwaysThrowsException(Instruction instruction) {
     return false;

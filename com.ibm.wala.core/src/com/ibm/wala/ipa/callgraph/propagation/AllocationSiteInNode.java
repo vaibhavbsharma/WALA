@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2002 - 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,10 +7,8 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.ipa.callgraph.propagation;
-
-import java.util.Iterator;
 
 import com.ibm.wala.classLoader.IClass;
 import com.ibm.wala.classLoader.NewSiteReference;
@@ -18,10 +16,9 @@ import com.ibm.wala.ipa.callgraph.CGNode;
 import com.ibm.wala.ipa.callgraph.CallGraph;
 import com.ibm.wala.util.collections.NonNullSingletonIterator;
 import com.ibm.wala.util.collections.Pair;
+import java.util.Iterator;
 
-/**
- * An {@link InstanceKey} which represents a {@link NewSiteReference} in some {@link CGNode}.
- */
+/** An {@link InstanceKey} which represents a {@link NewSiteReference} in some {@link CGNode}. */
 public abstract class AllocationSiteInNode extends AbstractTypeInNode {
   private final NewSiteReference site;
 
@@ -38,19 +35,22 @@ public abstract class AllocationSiteInNode extends AbstractTypeInNode {
 
   @Override
   public String toString() {
-    return "SITE_IN_NODE{" + getNode().getMethod() + ":" + site + " in " + getNode().getContext() + "}";
+    return "SITE_IN_NODE{"
+        + getNode().getMethod()
+        + ':'
+        + site
+        + " in "
+        + getNode().getContext()
+        + '}';
   }
 
-  /**
-   * @return Returns the site.
-   */
+  /** @return Returns the site. */
   public NewSiteReference getSite() {
     return site;
   }
 
   @Override
   public Iterator<Pair<CGNode, NewSiteReference>> getCreationSites(CallGraph CG) {
-    return new NonNullSingletonIterator<Pair<CGNode, NewSiteReference>>(Pair.make(getNode(), getSite()));
+    return new NonNullSingletonIterator<>(Pair.make(getNode(), getSite()));
   }
-   
 }

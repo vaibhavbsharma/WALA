@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2002 - 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,9 +7,13 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.classLoader;
 
+import com.ibm.wala.util.collections.NonNullSingletonIterator;
+import com.ibm.wala.util.debug.Assertions;
+import com.ibm.wala.util.debug.UnimplementedError;
+import com.ibm.wala.util.io.FileProvider;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.JarURLConnection;
@@ -17,17 +21,12 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.Iterator;
 
-import com.ibm.wala.util.collections.NonNullSingletonIterator;
-import com.ibm.wala.util.debug.Assertions;
-import com.ibm.wala.util.debug.UnimplementedError;
-import com.ibm.wala.util.io.FileProvider;
-
 public abstract class AbstractURLModule implements Module, ModuleEntry {
 
   private final URL url;
 
   public AbstractURLModule(URL url) {
-    assert url != null; 
+    assert url != null;
     this.url = url;
   }
 
@@ -39,10 +38,8 @@ public abstract class AbstractURLModule implements Module, ModuleEntry {
   public String getName() {
     try {
       URLConnection con = url.openConnection();
-      if (con instanceof JarURLConnection)
-        return ((JarURLConnection) con).getEntryName();
-      else
-        return (new FileProvider()).filePathFromURL(url);
+      if (con instanceof JarURLConnection) return ((JarURLConnection) con).getEntryName();
+      else return (new FileProvider()).filePathFromURL(url);
     } catch (IOException e) {
       Assertions.UNREACHABLE();
       return null;
@@ -77,7 +74,7 @@ public abstract class AbstractURLModule implements Module, ModuleEntry {
 
   @Override
   public Iterator<ModuleEntry> getEntries() {
-    return new NonNullSingletonIterator<ModuleEntry>(this);
+    return new NonNullSingletonIterator<>(this);
   }
 
   @Override
@@ -85,10 +82,9 @@ public abstract class AbstractURLModule implements Module, ModuleEntry {
     // URLs are freestanding, without containers
     return null;
   }
-  
+
   @Override
   public String toString() {
     return "module:" + url.toString();
   }
-  
 }

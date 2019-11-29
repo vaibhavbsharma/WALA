@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2002 - 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,7 +7,7 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.util.collections;
 
 import java.util.ArrayList;
@@ -18,32 +18,29 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * Converts an {@link Iterator} to a {@link Collection}. Note that if you just want to use Java 5's for-each loop with an
- * {@link Iterator}, use {@link Iterator2Iterable}.
- * 
+ * Converts an {@link Iterator} to a {@link Collection}. Note that if you just want to use Java 5's
+ * for-each loop with an {@link Iterator}, use {@link Iterator2Iterable}.
+ *
  * @see Iterator2Iterable
  */
 public abstract class Iterator2Collection<T> implements Collection<T> {
 
   protected abstract Collection<T> getDelegate();
-  /**
-   * Returns a {@link Set} containing all elements in i. Note that duplicates will be removed.
-   */
+  /** Returns a {@link Set} containing all elements in i. Note that duplicates will be removed. */
   public static <T> Iterator2Set<T> toSet(Iterator<? extends T> i) throws IllegalArgumentException {
     if (i == null) {
       throw new IllegalArgumentException("i == null");
     }
-    return new Iterator2Set<>(i, new LinkedHashSet<T>(5));
+    return new Iterator2Set<>(i, new LinkedHashSet<>(5));
   }
 
-  /**
-   * Returns a {@link List} containing all elements in i, preserving duplicates.
-   */
-  public static <T> Iterator2List<T> toList(Iterator<? extends T> i) throws IllegalArgumentException {
+  /** Returns a {@link List} containing all elements in i, preserving duplicates. */
+  public static <T> Iterator2List<T> toList(Iterator<? extends T> i)
+      throws IllegalArgumentException {
     if (i == null) {
       throw new IllegalArgumentException("i == null");
     }
-    return new Iterator2List<>(i, new ArrayList<T>(5));
+    return new Iterator2List<>(i, new ArrayList<>(5));
   }
 
   @Override

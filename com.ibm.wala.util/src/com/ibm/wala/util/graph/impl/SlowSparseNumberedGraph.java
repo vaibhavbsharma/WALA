@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2002 - 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,21 +7,18 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.util.graph.impl;
 
-import java.io.Serializable;
-import java.util.Iterator;
-
+import com.ibm.wala.util.collections.Iterator2Iterable;
 import com.ibm.wala.util.graph.AbstractNumberedGraph;
 import com.ibm.wala.util.graph.Graph;
 import com.ibm.wala.util.graph.NumberedEdgeManager;
 import com.ibm.wala.util.graph.NumberedNodeManager;
 import com.ibm.wala.util.intset.BasicNaturalRelation;
+import java.io.Serializable;
 
-/**
- * A graph of numbered nodes, expected to have a fairly sparse edge structure.
- */
+/** A graph of numbered nodes, expected to have a fairly sparse edge structure. */
 public class SlowSparseNumberedGraph<T> extends AbstractNumberedGraph<T> implements Serializable {
 
   private static final long serialVersionUID = 7014361126159594838L;
@@ -35,13 +32,15 @@ public class SlowSparseNumberedGraph<T> extends AbstractNumberedGraph<T> impleme
   }
 
   /**
-   * If normalOutCount == n, this edge manager will eagerly allocated n words to hold out edges for each node. (performance
-   * optimization for time)
-   * 
+   * If normalOutCount == n, this edge manager will eagerly allocated n words to hold out edges for
+   * each node. (performance optimization for time)
+   *
    * @param normalOutCount what is the "normal" number of out edges for a node?
    */
   public SlowSparseNumberedGraph(int normalOutCount) {
-    edgeManager = new SparseNumberedEdgeManager<>(nodeManager, normalOutCount, BasicNaturalRelation.TWO_LEVEL);
+    edgeManager =
+        new SparseNumberedEdgeManager<>(
+            nodeManager, normalOutCount, BasicNaturalRelation.TWO_LEVEL);
   }
 
   /*
@@ -60,9 +59,7 @@ public class SlowSparseNumberedGraph<T> extends AbstractNumberedGraph<T> impleme
     return edgeManager;
   }
 
-  /**
-   * @return a graph with the same nodes and edges as g
-   */
+  /** @return a graph with the same nodes and edges as g */
   public static <T> SlowSparseNumberedGraph<T> duplicate(Graph<T> g) {
     SlowSparseNumberedGraph<T> result = make();
     copyInto(g, result);
@@ -73,13 +70,12 @@ public class SlowSparseNumberedGraph<T> extends AbstractNumberedGraph<T> impleme
     if (g == null) {
       throw new IllegalArgumentException("g is null");
     }
-    for (Iterator<? extends T> it = g.iterator(); it.hasNext();) {
-      into.addNode(it.next());
+    for (T name : g) {
+      into.addNode(name);
     }
-    for (Iterator<? extends T> it = g.iterator(); it.hasNext();) {
-      T n = it.next();
-      for (Iterator<? extends T> it2 = g.getSuccNodes(n); it2.hasNext();) {
-        into.addEdge(n, it2.next());
+    for (T n : g) {
+      for (T succ : Iterator2Iterable.make(g.getSuccNodes(n))) {
+        into.addEdge(n, succ);
       }
     }
   }

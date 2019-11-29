@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2007 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,7 +7,7 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.ipa.callgraph.propagation.cfa;
 
 import com.ibm.wala.classLoader.CallSiteReference;
@@ -23,8 +23,8 @@ public class CallString implements ContextItem {
     if (site == null) {
       throw new IllegalArgumentException("null site");
     }
-    this.sites = new CallSiteReference[] { site };
-    this.methods = new IMethod[] { method };
+    this.sites = new CallSiteReference[] {site};
+    this.methods = new IMethod[] {method};
   }
 
   protected CallString(CallSiteReference site, IMethod method, int length, CallString base) {
@@ -40,9 +40,12 @@ public class CallString implements ContextItem {
 
   @Override
   public String toString() {
-    StringBuffer str = new StringBuffer("[");
+    StringBuilder str = new StringBuilder("[");
     for (int i = 0; i < sites.length; i++) {
-      str.append(" ").append(methods[i].getSignature()).append("@").append(sites[i].getProgramCounter());
+      str.append(' ')
+          .append(methods[i].getSignature())
+          .append('@')
+          .append(sites[i].getProgramCounter());
     }
     str.append(" ]");
     return str.toString();
@@ -83,5 +86,4 @@ public class CallString implements ContextItem {
   public IMethod[] getMethods() {
     return this.methods;
   }
-
 }

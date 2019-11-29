@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2002,2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,20 +7,18 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.shrikeBT;
 
-/**
- * This class represents monitorenter and monitorexit instructions.
- */
+/** This class represents monitorenter and monitorexit instructions. */
 public final class MonitorInstruction extends Instruction {
   protected MonitorInstruction(short opcode) {
     super(opcode);
   }
 
-  private final static MonitorInstruction enter = new MonitorInstruction(OP_monitorenter);
+  private static final MonitorInstruction enter = new MonitorInstruction(OP_monitorenter);
 
-  private final static MonitorInstruction exit = new MonitorInstruction(OP_monitorexit);
+  private static final MonitorInstruction exit = new MonitorInstruction(OP_monitorexit);
 
   public static MonitorInstruction make(boolean entering) {
     return entering ? enter : exit;
@@ -60,7 +58,7 @@ public final class MonitorInstruction extends Instruction {
 
   @Override
   public String toString() {
-    return "Monitor(" + (isEnter() ? "ENTER" : "EXIT") + ")";
+    return "Monitor(" + (isEnter() ? "ENTER" : "EXIT") + ')';
   }
 
   @Override

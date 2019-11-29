@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2002,2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,14 +7,12 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.shrikeBT;
 
-/**
- * This class represents instanceof instructions.
- */
+/** This class represents instanceof instructions. */
 public final class InstanceofInstruction extends Instruction implements IInstanceofInstruction {
-  final private String type;
+  private final String type;
 
   protected InstanceofInstruction(String type) {
     super(OP_instanceof);
@@ -73,7 +71,7 @@ public final class InstanceofInstruction extends Instruction implements IInstanc
 
   @Override
   public String toString() {
-    return "Instanceof(" + type + ")";
+    return "Instanceof(" + type + ')';
   }
 
   @Override

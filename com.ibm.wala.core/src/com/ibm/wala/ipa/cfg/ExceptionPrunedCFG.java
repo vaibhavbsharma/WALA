@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2007 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,18 +7,16 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.ipa.cfg;
 
 import com.ibm.wala.cfg.ControlFlowGraph;
 import com.ibm.wala.cfg.IBasicBlock;
 
-/**
- * A view of a CFG that ignores exceptional edges
- */
+/** A view of a CFG that ignores exceptional edges */
 public class ExceptionPrunedCFG {
 
-  private static class ExceptionEdgePruner<I, T extends IBasicBlock<I>> implements EdgeFilter<T>{
+  private static class ExceptionEdgePruner<I, T extends IBasicBlock<I>> implements EdgeFilter<T> {
     private final ControlFlowGraph<I, T> cfg;
 
     ExceptionEdgePruner(ControlFlowGraph<I, T> cfg) {
@@ -37,7 +35,6 @@ public class ExceptionPrunedCFG {
   }
 
   public static <I, T extends IBasicBlock<I>> PrunedCFG<I, T> make(ControlFlowGraph<I, T> cfg) {
-    return PrunedCFG.make(cfg, new ExceptionEdgePruner<I, T>(cfg));
+    return PrunedCFG.make(cfg, new ExceptionEdgePruner<>(cfg));
   }
 }
-

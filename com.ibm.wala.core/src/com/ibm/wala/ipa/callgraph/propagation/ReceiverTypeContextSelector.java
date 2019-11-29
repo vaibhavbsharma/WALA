@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2002 - 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,7 +7,7 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.ipa.callgraph.propagation;
 
 import com.ibm.wala.analysis.reflection.JavaTypeContext;
@@ -22,16 +22,14 @@ import com.ibm.wala.util.intset.EmptyIntSet;
 import com.ibm.wala.util.intset.IntSet;
 import com.ibm.wala.util.intset.IntSetUtil;
 
-/**
- * This context selector selects a context based on the concrete type of the receiver.
- */
+/** This context selector selects a context based on the concrete type of the receiver. */
 public class ReceiverTypeContextSelector implements ContextSelector {
 
-  public ReceiverTypeContextSelector() {
-  }
+  public ReceiverTypeContextSelector() {}
 
   @Override
-  public Context getCalleeTarget(CGNode caller, CallSiteReference site, IMethod callee, InstanceKey[] receiver) {
+  public Context getCalleeTarget(
+      CGNode caller, CallSiteReference site, IMethod callee, InstanceKey[] receiver) {
     if (site.isStatic()) {
       return Everywhere.EVERYWHERE;
     } else {
@@ -43,8 +41,8 @@ public class ReceiverTypeContextSelector implements ContextSelector {
     }
   }
 
-  private static final IntSet receiver = IntSetUtil.make(new int[]{ 0 });
-  
+  private static final IntSet receiver = IntSetUtil.make(new int[] {0});
+
   @Override
   public IntSet getRelevantParameters(CGNode caller, CallSiteReference site) {
     if (site.isStatic()) {
@@ -53,5 +51,4 @@ public class ReceiverTypeContextSelector implements ContextSelector {
       return receiver;
     }
   }
-
 }

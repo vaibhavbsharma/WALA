@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2007 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,26 +7,26 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.classLoader;
 
+import com.ibm.wala.cfg.InducedCFG;
+import com.ibm.wala.ipa.callgraph.Context;
+import com.ibm.wala.ssa.SSAInstruction;
+import com.ibm.wala.util.collections.HashSetFactory;
 import java.util.Set;
 
-import com.ibm.wala.util.collections.HashSetFactory;
-
-/**
- * Common functionality for most {@link Language} implementations.
- */
+/** Common functionality for most {@link Language} implementations. */
 public abstract class LanguageImpl implements Language {
 
   private Language baseLang;
 
-  private Set<Language> derivedLangs= HashSetFactory.make();
+  private Set<Language> derivedLangs = HashSetFactory.make();
 
-  public LanguageImpl() { }
+  public LanguageImpl() {}
 
   public LanguageImpl(Language base) {
-    baseLang= base;
+    baseLang = base;
     base.registerDerivedLanguage(this);
   }
 
@@ -43,8 +43,7 @@ public abstract class LanguageImpl implements Language {
   @Override
   public void registerDerivedLanguage(Language l) {
     derivedLangs.add(l);
-    if (baseLang != null)
-      baseLang.registerDerivedLanguage(l);
+    if (baseLang != null) baseLang.registerDerivedLanguage(l);
   }
 
   @Override
@@ -54,9 +53,8 @@ public abstract class LanguageImpl implements Language {
 
   @Override
   public boolean equals(Object o) {
-    if (!(o instanceof LanguageImpl))
-      return false;
-    LanguageImpl other= (LanguageImpl) o;
+    if (!(o instanceof LanguageImpl)) return false;
+    LanguageImpl other = (LanguageImpl) o;
 
     return getName().equals(other.getName());
   }
@@ -64,5 +62,15 @@ public abstract class LanguageImpl implements Language {
   @Override
   public String toString() {
     return getName().toString();
+  }
+
+  @Override
+  public InducedCFG makeInducedCFG(SSAInstruction[] instructions, IMethod method, Context context) {
+    return new InducedCFG(instructions, method, context);
+  }
+
+  @Override
+  public boolean modelConstant(Object o) {
+    return o instanceof String;
   }
 }

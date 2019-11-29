@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2002 - 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,48 +7,36 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.dataflow.graph;
-
-import java.util.Iterator;
-import java.util.Map;
 
 import com.ibm.wala.fixedpoint.impl.DefaultFixedPointSolver;
 import com.ibm.wala.fixpoint.IVariable;
 import com.ibm.wala.fixpoint.UnaryOperator;
 import com.ibm.wala.util.collections.HashMapFactory;
+import com.ibm.wala.util.collections.Iterator2Iterable;
 import com.ibm.wala.util.collections.ObjectArrayMapping;
 import com.ibm.wala.util.collections.Pair;
 import com.ibm.wala.util.graph.Graph;
 import com.ibm.wala.util.intset.IntegerUnionFind;
+import java.util.Map;
 
-/**
- * Iterative solver for a Killdall dataflow framework
- */
+/** Iterative solver for a Killdall dataflow framework */
 public abstract class DataflowSolver<T, V extends IVariable<V>> extends DefaultFixedPointSolver<V> {
 
-  /**
-   * the dataflow problem to solve
-   */
+  /** the dataflow problem to solve */
   private final IKilldallFramework<T, V> problem;
 
-  /**
-   * The "IN" variable for each node.
-   */
+  /** The "IN" variable for each node. */
   private final Map<Object, V> node2In = HashMapFactory.make();
 
-  /**
-   * The "OUT" variable for each node, when node transfer requested.
-   */
+  /** The "OUT" variable for each node, when node transfer requested. */
   private final Map<Object, V> node2Out = HashMapFactory.make();
 
-  /**
-   * The variable for each edge, when edge transfers requested (indexed by Pair(src, dst))
-   */
+  /** The variable for each edge, when edge transfers requested (indexed by Pair(src, dst)) */
   private final Map<Object, V> edge2Var = HashMapFactory.make();
 
-  /**
-   */
+  /** */
   public DataflowSolver(IKilldallFramework<T, V> problem) {
     // tune the implementation for common case of 2 uses for each
     // dataflow def
@@ -67,10 +55,9 @@ public abstract class DataflowSolver<T, V extends IVariable<V>> extends DefaultF
   @Override
   protected void initializeVariables() {
     Graph<T> G = problem.getFlowGraph();
-    ITransferFunctionProvider<T,V> functions = problem.getTransferFunctionProvider();
+    ITransferFunctionProvider<T, V> functions = problem.getTransferFunctionProvider();
     // create a variable for each node.
-    for (Iterator<? extends T> it = G.iterator(); it.hasNext();) {
-      T N = it.next();
+    for (T N : G) {
       assert N != null;
       V v = makeNodeVariable(N, true);
       node2In.put(N, v);
@@ -81,8 +68,7 @@ public abstract class DataflowSolver<T, V extends IVariable<V>> extends DefaultF
       }
 
       if (functions.hasEdgeTransferFunctions()) {
-        for (Iterator<? extends T> it2 = G.getSuccNodes(N); it2.hasNext();) {
-          T S = it2.next();
+        for (T S : Iterator2Iterable.make(G.getSuccNodes(N))) {
           v = makeEdgeVariable(N, S);
           edge2Var.put(Pair.make(N, S), v);
         }
@@ -125,11 +111,10 @@ public abstract class DataflowSolver<T, V extends IVariable<V>> extends DefaultF
 
     boolean didSomething = false;
 
-    final private Object[] allKeys;
+    private final Object[] allKeys;
 
     private int mapIt(int i, Object[] allVars, Map<Object, V> varMap) {
-      for (Iterator<Object> it = varMap.keySet().iterator(); it.hasNext();) {
-        Object key = it.next();
+      for (Object key : varMap.keySet()) {
         allKeys[i] = key;
         allVars[i++] = varMap.get(key);
       }
@@ -150,7 +135,8 @@ public abstract class DataflowSolver<T, V extends IVariable<V>> extends DefaultF
     }
 
     /**
-     * record that variable (n1, in1) is the same as variable (n2,in2), where (x,true) = IN(X) and (x,false) = OUT(X)
+     * record that variable (n1, in1) is the same as variable (n2,in2), where (x,true) = IN(X) and
+     * (x,false) = OUT(X)
      */
     public void union(Object n1, Object n2) {
       assert n1 != null;
@@ -195,15 +181,14 @@ public abstract class DataflowSolver<T, V extends IVariable<V>> extends DefaultF
 
     // add meet operations
     int meetThreshold = (meet.isUnaryNoOp() ? 2 : 1);
-    for (Iterator<? extends T> it = G.iterator(); it.hasNext();) {
-      T node = it.next();
+    for (T node : G) {
       int nPred = G.getPredNodeCount(node);
       if (nPred >= meetThreshold) {
         // todo: optimize further using unary operators when possible?
         V[] rhs = makeStmtRHS(nPred);
         int i = 0;
-        for (Iterator<?> it2 = G.getPredNodes(node); it2.hasNext();) {
-          rhs[i++] = (functions.hasEdgeTransferFunctions()) ? getEdge(it2.next(), node) : getOut(it2.next());
+        for (Object o : Iterator2Iterable.make(G.getPredNodes(node))) {
+          rhs[i++] = (functions.hasEdgeTransferFunctions()) ? getEdge(o, node) : getOut(o);
         }
         newStatement(getIn(node), meet, rhs, toWorkList, eager);
       }
@@ -211,8 +196,7 @@ public abstract class DataflowSolver<T, V extends IVariable<V>> extends DefaultF
 
     // add node transfer operations, if requested
     if (functions.hasNodeTransferFunctions()) {
-      for (Iterator<? extends T> it = G.iterator(); it.hasNext();) {
-        T node = it.next();
+      for (T node : G) {
         UnaryOperator<V> f = functions.getNodeTransferFunction(node);
         if (!f.isIdentity()) {
           newStatement(getOut(node), f, getIn(node), toWorkList, eager);
@@ -222,13 +206,15 @@ public abstract class DataflowSolver<T, V extends IVariable<V>> extends DefaultF
 
     // add edge transfer operations, if requested
     if (functions.hasEdgeTransferFunctions()) {
-      for (Iterator<? extends T> it = G.iterator(); it.hasNext();) {
-        T node = it.next();
-        for (Iterator<? extends T> it2 = G.getSuccNodes(node); it2.hasNext();) {
-          T succ = it2.next();
+      for (T node : G) {
+        for (T succ : Iterator2Iterable.make(G.getSuccNodes(node))) {
           UnaryOperator<V> f = functions.getEdgeTransferFunction(node, succ);
           if (!f.isIdentity()) {
-            newStatement(getEdge(node, succ), f, (functions.hasNodeTransferFunctions()) ? getOut(node) : getIn(node), toWorkList,
+            newStatement(
+                getEdge(node, succ),
+                f,
+                (functions.hasNodeTransferFunctions()) ? getOut(node) : getIn(node),
+                toWorkList,
                 eager);
           }
         }
@@ -236,13 +222,11 @@ public abstract class DataflowSolver<T, V extends IVariable<V>> extends DefaultF
     }
   }
 
-  /**
-   * Swap variables to account for identity transfer functions.
-   */
-  private void shortCircuitIdentities(Graph<T> G, ITransferFunctionProvider<T, V> functions, UnionFind uf) {
+  /** Swap variables to account for identity transfer functions. */
+  private void shortCircuitIdentities(
+      Graph<T> G, ITransferFunctionProvider<T, V> functions, UnionFind uf) {
     if (functions.hasNodeTransferFunctions()) {
-      for (Iterator<? extends T> it = G.iterator(); it.hasNext();) {
-        T node = it.next();
+      for (T node : G) {
         UnaryOperator<V> f = functions.getNodeTransferFunction(node);
         if (f.isIdentity()) {
           uf.union(getIn(node), getOut(node));
@@ -251,22 +235,20 @@ public abstract class DataflowSolver<T, V extends IVariable<V>> extends DefaultF
     }
 
     if (functions.hasEdgeTransferFunctions()) {
-      for (Iterator<? extends T> it = G.iterator(); it.hasNext();) {
-        T node = it.next();
-        for (Iterator<? extends T> it2 = G.getSuccNodes(node); it2.hasNext();) {
-          T succ = it2.next();
+      for (T node : G) {
+        for (T succ : Iterator2Iterable.make(G.getSuccNodes(node))) {
           UnaryOperator<V> f = functions.getEdgeTransferFunction(node, succ);
           if (f.isIdentity()) {
-            uf.union(getEdge(node, succ), (functions.hasNodeTransferFunctions()) ? getOut(node) : getIn(node));
+            uf.union(
+                getEdge(node, succ),
+                (functions.hasNodeTransferFunctions()) ? getOut(node) : getIn(node));
           }
         }
       }
     }
   }
 
-  /**
-   * change the variables to account for short circuit optimizations
-   */
+  /** change the variables to account for short circuit optimizations */
   private void fixShortCircuits(UnionFind uf) {
     if (uf.didSomething) {
       for (int i = 0; i < uf.size(); i++) {
@@ -304,9 +286,9 @@ public abstract class DataflowSolver<T, V extends IVariable<V>> extends DefaultF
     }
   }
 
-  private void shortCircuitUnaryMeets(Graph<T> G, ITransferFunctionProvider<T,V> functions, UnionFind uf) {
-    for (Iterator<? extends T> it = G.iterator(); it.hasNext();) {
-      T node = it.next();
+  private void shortCircuitUnaryMeets(
+      Graph<T> G, ITransferFunctionProvider<T, V> functions, UnionFind uf) {
+    for (T node : G) {
       assert node != null;
       int nPred = G.getPredNodeCount(node);
       if (nPred == 1) {
@@ -321,7 +303,7 @@ public abstract class DataflowSolver<T, V extends IVariable<V>> extends DefaultF
     }
   }
 
-  public IKilldallFramework<T,V> getProblem() {
+  public IKilldallFramework<T, V> getProblem() {
     return problem;
   }
 }

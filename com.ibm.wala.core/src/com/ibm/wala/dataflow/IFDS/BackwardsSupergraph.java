@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2002 - 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,32 +7,33 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.dataflow.IFDS;
 
-import java.util.Iterator;
-
-import com.ibm.wala.util.Predicate;
 import com.ibm.wala.util.collections.FilterIterator;
 import com.ibm.wala.util.collections.Iterator2Collection;
 import com.ibm.wala.util.debug.Assertions;
 import com.ibm.wala.util.debug.UnimplementedError;
 import com.ibm.wala.util.graph.Graph;
 import com.ibm.wala.util.intset.IntSet;
+import java.util.Iterator;
+import java.util.function.Predicate;
+import java.util.stream.Stream;
 
 /**
  * A "reversed" supergraph for backwards analysis.
- * 
- * In this view, a return is treated like a call, and vice-versa. All normal edges are reversed.
+ *
+ * <p>In this view, a return is treated like a call, and vice-versa. All normal edges are reversed.
  */
 public class BackwardsSupergraph<T, P> implements ISupergraph<T, P> {
 
   /**
    * DEBUG_LEVEL:
+   *
    * <ul>
-   * <li>0 No output
-   * <li>1 Print some simple stats and warning information
-   * <li>2 Detailed debugging
+   *   <li>0 No output
+   *   <li>1 Print some simple stats and warning information
+   *   <li>2 Detailed debugging
    * </ul>
    */
   static final int DEBUG_LEVEL = 0;
@@ -41,9 +42,7 @@ public class BackwardsSupergraph<T, P> implements ISupergraph<T, P> {
 
   private final ExitFilter exitFilter = new ExitFilter();
 
-  /**
-   * @param forwardGraph the graph to ``reverse''
-   */
+  /** @param forwardGraph the graph to ``reverse'' */
   protected BackwardsSupergraph(ISupergraph<T, P> forwardGraph) {
     if (forwardGraph == null) {
       throw new IllegalArgumentException("null forwardGraph");
@@ -52,16 +51,12 @@ public class BackwardsSupergraph<T, P> implements ISupergraph<T, P> {
   }
 
   public static <T, P> BackwardsSupergraph<T, P> make(ISupergraph<T, P> forwardGraph) {
-    return new BackwardsSupergraph<T, P>(forwardGraph);
+    return new BackwardsSupergraph<>(forwardGraph);
   }
 
-  /**
-   * TODO: for now, this is not inverted.
-   * 
-   * @see com.ibm.wala.dataflow.IFDS.ISupergraph#getProcedureGraph()
-   */
+  /** TODO: for now, this is not inverted. */
   @Override
-  public Graph<? extends P> getProcedureGraph() {
+  public Graph<P> getProcedureGraph() {
     return delegate.getProcedureGraph();
   }
 
@@ -73,57 +68,46 @@ public class BackwardsSupergraph<T, P> implements ISupergraph<T, P> {
     return delegate.isReturn(n);
   }
 
-  /**
-   * a filter that accepts only exit nodes from the original graph.
-   */
-  private class ExitFilter extends Predicate {
+  /** a filter that accepts only exit nodes from the original graph. */
+  private class ExitFilter implements Predicate<T> {
     /*
      * @see com.ibm.wala.util.Filter#accepts(java.lang.Object)
      */
     @Override
-    @SuppressWarnings("unchecked")
-    public boolean test(Object o) {
-      return delegate.isExit((T) o);
+    public boolean test(T o) {
+      return delegate.isExit(o);
     }
   }
 
   /**
-   * get the "called" (sic) nodes for a return site; i.e., the exit nodes that flow directly to this return site.
-   * 
-   * @see com.ibm.wala.dataflow.IFDS.ISupergraph#getCalledNodes(java.lang.Object)
+   * get the "called" (sic) nodes for a return site; i.e., the exit nodes that flow directly to this
+   * return site.
    */
   @SuppressWarnings("unused")
   @Override
   public Iterator<T> getCalledNodes(T ret) {
     if (DEBUG_LEVEL > 1) {
       System.err.println(getClass() + " getCalledNodes " + ret);
-      System.err.println("called nodes: "
-          + Iterator2Collection.toSet(new FilterIterator<Object>(getSuccNodes(ret), exitFilter)));
+      System.err.println(
+          "called nodes: "
+              + Iterator2Collection.toSet(new FilterIterator<>(getSuccNodes(ret), exitFilter)));
     }
-    return new FilterIterator<T>(getSuccNodes(ret), exitFilter);
+    return new FilterIterator<>(getSuccNodes(ret), exitFilter);
   }
 
   /**
-   * get the "normal" successors (sic) for a return site; i.e., the "normal" CFG predecessors that are not call nodes.
-   * 
+   * get the "normal" successors (sic) for a return site; i.e., the "normal" CFG predecessors that
+   * are not call nodes.
+   *
    * @see com.ibm.wala.dataflow.IFDS.ISupergraph#getCalledNodes(java.lang.Object)
    */
   @Override
   public Iterator<T> getNormalSuccessors(final T ret) {
-    Iterator<? extends Object> allPreds = delegate.getPredNodes(ret);
-    Predicate sameProc = new Predicate<T>() {
-      @Override public boolean test(T o) {
-        // throw out the exit node, which can be a predecessor due to tail recursion.
-        return getProcOf(ret).equals(getProcOf(o)) && !delegate.isExit(o);
-      }
-    };
-    Iterator<Object> sameProcPreds = new FilterIterator<Object>(allPreds, sameProc);
-    Predicate notCall = new Predicate<T>() {
-      @Override public boolean test(T o) {
-        return !delegate.isCall(o);
-      }
-    };
-    return new FilterIterator<T>(sameProcPreds, notCall);
+    Iterator<T> allPreds = delegate.getPredNodes(ret);
+    Predicate<T> sameProc = o -> getProcOf(ret).equals(getProcOf(o)) && !delegate.isExit(o);
+    Iterator<T> sameProcPreds = new FilterIterator<>(allPreds, sameProc);
+    Predicate<T> notCall = o -> !delegate.isCall(o);
+    return new FilterIterator<>(sameProcPreds, notCall);
   }
 
   /*
@@ -156,12 +140,16 @@ public class BackwardsSupergraph<T, P> implements ISupergraph<T, P> {
   @Override
   public void removeNodeAndEdges(Object N) throws UnsupportedOperationException {
     throw new UnsupportedOperationException();
-
   }
 
   @Override
   public Iterator<T> iterator() {
     return delegate.iterator();
+  }
+
+  @Override
+  public Stream<T> stream() {
+    return delegate.stream();
   }
 
   /*
@@ -186,7 +174,6 @@ public class BackwardsSupergraph<T, P> implements ISupergraph<T, P> {
   @Override
   public void removeNode(Object n) throws UnsupportedOperationException {
     throw new UnsupportedOperationException();
-
   }
 
   /*
@@ -302,17 +289,17 @@ public class BackwardsSupergraph<T, P> implements ISupergraph<T, P> {
   public byte classifyEdge(T src, T dest) {
     byte d = delegate.classifyEdge(dest, src);
     switch (d) {
-    case CALL_EDGE:
-      return RETURN_EDGE;
-    case RETURN_EDGE:
-      return CALL_EDGE;
-    case OTHER:
-      return OTHER;
-    case CALL_TO_RETURN_EDGE:
-      return CALL_TO_RETURN_EDGE;
-    default:
-      Assertions.UNREACHABLE();
-      return -1;
+      case CALL_EDGE:
+        return RETURN_EDGE;
+      case RETURN_EDGE:
+        return CALL_EDGE;
+      case OTHER:
+        return OTHER;
+      case CALL_TO_RETURN_EDGE:
+        return CALL_TO_RETURN_EDGE;
+      default:
+        Assertions.UNREACHABLE();
+        return -1;
     }
   }
 
@@ -324,7 +311,6 @@ public class BackwardsSupergraph<T, P> implements ISupergraph<T, P> {
   @Override
   public void removeIncomingEdges(Object node) throws UnsupportedOperationException {
     throw new UnsupportedOperationException();
-
   }
 
   @Override

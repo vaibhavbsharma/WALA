@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2002 - 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,7 +7,7 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.ipa.callgraph.impl;
 
 import com.ibm.wala.analysis.reflection.ReflectionContextSelector;
@@ -40,7 +40,8 @@ public class DefaultContextSelector implements ContextSelector {
   }
 
   @Override
-  public Context getCalleeTarget(CGNode caller, CallSiteReference site, IMethod callee, InstanceKey[] receiver) {
+  public Context getCalleeTarget(
+      CGNode caller, CallSiteReference site, IMethod callee, InstanceKey[] receiver) {
     if (caller == null) {
       throw new IllegalArgumentException("null caller");
     }
@@ -51,5 +52,4 @@ public class DefaultContextSelector implements ContextSelector {
   public IntSet getRelevantParameters(CGNode caller, CallSiteReference site) {
     return delegate.getRelevantParameters(caller, site);
   }
-
 }

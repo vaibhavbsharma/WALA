@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2002,2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,18 +7,20 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.shrikeBT;
+
+import java.util.Arrays;
 
 /**
  * This class represents dup instructions. There are two kinds of dup instructions, dup and dup_x1:
- * 
- * dup: a::rest => a::a::rest dup_x1: a::b::rest => a::b::a::rest
+ *
+ * <p>dup: a::rest =&gt; a::a::rest dup_x1: a::b::rest =&gt; a::b::a::rest
  */
 public final class DupInstruction extends Instruction {
-  final private int size;
+  private final int size;
 
-  final private byte delta;
+  private final byte delta;
 
   protected DupInstruction(byte size, byte delta) {
     super((short) -1);
@@ -26,23 +28,21 @@ public final class DupInstruction extends Instruction {
     this.delta = delta;
   }
 
-  private final static DupInstruction[] preallocated = preallocate();
+  private static final DupInstruction[] preallocated = preallocate();
 
   private static DupInstruction[] preallocate() {
     DupInstruction[] r = new DupInstruction[9];
 
-    for (int i = 0; i < r.length; i++) {
-      r[i] = new DupInstruction((byte) (i / 3), (byte) (i % 3));
-    }
+    Arrays.setAll(r, i -> new DupInstruction((byte) (i / 3), (byte) (i % 3)));
     return r;
   }
 
   /**
-   * DupInstructions with size or delta 2 might cause code generation failures when the working stack contains long or double
-   * values, when these DupInstructions cannot be easily translated into Java bytecode instructions. For safety, avoid using
-   * DupInstructions with size or delta 2.
-   * 
-   * Don't create these outside the shrikeBT decoder.
+   * DupInstructions with size or delta 2 might cause code generation failures when the working
+   * stack contains long or double values, when these DupInstructions cannot be easily translated
+   * into Java bytecode instructions. For safety, avoid using DupInstructions with size or delta 2.
+   *
+   * <p>Don't create these outside the shrikeBT decoder.
    */
   static DupInstruction make(int size, int delta) {
     if (size < 0 || size > 2) {
@@ -54,9 +54,7 @@ public final class DupInstruction extends Instruction {
     return preallocated[size * 3 + delta];
   }
 
-  /**
-   * @param delta 0 for dup, 1 for dup_x1
-   */
+  /** @param delta 0 for dup, 1 for dup_x1 */
   public static DupInstruction make(int delta) {
     if (delta < 0 || delta > 1) {
       throw new IllegalArgumentException("Invalid dup delta: " + delta);
@@ -94,7 +92,7 @@ public final class DupInstruction extends Instruction {
 
   @Override
   public String toString() {
-    return "Dup(" + size + "," + delta + ")";
+    return "Dup(" + size + ',' + delta + ')';
   }
 
   @Override

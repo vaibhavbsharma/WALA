@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2002 - 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,20 +7,17 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.ipa.callgraph.propagation.rta;
-
-import java.util.Iterator;
 
 import com.ibm.wala.classLoader.CallSiteReference;
 import com.ibm.wala.classLoader.IClass;
 import com.ibm.wala.classLoader.NewSiteReference;
 import com.ibm.wala.ipa.callgraph.CGNode;
 import com.ibm.wala.types.FieldReference;
+import java.util.Iterator;
 
-/**
- * A context interpreter that first checks with A, then defaults to B.
- */
+/** A context interpreter that first checks with A, then defaults to B. */
 public class DelegatingRTAContextInterpreter implements RTAContextInterpreter {
 
   private final RTAContextInterpreter A;

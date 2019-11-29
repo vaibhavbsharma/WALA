@@ -1,11 +1,11 @@
-/*******************************************************************************
+/*
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html.
- * 
+ *
  * This file is a derivative of code released by the University of
- * California under the terms listed below.  
+ * California under the terms listed below.
  *
  * Refinement Analysis Tools is Copyright (c) 2007 The Regents of the
  * University of California (Regents). Provided that this notice and
@@ -20,13 +20,13 @@
  * estoppel, or otherwise any license or rights in any intellectual
  * property of Regents, including, but not limited to, any patents
  * of Regents or Regents' employees.
- * 
+ *
  * IN NO EVENT SHALL REGENTS BE LIABLE TO ANY PARTY FOR DIRECT,
  * INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES,
  * INCLUDING LOST PROFITS, ARISING OUT OF THE USE OF THIS SOFTWARE
  * AND ITS DOCUMENTATION, EVEN IF REGENTS HAS BEEN ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
- *   
+ *
  * REGENTS SPECIFICALLY DISCLAIMS ANY WARRANTIES, INCLUDING, BUT NOT
  * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
  * FOR A PARTICULAR PURPOSE AND FURTHER DISCLAIMS ANY STATUTORY
@@ -37,14 +37,7 @@
  */
 package com.ibm.wala.demandpa.flowgraph;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
-
 import com.ibm.wala.cfg.ControlFlowGraph;
-import com.ibm.wala.cfg.IBasicBlock;
 import com.ibm.wala.classLoader.CallSiteReference;
 import com.ibm.wala.demandpa.util.MemoryAccessMap;
 import com.ibm.wala.ipa.callgraph.CGNode;
@@ -64,23 +57,23 @@ import com.ibm.wala.ssa.SSAPhiInstruction;
 import com.ibm.wala.util.collections.EmptyIterator;
 import com.ibm.wala.util.collections.HashMapFactory;
 import com.ibm.wala.util.collections.HashSetFactory;
+import com.ibm.wala.util.collections.Iterator2Iterable;
 import com.ibm.wala.util.intset.BitVectorIntSet;
 import com.ibm.wala.util.ref.ReferenceCleanser;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
 
-/**
- * A graph representing program flow, constructed method-by-method on demand
- */
+/** A graph representing program flow, constructed method-by-method on demand */
 public abstract class AbstractDemandFlowGraph extends AbstractFlowGraph {
-  private final static boolean DEBUG = false;
+  private static final boolean DEBUG = false;
 
-  /**
-   * Counter for wiping soft caches
-   */
+  /** Counter for wiping soft caches */
   private static int wipeCount = 0;
 
-  /**
-   * node numbers of CGNodes we have already visited
-   */
+  /** node numbers of CGNodes we have already visited */
   final BitVectorIntSet cgNodesVisited = new BitVectorIntSet();
 
   /*
@@ -123,20 +116,19 @@ public abstract class AbstractDemandFlowGraph extends AbstractFlowGraph {
       return EmptyIterator.instance();
     }
     int paramPos = pk.getValueNumber() - 1;
-    ArrayList<PointerKeyAndCallSite> paramSuccs = new ArrayList<PointerKeyAndCallSite>();
+    ArrayList<PointerKeyAndCallSite> paramSuccs = new ArrayList<>();
     // iterate over callers
     for (CGNode caller : cg) {
       // TODO optimization: we don't need to add the graph if null is passed
       // as the argument
       addSubgraphForNode(caller);
       IR ir = caller.getIR();
-      for (Iterator<CallSiteReference> iterator = ir.iterateCallSites(); iterator.hasNext();) {
-        CallSiteReference call = iterator.next();
+      for (CallSiteReference call : Iterator2Iterable.make(ir.iterateCallSites())) {
         if (cg.getPossibleTargets(caller, call).contains(cgNode)) {
           SSAAbstractInvokeInstruction[] callInstrs = ir.getCalls(call);
-          for (int i = 0; i < callInstrs.length; i++) {
-            SSAAbstractInvokeInstruction callInstr = callInstrs[i];
-            PointerKey actualPk = heapModel.getPointerKeyForLocal(caller, callInstr.getUse(paramPos));
+          for (SSAAbstractInvokeInstruction callInstr : callInstrs) {
+            PointerKey actualPk =
+                heapModel.getPointerKeyForLocal(caller, callInstr.getUse(paramPos));
             assert containsNode(actualPk);
             assert containsNode(pk);
             paramSuccs.add(new PointerKeyAndCallSite(actualPk, call));
@@ -156,11 +148,10 @@ public abstract class AbstractDemandFlowGraph extends AbstractFlowGraph {
     if (instrs == null) {
       return EmptyIterator.instance();
     }
-    ArrayList<PointerKeyAndCallSite> paramPreds = new ArrayList<PointerKeyAndCallSite>();
+    ArrayList<PointerKeyAndCallSite> paramPreds = new ArrayList<>();
     for (SSAAbstractInvokeInstruction callInstr : instrs) {
       for (int i = 0; i < callInstr.getNumberOfUses(); i++) {
-        if (pk.getValueNumber() != callInstr.getUse(i))
-          continue;
+        if (pk.getValueNumber() != callInstr.getUse(i)) continue;
         CallSiteReference callSiteRef = callInstr.getCallSite();
         // get call targets
         Collection<CGNode> possibleCallees = cg.getPossibleTargets(pk.getNode(), callSiteRef);
@@ -176,7 +167,6 @@ public abstract class AbstractDemandFlowGraph extends AbstractFlowGraph {
       }
     }
     return paramPreds.iterator();
-
   }
 
   /*
@@ -184,9 +174,8 @@ public abstract class AbstractDemandFlowGraph extends AbstractFlowGraph {
    */
   public Iterator<PointerKeyAndCallSite> getReturnSuccs(LocalPointerKey pk) {
     SSAAbstractInvokeInstruction callInstr = callDefs.get(pk);
-    if (callInstr == null)
-      return EmptyIterator.instance();
-    ArrayList<PointerKeyAndCallSite> returnSuccs = new ArrayList<PointerKeyAndCallSite>();
+    if (callInstr == null) return EmptyIterator.instance();
+    ArrayList<PointerKeyAndCallSite> returnSuccs = new ArrayList<>();
     boolean isExceptional = pk.getValueNumber() == callInstr.getException();
 
     CallSiteReference callSiteRef = callInstr.getCallSite();
@@ -195,8 +184,10 @@ public abstract class AbstractDemandFlowGraph extends AbstractFlowGraph {
     // construct graph for each target
     for (CGNode callee : possibleCallees) {
       addSubgraphForNode(callee);
-      PointerKey retVal = isExceptional ? heapModel.getPointerKeyForExceptionalReturnValue(callee) : heapModel
-          .getPointerKeyForReturnValue(callee);
+      PointerKey retVal =
+          isExceptional
+              ? heapModel.getPointerKeyForExceptionalReturnValue(callee)
+              : heapModel.getPointerKeyForReturnValue(callee);
       assert containsNode(retVal);
       returnSuccs.add(new PointerKeyAndCallSite(retVal, callSiteRef));
     }
@@ -213,21 +204,20 @@ public abstract class AbstractDemandFlowGraph extends AbstractFlowGraph {
       return EmptyIterator.instance();
     }
     boolean isExceptional = pk == heapModel.getPointerKeyForExceptionalReturnValue(cgNode);
-    ArrayList<PointerKeyAndCallSite> returnPreds = new ArrayList<PointerKeyAndCallSite>();
+    ArrayList<PointerKeyAndCallSite> returnPreds = new ArrayList<>();
     // iterate over callers
     for (CGNode caller : cg) {
       // TODO we don't need to add the graph if null is passed
       // as the argument
       addSubgraphForNode(caller);
       IR ir = caller.getIR();
-      for (Iterator<CallSiteReference> iterator = ir.iterateCallSites(); iterator.hasNext();) {
-        CallSiteReference call = iterator.next();
+      for (CallSiteReference call : Iterator2Iterable.make(ir.iterateCallSites())) {
         if (cg.getPossibleTargets(caller, call).contains(cgNode)) {
           SSAAbstractInvokeInstruction[] callInstrs = ir.getCalls(call);
-          for (int i = 0; i < callInstrs.length; i++) {
-            SSAAbstractInvokeInstruction callInstr = callInstrs[i];
-            PointerKey returnPk = heapModel.getPointerKeyForLocal(caller, isExceptional ? callInstr.getException() : callInstr
-                .getDef());
+          for (SSAAbstractInvokeInstruction callInstr : callInstrs) {
+            PointerKey returnPk =
+                heapModel.getPointerKeyForLocal(
+                    caller, isExceptional ? callInstr.getException() : callInstr.getDef());
             assert containsNode(returnPk);
             assert containsNode(pk);
             returnPreds.add(new PointerKeyAndCallSite(returnPk, call));
@@ -265,9 +255,7 @@ public abstract class AbstractDemandFlowGraph extends AbstractFlowGraph {
     addNodeConstantConstraints(node, ir);
   }
 
-  /**
-   * Add pointer flow constraints based on instructions in a given node
-   */
+  /** Add pointer flow constraints based on instructions in a given node */
   protected void addNodeInstructionConstraints(CGNode node, IR ir) {
     FlowStatementVisitor v = makeVisitor(node);
     ControlFlowGraph<SSAInstruction, ISSABasicBlock> cfg = ir.getControlFlowGraph();
@@ -276,16 +264,16 @@ public abstract class AbstractDemandFlowGraph extends AbstractFlowGraph {
     }
   }
 
-  /**
-   * Add constraints for a particular basic block.
-   */
-  protected void addBlockInstructionConstraints(CGNode node, ControlFlowGraph<SSAInstruction, ISSABasicBlock> cfg,
-      ISSABasicBlock b, FlowStatementVisitor v) {
+  /** Add constraints for a particular basic block. */
+  protected void addBlockInstructionConstraints(
+      CGNode node,
+      ControlFlowGraph<SSAInstruction, ISSABasicBlock> cfg,
+      ISSABasicBlock b,
+      FlowStatementVisitor v) {
     v.setBasicBlock(b);
 
     // visit each instruction in the basic block.
-    for (Iterator<SSAInstruction> it = b.iterator(); it.hasNext();) {
-      SSAInstruction s = it.next();
+    for (SSAInstruction s : b) {
       if (s != null) {
         s.visit(v);
       }
@@ -294,11 +282,11 @@ public abstract class AbstractDemandFlowGraph extends AbstractFlowGraph {
     addPhiConstraints(node, cfg, b);
   }
 
-  private void addPhiConstraints(CGNode node, ControlFlowGraph<SSAInstruction, ISSABasicBlock> cfg, ISSABasicBlock b) {
+  private void addPhiConstraints(
+      CGNode node, ControlFlowGraph<SSAInstruction, ISSABasicBlock> cfg, ISSABasicBlock b) {
 
     // visit each phi instruction in each successor block
-    for (Iterator<? extends IBasicBlock> iter = cfg.getSuccNodes(b); iter.hasNext();) {
-      ISSABasicBlock sb = (ISSABasicBlock) iter.next();
+    for (ISSABasicBlock sb : Iterator2Iterable.make(cfg.getSuccNodes(b))) {
       if (sb.isExitBlock()) {
         // an optimization based on invariant that exit blocks should
         // have no
@@ -307,15 +295,15 @@ public abstract class AbstractDemandFlowGraph extends AbstractFlowGraph {
       }
       int n = 0;
       // set n to be whichPred(this, sb);
-      for (Iterator<? extends IBasicBlock> back = cfg.getPredNodes(sb); back.hasNext(); n++) {
-        if (back.next() == b) {
+      for (ISSABasicBlock back : Iterator2Iterable.make(cfg.getPredNodes(sb))) {
+        if (back == b) {
           break;
         }
+        ++n;
       }
       assert n < cfg.getPredNodeCount(sb);
-      for (Iterator<SSAPhiInstruction> phis = sb.iteratePhis(); phis.hasNext();) {
+      for (SSAPhiInstruction phi : Iterator2Iterable.make(sb.iteratePhis())) {
         // Assertions.UNREACHABLE();
-        SSAPhiInstruction phi = phis.next();
         if (phi == null) {
           continue;
         }
@@ -364,10 +352,8 @@ public abstract class AbstractDemandFlowGraph extends AbstractFlowGraph {
     Set<CallerSiteContext> ret = callerCache.get(callee);
     if (ret == null) {
       ret = HashSetFactory.make();
-      for (Iterator<? extends CGNode> predNodes = cg.getPredNodes(callee); predNodes.hasNext();) {
-        CGNode caller = predNodes.next();
-        for (Iterator<CallSiteReference> iterator = cg.getPossibleSites(caller, callee); iterator.hasNext();) {
-          CallSiteReference call = iterator.next();
+      for (CGNode caller : Iterator2Iterable.make(cg.getPredNodes(callee))) {
+        for (CallSiteReference call : Iterator2Iterable.make(cg.getPossibleSites(caller, callee))) {
           ret.add(new CallerSiteContext(caller, call));
         }
       }
@@ -377,7 +363,8 @@ public abstract class AbstractDemandFlowGraph extends AbstractFlowGraph {
   }
 
   @Override
-  public Set<CGNode> getPossibleTargets(CGNode node, CallSiteReference site, LocalPointerKey actualPk) {
+  public Set<CGNode> getPossibleTargets(
+      CGNode node, CallSiteReference site, LocalPointerKey actualPk) {
     return cg.getPossibleTargets(node, site);
   }
 
@@ -385,8 +372,11 @@ public abstract class AbstractDemandFlowGraph extends AbstractFlowGraph {
     void setBasicBlock(ISSABasicBlock b);
   }
 
-  public AbstractDemandFlowGraph(final CallGraph cg, final HeapModel heapModel, final MemoryAccessMap mam, final IClassHierarchy cha) {
+  public AbstractDemandFlowGraph(
+      final CallGraph cg,
+      final HeapModel heapModel,
+      final MemoryAccessMap mam,
+      final IClassHierarchy cha) {
     super(mam, heapModel, cha, cg);
   }
-
 }

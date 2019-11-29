@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2002 - 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,25 +7,26 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.util.graph;
 
+import com.ibm.wala.util.collections.Iterator2Iterable;
 import java.util.Iterator;
+import java.util.stream.Stream;
 
-/**
- * Basic functionality for a {@link Graph} that delegates node and edge management.
- */
+/** Basic functionality for a {@link Graph} that delegates node and edge management. */
 public abstract class AbstractGraph<T> implements Graph<T> {
 
-  /**
-   * @return the object which manages nodes in the graph
-   */
+  /** @return the object which manages nodes in the graph */
   protected abstract NodeManager<T> getNodeManager();
 
-  /**
-   * @return the object which manages edges in the graph
-   */
+  /** @return the object which manages edges in the graph */
   protected abstract EdgeManager<T> getEdgeManager();
+
+  @Override
+  public Stream<T> stream() {
+    return getNodeManager().stream();
+  }
 
   /*
    * @see com.ibm.wala.util.graph.Graph#iterateNodes()
@@ -43,7 +44,7 @@ public abstract class AbstractGraph<T> implements Graph<T> {
     return getNodeManager().getNumberOfNodes();
   }
 
-  /* 
+  /*
    * @see com.ibm.wala.util.graph.EdgeManager#getPredNodeCount(java.lang.Object)
    */
   @Override
@@ -54,7 +55,7 @@ public abstract class AbstractGraph<T> implements Graph<T> {
     return getEdgeManager().getPredNodeCount(n);
   }
 
-  /* 
+  /*
    * @see com.ibm.wala.util.graph.EdgeManager#getPredNodes(java.lang.Object)
    */
   @Override
@@ -65,7 +66,7 @@ public abstract class AbstractGraph<T> implements Graph<T> {
     return getEdgeManager().getPredNodes(n);
   }
 
-  /* 
+  /*
    * @see com.ibm.wala.util.graph.EdgeManager#getSuccNodeCount(java.lang.Object)
    */
   @Override
@@ -76,7 +77,7 @@ public abstract class AbstractGraph<T> implements Graph<T> {
     return getEdgeManager().getSuccNodeCount(n);
   }
 
-  /* 
+  /*
    * @see com.ibm.wala.util.graph.EdgeManager#getSuccNodes(java.lang.Object)
    */
   @Override
@@ -104,7 +105,7 @@ public abstract class AbstractGraph<T> implements Graph<T> {
     getEdgeManager().addEdge(src, dst);
   }
 
-  /* 
+  /*
    * @see com.ibm.wala.util.graph.EdgeManager#removeEdge(java.lang.Object, java.lang.Object)
    */
   @Override
@@ -112,7 +113,7 @@ public abstract class AbstractGraph<T> implements Graph<T> {
     getEdgeManager().removeEdge(src, dst);
   }
 
-  /* 
+  /*
    * @see com.ibm.wala.util.graph.EdgeManager#hasEdge(java.lang.Object, java.lang.Object)
    */
   @Override
@@ -186,18 +187,17 @@ public abstract class AbstractGraph<T> implements Graph<T> {
   protected String edgeString(T from, T to) {
     return " --> ";
   }
+
   @Override
   public String toString() {
-    StringBuffer sb = new StringBuffer();
-    for (Iterator<? extends T> ns = iterator(); ns.hasNext();) {
-      T n = ns.next();
-      sb.append(n.toString()).append("\n");
-      for (Iterator<? extends T> ss = getSuccNodes(n); ss.hasNext();) {
-        T s = ss.next();
+    StringBuilder sb = new StringBuilder();
+    for (T n : this) {
+      sb.append(n.toString()).append('\n');
+      for (T s : Iterator2Iterable.make(getSuccNodes(n))) {
         sb.append(edgeString(n, s)).append(s);
-        sb.append("\n");
+        sb.append('\n');
       }
-      sb.append("\n");
+      sb.append('\n');
     }
 
     return sb.toString();
@@ -213,5 +213,4 @@ public abstract class AbstractGraph<T> implements Graph<T> {
     }
     return getNodeManager().containsNode(n);
   }
-
 }

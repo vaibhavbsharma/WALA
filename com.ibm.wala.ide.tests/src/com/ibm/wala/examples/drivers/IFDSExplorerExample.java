@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2008 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,12 +7,10 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.examples.drivers;
 
-import java.io.IOException;
-import java.util.Properties;
-
+import com.ibm.wala.classLoader.Language;
 import com.ibm.wala.core.tests.callGraph.CallGraphTestUtil;
 import com.ibm.wala.core.tests.util.TestConstants;
 import com.ibm.wala.dataflow.IFDS.TabulationResult;
@@ -36,42 +34,42 @@ import com.ibm.wala.ssa.analysis.IExplodedBasicBlock;
 import com.ibm.wala.util.WalaException;
 import com.ibm.wala.util.collections.Pair;
 import com.ibm.wala.util.io.CommandLine;
+import java.io.IOException;
+import java.util.Properties;
 
 /**
- * An example of using {@link IFDSExplorer}. We visualize the result of running {@link ContextSensitiveReachingDefs} on a simple
- * test example.
+ * An example of using {@link IFDSExplorer}. We visualize the result of running {@link
+ * ContextSensitiveReachingDefs} on a simple test example.
  */
 public class IFDSExplorerExample {
 
   /**
-   * Usage: IFDSExplorerExample -dotExe <path_to_dot_exe> -viewerExe <path_to_viewer_exe>
-   * 
-   * @param args
-   * @throws IOException
-   * @throws CallGraphBuilderCancelException
-   * @throws IllegalArgumentException
-   * @throws WalaException
+   * Usage: {@code IFDSExplorerExample -dotExe <path_to_dot_exe> -viewerExe <path_to_viewer_exe>}
    */
-  public static void main(String[] args) throws IOException, IllegalArgumentException, CallGraphBuilderCancelException,
-      WalaException {
+  public static void main(String[] args)
+      throws IOException, IllegalArgumentException, CallGraphBuilderCancelException, WalaException {
     Properties p = CommandLine.parse(args);
-    AnalysisScope scope = CallGraphTestUtil.makeJ2SEAnalysisScope(TestConstants.WALA_TESTDATA, "Java60RegressionExclusions.txt");
+    AnalysisScope scope =
+        CallGraphTestUtil.makeJ2SEAnalysisScope(
+            TestConstants.WALA_TESTDATA, "Java60RegressionExclusions.txt");
     IClassHierarchy cha = ClassHierarchyFactory.make(scope);
-    Iterable<Entrypoint> entrypoints = com.ibm.wala.ipa.callgraph.impl.Util.makeMainEntrypoints(scope, cha,
-        "Ldataflow/StaticDataflow");
+    Iterable<Entrypoint> entrypoints =
+        com.ibm.wala.ipa.callgraph.impl.Util.makeMainEntrypoints(
+            scope, cha, "Ldataflow/StaticDataflow");
     AnalysisOptions options = CallGraphTestUtil.makeAnalysisOptions(scope, entrypoints);
     IAnalysisCacheView cache = new AnalysisCacheImpl();
-    CallGraphBuilder<InstanceKey> builder = Util.makeZeroOneCFABuilder(options, cache, cha, scope);
+    CallGraphBuilder<InstanceKey> builder =
+        Util.makeZeroOneCFABuilder(Language.JAVA, options, cache, cha, scope);
     System.out.println("building CG");
     CallGraph cg = builder.makeCallGraph(options, null);
     System.out.println("done with CG");
     System.out.println("computing reaching defs");
     ContextSensitiveReachingDefs reachingDefs = new ContextSensitiveReachingDefs(cg);
-    TabulationResult<BasicBlockInContext<IExplodedBasicBlock>, CGNode, Pair<CGNode, Integer>> result = reachingDefs.analyze();
+    TabulationResult<BasicBlockInContext<IExplodedBasicBlock>, CGNode, Pair<CGNode, Integer>>
+        result = reachingDefs.analyze();
     System.out.println("done with reaching defs");
     IFDSExplorer.setDotExe(p.getProperty("dotExe"));
     IFDSExplorer.setGvExe(p.getProperty("viewerExe"));
     IFDSExplorer.viewIFDS(result);
   }
-
 }

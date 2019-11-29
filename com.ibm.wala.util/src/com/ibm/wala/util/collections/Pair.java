@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2002 - 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,16 +7,16 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.util.collections;
 
+import com.ibm.wala.util.debug.Assertions;
 import java.io.Serializable;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
+import java.util.Objects;
 
-import com.ibm.wala.util.debug.Assertions;
-
-public class Pair<T,U> implements Serializable {
+public class Pair<T, U> implements Serializable {
 
   private static final long serialVersionUID = 1861211857872739247L;
   public final T fst;
@@ -28,7 +28,7 @@ public class Pair<T,U> implements Serializable {
   }
 
   private static boolean check(Object x, Object y) {
-    return (x == null) ? (y == null) : x.equals(y);
+    return Objects.equals(x, y);
   }
 
   @SuppressWarnings("rawtypes")
@@ -43,7 +43,7 @@ public class Pair<T,U> implements Serializable {
 
   @Override
   public int hashCode() {
-    return hc(fst) * 7219 +  hc(snd);
+    return hc(fst) * 7219 + hc(snd);
   }
 
   public Iterator<Object> iterator() {
@@ -58,13 +58,13 @@ public class Pair<T,U> implements Serializable {
       @Override
       public Object next() {
         switch (nextFlag) {
-          case 1 :
+          case 1:
             nextFlag++;
             return fst;
-          case 2 :
+          case 2:
             nextFlag = 0;
             return snd;
-          default :
+          default:
             throw new NoSuchElementException();
         }
       }
@@ -75,13 +75,13 @@ public class Pair<T,U> implements Serializable {
       }
     };
   }
-  
+
   @Override
   public String toString() {
-    return "[" + fst + "," + snd +"]";
+    return "[" + fst + ',' + snd + ']';
   }
 
-  public static <T,U> Pair<T, U> make(T x, U y) {
-    return new Pair<>(x,y);
+  public static <T, U> Pair<T, U> make(T x, U y) {
+    return new Pair<>(x, y);
   }
 }

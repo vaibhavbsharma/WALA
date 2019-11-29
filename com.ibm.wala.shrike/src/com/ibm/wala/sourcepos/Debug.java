@@ -1,4 +1,4 @@
-/******************************************************************************
+/*
  * Copyright (c) 2002 - 2014 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,7 +7,7 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *****************************************************************************/
+ */
 
 package com.ibm.wala.sourcepos;
 
@@ -16,25 +16,25 @@ import java.io.OutputStream;
 import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.Arrays;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
+import java.util.EnumMap;
+import java.util.EnumSet;
 import java.util.Map;
 import java.util.Set;
 
-/**
- * @author Juergen Graf <juergen.graf@gmail.com>
- * 
- */
+/** @author Juergen Graf &lt;juergen.graf@gmail.com&gt; */
 public final class Debug {
 
   public static final boolean PRINT_CHARACTER_RANGE_TABLE = false;
 
-  private Debug() {
-  }
+  private Debug() {}
 
   public enum LogLevel {
-    DEBUG(0), INFO(1), WARN(2), ERROR(3);
+    DEBUG(0),
+    INFO(1),
+    WARN(2),
+    ERROR(3);
 
     private final Integer priority;
 
@@ -49,13 +49,12 @@ public final class Debug {
 
   private static PrintStream OUT_STREAM = System.out;
 
-  private static final Map<LogLevel, LogStream> logStreams = new HashMap<>();
+  private static final Map<LogLevel, LogStream> logStreams = new EnumMap<>(LogLevel.class);
 
-  private static Set<LogLevel> allowed = new HashSet<>();
+  private static Set<LogLevel> allowed = EnumSet.noneOf(LogLevel.class);
+
   static {
-    for (int i = 0; i < LogLevel.values().length; i++) {
-      allowed.add(LogLevel.values()[i]);
-    }
+    allowed.addAll(Arrays.asList(LogLevel.values()));
   }
 
   public static void setLogFile(String file) throws FileNotFoundException {
@@ -68,11 +67,7 @@ public final class Debug {
     }
   }
 
-  /**
-   * Set to log all events with the given or higher priority
-   * 
-   * @param level
-   */
+  /** Set to log all events with the given or higher priority */
   public static void setMinLogLevel(LogLevel level) {
     for (LogLevel l : LogLevel.values()) {
       if (l == level || l.isHigherPriority(level)) {
@@ -96,36 +91,36 @@ public final class Debug {
   }
 
   public static void error(String str, Object... obj) {
-    log(LogLevel.ERROR, str + "\n", obj);
+    log(LogLevel.ERROR, str + '\n', obj);
   }
 
   public static void warn(String str, Object... obj) {
-    log(LogLevel.WARN, str + "\n", obj);
+    log(LogLevel.WARN, str + '\n', obj);
   }
 
   public static void info(String str, Object... obj) {
-    log(LogLevel.INFO, str + "\n", obj);
+    log(LogLevel.INFO, str + '\n', obj);
   }
 
   public static void debug(String str, Object... obj) {
-    log(LogLevel.DEBUG, str + "\n", obj);
+    log(LogLevel.DEBUG, str + '\n', obj);
   }
 
   public static void error(String str) {
-    log(LogLevel.ERROR, str + "\n");
+    log(LogLevel.ERROR, str + '\n');
   }
 
   public static void warn(String str) {
-    log(LogLevel.WARN, str + "\n");
+    log(LogLevel.WARN, str + '\n');
   }
 
   public static void logTime() {
     Date date = new Date();
-    log(LogLevel.INFO, "Current time: " + date + "\n");
+    log(LogLevel.INFO, "Current time: " + date + '\n');
   }
 
   public static void info(String str) {
-    log(LogLevel.INFO, str + "\n");
+    log(LogLevel.INFO, str + '\n');
   }
 
   public static void appendInfo(String str) {
@@ -135,7 +130,7 @@ public final class Debug {
   }
 
   public static void debug(String str) {
-    log(LogLevel.DEBUG, str + "\n");
+    log(LogLevel.DEBUG, str + '\n');
   }
 
   public static void error(Throwable t) {
@@ -196,7 +191,7 @@ public final class Debug {
 
     @Override
     public void println(String str) {
-      Debug.log(level, str + "\n");
+      Debug.log(level, str + '\n');
     }
   }
 

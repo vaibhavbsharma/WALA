@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2013 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,30 +7,22 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.cast.tree.rewrite;
-
-import java.util.HashMap;
-import java.util.Map;
 
 import com.ibm.wala.cast.tree.CAst;
 import com.ibm.wala.cast.tree.CAstControlFlowMap;
 import com.ibm.wala.cast.tree.CAstNode;
 import com.ibm.wala.util.collections.Pair;
 import com.ibm.wala.util.debug.Assertions;
+import java.util.HashMap;
+import java.util.Map;
 
-/**
- * abstract base class for {@link CAstRewriter}s that do no cloning of nodes
- *
- */
-public abstract class CAstBasicRewriter
-  extends CAstRewriter<CAstBasicRewriter.NonCopyingContext, 
-	               CAstBasicRewriter.NoKey> 
-{
+/** abstract base class for {@link CAstRewriter}s that do no cloning of nodes */
+public abstract class CAstBasicRewriter<T extends CAstBasicRewriter.NonCopyingContext>
+    extends CAstRewriter<T, CAstBasicRewriter.NoKey> {
 
-  /**
-   * context indicating that no cloning is being performed
-   */
+  /** context indicating that no cloning is being performed */
   public static class NonCopyingContext implements CAstRewriter.RewriteContext<NoKey> {
     private final Map<Object, Object> nodeMap = new HashMap<>();
 
@@ -42,17 +34,14 @@ public abstract class CAstBasicRewriter
     public NoKey key() {
       return null;
     }
-
   }
 
-  /**
-   * key indicating that no duplication is being performed
-   */
+  /** key indicating that no duplication is being performed */
   public static class NoKey implements CAstRewriter.CopyKey<NoKey> {
     private NoKey() {
       Assertions.UNREACHABLE();
     }
-    
+
     @Override
     public int hashCode() {
       return System.identityHashCode(this);
@@ -69,11 +58,14 @@ public abstract class CAstBasicRewriter
     }
   }
 
-  protected CAstBasicRewriter(CAst Ast, boolean recursive) {
-    super(Ast, recursive, new NonCopyingContext());
+  protected CAstBasicRewriter(CAst Ast, T context, boolean recursive) {
+    super(Ast, recursive, context);
   }
 
   @Override
-  protected abstract CAstNode copyNodes(CAstNode root, final CAstControlFlowMap cfg, NonCopyingContext context, Map<Pair<CAstNode,NoKey>, CAstNode> nodeMap);
-  
+  protected abstract CAstNode copyNodes(
+      CAstNode root,
+      final CAstControlFlowMap cfg,
+      T context,
+      Map<Pair<CAstNode, NoKey>, CAstNode> nodeMap);
 }

@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2013 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,13 +7,15 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.shrikeBT;
 
 public interface IShiftInstruction extends IInstruction {
 
   public enum Operator implements IBinaryOpInstruction.IOperator {
-    SHL, SHR, USHR;
+    SHL,
+    SHR,
+    USHR;
   }
 
   Operator getOperator();
@@ -21,5 +23,4 @@ public interface IShiftInstruction extends IInstruction {
   String getType();
 
   boolean isUnsigned();
-
 }

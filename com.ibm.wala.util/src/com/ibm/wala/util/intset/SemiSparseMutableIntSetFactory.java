@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2002 - 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,20 +7,16 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.util.intset;
 
-import java.util.Iterator;
 import java.util.TreeSet;
 
-/**
- */
-public class SemiSparseMutableIntSetFactory implements MutableIntSetFactory<SemiSparseMutableIntSet> {
+/** */
+public class SemiSparseMutableIntSetFactory
+    implements MutableIntSetFactory<SemiSparseMutableIntSet> {
 
-  /**
-   * @param set
-   * @throws IllegalArgumentException  if set is null
-   */
+  /** @throws IllegalArgumentException if set is null */
   @Override
   public SemiSparseMutableIntSet make(int[] set) {
     if (set == null) {
@@ -31,27 +27,22 @@ public class SemiSparseMutableIntSetFactory implements MutableIntSetFactory<Semi
     } else {
       // XXX not very efficient.
       TreeSet<Integer> T = new TreeSet<>();
-      for (int i = 0; i < set.length; i++) {
-        T.add(Integer.valueOf(set[i]));
+      for (int element : set) {
+        T.add(element);
       }
       SemiSparseMutableIntSet result = new SemiSparseMutableIntSet();
-      for (Iterator<Integer> it = T.iterator(); it.hasNext();) {
-        Integer I = it.next();
-        result.add(I.intValue());
+      for (Integer I : T) {
+        result.add(I);
       }
       return result;
     }
   }
 
-  /**
-   * @param string
-   */
   @Override
   public SemiSparseMutableIntSet parse(String string) throws NumberFormatException {
     int[] data = SparseIntSet.parseIntArray(string);
     SemiSparseMutableIntSet result = new SemiSparseMutableIntSet();
-    for (int i = 0; i < data.length; i++)
-      result.add(data[i]);
+    for (int element : data) result.add(element);
     return result;
   }
 
@@ -72,5 +63,4 @@ public class SemiSparseMutableIntSetFactory implements MutableIntSetFactory<Semi
   public SemiSparseMutableIntSet make() {
     return new SemiSparseMutableIntSet();
   }
-
 }

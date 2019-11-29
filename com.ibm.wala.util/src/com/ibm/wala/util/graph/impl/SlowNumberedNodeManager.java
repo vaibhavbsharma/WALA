@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2002 - 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,36 +7,30 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.util.graph.impl;
-
-import java.io.Serializable;
-import java.util.Iterator;
 
 import com.ibm.wala.util.graph.NumberedNodeManager;
 import com.ibm.wala.util.intset.IntSet;
 import com.ibm.wala.util.intset.MutableMapping;
+import java.io.Serializable;
+import java.util.Iterator;
+import java.util.stream.Stream;
 
-/**
- * An object which manages node numbers via a mapping.
- */
+/** An object which manages node numbers via a mapping. */
 public class SlowNumberedNodeManager<T> implements NumberedNodeManager<T>, Serializable {
 
   private static final long serialVersionUID = 8956107128389624337L;
-  /**
-   * A bijection between integer &lt;-&gt; node
-   */
-  final private MutableMapping<T> map = MutableMapping.make();
-
+  /** A bijection between integer &lt;-&gt; node */
+  private final MutableMapping<T> map = MutableMapping.make();
 
   @Override
   public int getNumber(T obj) {
     return map.getMappedIndex(obj);
   }
 
-
   @Override
-  public T getNode(int number)  {
+  public T getNode(int number) {
     if (number < 0) {
       throw new IllegalArgumentException("number must be >= 0");
     }
@@ -52,12 +46,15 @@ public class SlowNumberedNodeManager<T> implements NumberedNodeManager<T>, Seria
     return map.getMaximumIndex();
   }
 
-
   @Override
   public Iterator<T> iterator() {
     return map.iterator();
   }
 
+  @Override
+  public Stream<T> stream() {
+    return map.stream();
+  }
 
   @Override
   public int getNumberOfNodes() {
@@ -82,11 +79,11 @@ public class SlowNumberedNodeManager<T> implements NumberedNodeManager<T>, Seria
 
   @Override
   public String toString() {
-    StringBuffer result = new StringBuffer("Nodes:\n");
+    StringBuilder result = new StringBuilder("Nodes:\n");
     for (int i = 0; i <= getMaxNumber(); i++) {
       result.append(i).append("  ");
       result.append(map.getMappedObject(i));
-      result.append("\n");
+      result.append('\n');
     }
     return result.toString();
   }
@@ -106,5 +103,4 @@ public class SlowNumberedNodeManager<T> implements NumberedNodeManager<T>, Seria
   public Iterator<T> iterateNodes(IntSet s) {
     return new NumberedNodeIterator<>(s, this);
   }
-
 }

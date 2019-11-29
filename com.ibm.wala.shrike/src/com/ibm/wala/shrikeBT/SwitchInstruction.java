@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2002,2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,18 +7,16 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.shrikeBT;
 
 import java.util.Arrays;
 
-/**
- * This instruction represents all forms of switch instructions.
- */
+/** This instruction represents all forms of switch instructions. */
 public final class SwitchInstruction extends Instruction {
-  final private int[] casesAndLabels;
+  private final int[] casesAndLabels;
 
-  final private int defaultLabel;
+  private final int defaultLabel;
 
   protected SwitchInstruction(short opcode, int[] casesAndLabels, int defaultLabel) {
     super(opcode);
@@ -26,24 +24,21 @@ public final class SwitchInstruction extends Instruction {
     this.defaultLabel = defaultLabel;
   }
 
-  /**
-   * @return the label which is branched to if none of the cases match
-   */
+  /** @return the label which is branched to if none of the cases match */
   public int getDefaultLabel() {
     return defaultLabel;
   }
 
-  /**
-   * @return an array of flattened (case, label) pairs, sorted in increasing order by case
-   */
+  /** @return an array of flattened (case, label) pairs, sorted in increasing order by case */
   public int[] getCasesAndLabels() {
     return casesAndLabels;
   }
 
   /**
    * Make a switch instruction.
-   * 
-   * @param casesAndLabels an array of flattened (case, label) pairs, sorted in increasing order by case
+   *
+   * @param casesAndLabels an array of flattened (case, label) pairs, sorted in increasing order by
+   *     case
    * @param defaultLabel the default label to branch to if no cases match
    * @throws IllegalArgumentException if casesAndLabels is null
    */
@@ -129,13 +124,13 @@ public final class SwitchInstruction extends Instruction {
 
   @Override
   public String toString() {
-    StringBuffer b = new StringBuffer("Switch(");
+    StringBuilder b = new StringBuilder("Switch(");
     b.append(defaultLabel);
-    for (int i = 0; i < casesAndLabels.length; i++) {
+    for (int casesAndLabel : casesAndLabels) {
       b.append(',');
-      b.append(casesAndLabels[i]);
+      b.append(casesAndLabel);
     }
-    b.append(")");
+    b.append(')');
     return b.toString();
   }
 

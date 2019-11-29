@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2002 - 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,19 +7,16 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 
 package com.ibm.wala.classLoader;
 
+import com.ibm.wala.util.debug.Assertions;
+import com.ibm.wala.util.io.FileSuffixes;
 import java.io.InputStream;
 import java.util.jar.JarFile;
 
-import com.ibm.wala.util.debug.Assertions;
-import com.ibm.wala.util.io.FileSuffixes;
-
-/**
- * An entry in a Jar file.
- */
+/** An entry in a Jar file. */
 public class JarFileEntry implements ModuleEntry {
 
   private final String entryName;
@@ -73,7 +70,7 @@ public class JarFileEntry implements ModuleEntry {
 
   @Override
   public String toString() {
-    return jarFileModule.getJarFile().getName() + ":" + getName();
+    return jarFileModule.getJarFile().getName() + ':' + getName();
   }
 
   /*
@@ -95,7 +92,7 @@ public class JarFileEntry implements ModuleEntry {
   public JarFile getJarFile() {
     return jarFileModule.getJarFile();
   }
-  
+
   @Override
   public JarFileModule getContainer() {
     return jarFileModule;

@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2002 - 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,7 +7,7 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.ipa.callgraph.propagation.cfa;
 
 import com.ibm.wala.classLoader.CallSiteReference;
@@ -23,12 +23,21 @@ import com.ibm.wala.util.intset.IntSet;
 
 public abstract class CallStringContextSelector implements ContextSelector {
 
-  public static final ContextKey CALL_STRING = new ContextKey() {
-    @Override
-    public String toString() {
-      return "CALL_STRING_KEY";
-    }
-  };
+  public static final ContextKey CALL_STRING =
+      new ContextKey() {
+        @Override
+        public String toString() {
+          return "CALL_STRING_KEY";
+        }
+      };
+
+  public static final ContextKey BASE =
+      new ContextKey() {
+        @Override
+        public String toString() {
+          return "BASE_KEY";
+        }
+      };
 
   public static class CallStringContextPair implements Context {
     private final CallString cs;
@@ -42,13 +51,15 @@ public abstract class CallStringContextSelector implements ContextSelector {
 
     @Override
     public boolean equals(Object o) {
-      return (o instanceof CallStringContextPair) && ((CallStringContextPair) o).cs.equals(cs)
-          && ((CallStringContextPair) o).base.equals(base);
+      return o instanceof Context
+          && ((Context) o).isA(CallStringContextPair.class)
+          && ((Context) o).get(CALL_STRING).equals(cs)
+          && ((Context) o).get(BASE).equals(base);
     }
 
     @Override
     public String toString() {
-      return "CallStringContextPair: " + cs.toString() + ":" + base.toString();
+      return "CallStringContextPair: " + cs.toString() + ':' + base.toString();
     }
 
     @Override
@@ -60,6 +71,8 @@ public abstract class CallStringContextSelector implements ContextSelector {
     public ContextItem get(ContextKey name) {
       if (CALL_STRING.equals(name)) {
         return cs;
+      } else if (BASE.equals(name)) {
+        return base;
       } else {
         return base.get(name);
       }
@@ -86,7 +99,8 @@ public abstract class CallStringContextSelector implements ContextSelector {
     int length = getLength(caller, site, target);
     if (length > 0) {
       if (caller.getContext().get(CALL_STRING) != null) {
-        return new CallString(site, caller.getMethod(), length, (CallString) caller.getContext().get(CALL_STRING));
+        return new CallString(
+            site, caller.getMethod(), length, (CallString) caller.getContext().get(CALL_STRING));
       } else {
         return new CallString(site, caller.getMethod());
       }
@@ -95,11 +109,12 @@ public abstract class CallStringContextSelector implements ContextSelector {
     }
   }
 
-  /* 
+  /*
    * @see com.ibm.wala.ipa.callgraph.ContextSelector#getCalleeTarget(com.ibm.wala.ipa.callgraph.CGNode, com.ibm.wala.classLoader.CallSiteReference, com.ibm.wala.classLoader.IMethod, com.ibm.wala.ipa.callgraph.propagation.InstanceKey)
    */
   @Override
-  public Context getCalleeTarget(CGNode caller, CallSiteReference site, IMethod callee, InstanceKey[] receiver) {
+  public Context getCalleeTarget(
+      CGNode caller, CallSiteReference site, IMethod callee, InstanceKey[] receiver) {
     Context baseContext = base.getCalleeTarget(caller, site, callee, receiver);
     CallString cs = getCallString(caller, site, callee);
     if (cs == null) {
@@ -115,5 +130,4 @@ public abstract class CallStringContextSelector implements ContextSelector {
   public IntSet getRelevantParameters(CGNode caller, CallSiteReference site) {
     return base.getRelevantParameters(caller, site);
   }
-  
 }

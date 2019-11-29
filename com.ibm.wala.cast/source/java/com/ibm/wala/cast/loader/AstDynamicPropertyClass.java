@@ -1,4 +1,4 @@
-/******************************************************************************
+/*
  * Copyright (c) 2002 - 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,11 +7,8 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *****************************************************************************/
+ */
 package com.ibm.wala.cast.loader;
-
-import java.util.HashMap;
-import java.util.Map;
 
 import com.ibm.wala.cast.tree.CAstSourcePositionMap;
 import com.ibm.wala.classLoader.IClassLoader;
@@ -21,13 +18,20 @@ import com.ibm.wala.types.Selector;
 import com.ibm.wala.types.TypeName;
 import com.ibm.wala.types.TypeReference;
 import com.ibm.wala.util.strings.Atom;
+import java.util.HashMap;
+import java.util.Map;
 
 public abstract class AstDynamicPropertyClass extends AstClass {
   private final TypeReference defaultDescriptor;
 
-  protected AstDynamicPropertyClass(CAstSourcePositionMap.Position sourcePosition, TypeName typeName, IClassLoader loader,
-      short modifiers, Map<Selector, IMethod> declaredMethods, TypeReference defaultDescriptor) {
-    super(sourcePosition, typeName, loader, modifiers, new HashMap<Atom, IField>(), declaredMethods);
+  protected AstDynamicPropertyClass(
+      CAstSourcePositionMap.Position sourcePosition,
+      TypeName typeName,
+      IClassLoader loader,
+      short modifiers,
+      Map<Selector, IMethod> declaredMethods,
+      TypeReference defaultDescriptor) {
+    super(sourcePosition, typeName, loader, modifiers, new HashMap<>(), declaredMethods);
     this.defaultDescriptor = defaultDescriptor;
   }
 
@@ -44,11 +48,9 @@ public abstract class AstDynamicPropertyClass extends AstClass {
 
       return declaredFields.get(name);
     }
-
   }
 
   protected boolean isStaticField(Atom name) {
     return name.toString().startsWith("global ");
   }
-
 }

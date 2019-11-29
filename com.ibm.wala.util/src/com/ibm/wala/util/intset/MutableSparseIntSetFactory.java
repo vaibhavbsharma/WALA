@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2002 - 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,20 +7,15 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.util.intset;
 
-import java.util.Iterator;
 import java.util.TreeSet;
 
-/**
- * An object that creates mutable sparse int sets.
- */
+/** An object that creates mutable sparse int sets. */
 public class MutableSparseIntSetFactory implements MutableIntSetFactory<MutableSparseIntSet> {
 
-  /**
-   * @throws IllegalArgumentException  if set is null
-   */
+  /** @throws IllegalArgumentException if set is null */
   @Override
   public MutableSparseIntSet make(int[] set) {
     if (set == null) {
@@ -31,23 +26,19 @@ public class MutableSparseIntSetFactory implements MutableIntSetFactory<MutableS
     } else {
       // XXX not very efficient.
       TreeSet<Integer> T = new TreeSet<>();
-      for (int i = 0; i < set.length; i++) {
-        T.add(set[i]);
+      for (int element : set) {
+        T.add(element);
       }
       int[] copy = new int[T.size()];
       int i = 0;
-      for (Iterator<Integer> it = T.iterator(); it.hasNext();) {
-        Integer I = it.next();
-        copy[i++] = I.intValue();
+      for (Integer I : T) {
+        copy[i++] = I;
       }
       MutableSparseIntSet result = new MutableSparseIntSet(copy);
       return result;
     }
   }
 
-  /**
-   * @param string
-   */
   @Override
   public MutableSparseIntSet parse(String string) throws NumberFormatException {
     int[] backingStore = SparseIntSet.parseIntArray(string);
@@ -72,5 +63,4 @@ public class MutableSparseIntSetFactory implements MutableIntSetFactory<MutableS
   public MutableSparseIntSet make() {
     return MutableSparseIntSet.makeEmpty();
   }
-
 }

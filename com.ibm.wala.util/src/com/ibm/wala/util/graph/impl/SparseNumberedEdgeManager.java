@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2002 - 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,12 +7,8 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.util.graph.impl;
-
-import java.io.Serializable;
-import java.util.Arrays;
-import java.util.Iterator;
 
 import com.ibm.wala.util.collections.EmptyIterator;
 import com.ibm.wala.util.graph.NumberedEdgeManager;
@@ -21,41 +17,36 @@ import com.ibm.wala.util.intset.BasicNaturalRelation;
 import com.ibm.wala.util.intset.BitVector;
 import com.ibm.wala.util.intset.IBinaryNaturalRelation;
 import com.ibm.wala.util.intset.IntSet;
-import com.ibm.wala.util.intset.IntSetAction;
+import java.io.Serializable;
+import java.util.Arrays;
+import java.util.Iterator;
 
-/**
- * An object which tracks edges for nodes that have numbers.
- */
+/** An object which tracks edges for nodes that have numbers. */
 public final class SparseNumberedEdgeManager<T> implements NumberedEdgeManager<T>, Serializable {
 
   private static final long serialVersionUID = 6751048618312429623L;
 
   private final NumberedNodeManager<T> nodeManager;
 
-  /**
-   * cache this state here for efficiency
-   */
+  /** cache this state here for efficiency */
   private final BitVector hasSuccessor = new BitVector();
 
-  /**
-   * @param nodeManager
-   *          an object to track nodes
-   */
+  /** @param nodeManager an object to track nodes */
   public SparseNumberedEdgeManager(NumberedNodeManager<T> nodeManager) {
     this(nodeManager, 0, BasicNaturalRelation.TWO_LEVEL);
   }
 
   /**
-   * If normalOutCount == n, this edge manager will eagerly allocated n words to
-   * hold out edges for each node. (performance optimization for time)
-   * 
-   * @param nodeManager
-   *          an object to track nodes
-   * @param normalCase
-   *          what is the "normal" number of out edges for a node?
-   * @throws IllegalArgumentException  if normalCase &lt; 0
+   * If normalOutCount == n, this edge manager will eagerly allocated n words to hold out edges for
+   * each node. (performance optimization for time)
+   *
+   * @param nodeManager an object to track nodes
+   * @param normalCase what is the "normal" number of out edges for a node?
+   * @throws IllegalArgumentException if normalCase &lt; 0
    */
-  public SparseNumberedEdgeManager(NumberedNodeManager<T> nodeManager, int normalCase, byte delegateImpl) throws IllegalArgumentException {
+  public SparseNumberedEdgeManager(
+      NumberedNodeManager<T> nodeManager, int normalCase, byte delegateImpl)
+      throws IllegalArgumentException {
     if (nodeManager == null) {
       throw new IllegalArgumentException("null nodeManager");
     }
@@ -75,10 +66,10 @@ public final class SparseNumberedEdgeManager<T> implements NumberedEdgeManager<T
   }
 
   /**
-   * The default implementation policy conservatively uses 2-level vectors, in
-   * an attempt to somewhat optimize for space.
+   * The default implementation policy conservatively uses 2-level vectors, in an attempt to
+   * somewhat optimize for space.
    */
-  private final static byte[] defaultImpl = new byte[] { BasicNaturalRelation.TWO_LEVEL };
+  private static final byte[] defaultImpl = new byte[] {BasicNaturalRelation.TWO_LEVEL};
 
   private final IBinaryNaturalRelation successors;
 
@@ -204,24 +195,17 @@ public final class SparseNumberedEdgeManager<T> implements NumberedEdgeManager<T
     }
     IntSet succ = successors.getRelated(number);
     if (succ != null) {
-      succ.foreach(new IntSetAction() {
-        @Override
-        public void act(int x) {
-          predecessors.remove(x, number);
-        }
-      });
+      succ.foreach(x -> predecessors.remove(x, number));
     }
     IntSet pred = predecessors.getRelated(number);
     if (pred != null) {
-      pred.foreach(new IntSetAction() {
-        @Override
-        public void act(int x) {
-          successors.remove(x, number);
-          if (successors.getRelatedCount(x) == 0) {
-            hasSuccessor.clear(x);
-          }
-        }
-      });
+      pred.foreach(
+          x -> {
+            successors.remove(x, number);
+            if (successors.getRelatedCount(x) == 0) {
+              hasSuccessor.clear(x);
+            }
+          });
     }
     successors.removeAll(number);
     hasSuccessor.clear(number);
@@ -239,15 +223,13 @@ public final class SparseNumberedEdgeManager<T> implements NumberedEdgeManager<T
     }
     IntSet pred = predecessors.getRelated(number);
     if (pred != null) {
-      pred.foreach(new IntSetAction() {
-        @Override
-        public void act(int x) {
-          successors.remove(x, number);
-          if (successors.getRelatedCount(x) == 0) {
-            hasSuccessor.clear(x);
-          }
-        }
-      });
+      pred.foreach(
+          x -> {
+            successors.remove(x, number);
+            if (successors.getRelatedCount(x) == 0) {
+              hasSuccessor.clear(x);
+            }
+          });
     }
     predecessors.removeAll(number);
   }
@@ -280,12 +262,7 @@ public final class SparseNumberedEdgeManager<T> implements NumberedEdgeManager<T
     }
     IntSet succ = successors.getRelated(number);
     if (succ != null) {
-      succ.foreach(new IntSetAction() {
-        @Override
-        public void act(int x) {
-          predecessors.remove(x, number);
-        }
-      });
+      succ.foreach(x -> predecessors.remove(x, number));
     }
     successors.removeAll(number);
     hasSuccessor.clear(number);
@@ -293,7 +270,7 @@ public final class SparseNumberedEdgeManager<T> implements NumberedEdgeManager<T
 
   /**
    * This is implemented as a shortcut for efficiency
-   * 
+   *
    * @return true iff that node has any successors
    */
   public boolean hasAnySuccessor(int node) {
@@ -304,5 +281,4 @@ public final class SparseNumberedEdgeManager<T> implements NumberedEdgeManager<T
   public String toString() {
     return "Successors relation:\n" + successors;
   }
-
 }

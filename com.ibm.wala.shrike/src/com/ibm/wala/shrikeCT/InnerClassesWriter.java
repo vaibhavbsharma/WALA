@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2002,2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,20 +7,18 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.shrikeCT;
 
-/**
- * This class builds serializable InnerClasses attributes.
- */
+/** This class builds serializable InnerClasses attributes. */
 public final class InnerClassesWriter extends ClassWriter.Element {
-  final private int attrID;
+  private final int attrID;
 
   private int[] table;
 
   /**
    * Build an empty writer.
-   * 
+   *
    * @throws IllegalArgumentException if w is null
    */
   public InnerClassesWriter(ClassWriter w) {
@@ -37,7 +35,7 @@ public final class InnerClassesWriter extends ClassWriter.Element {
 
   /**
    * Copy the bytes into 'buf' at offset 'offset'.
-   * 
+   *
    * @return the number of bytes copies, which must be equal to getSize()
    */
   @Override
@@ -47,8 +45,8 @@ public final class InnerClassesWriter extends ClassWriter.Element {
     ClassWriter.setUShort(buf, offset + 6, table == null ? 0 : table.length);
     offset += 8;
     if (table != null) {
-      for (int i = 0; i < table.length; i++) {
-        ClassWriter.setUShort(buf, offset, table[i]);
+      for (int element : table) {
+        ClassWriter.setUShort(buf, offset, element);
         offset += 2;
       }
     }
@@ -57,7 +55,7 @@ public final class InnerClassesWriter extends ClassWriter.Element {
 
   /**
    * Set the raw values that make up this attribute
-   * 
+   *
    * @throws IllegalArgumentException if classes is null
    */
   public void setRawTable(int[] classes) throws NullPointerException {

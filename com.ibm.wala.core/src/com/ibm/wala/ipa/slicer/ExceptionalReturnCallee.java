@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2007 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,14 +7,14 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.ipa.slicer;
 
 import com.ibm.wala.ipa.callgraph.CGNode;
 
 /**
- * A {@link Statement} representing the exceptional return value in a callee,
- * immediately before returning to the caller.
+ * A {@link Statement} representing the exceptional return value in a callee, immediately before
+ * returning to the caller.
  */
 public class ExceptionalReturnCallee extends Statement {
 

@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2002 - 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,7 +7,7 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.ipa.callgraph.impl;
 
 import com.ibm.wala.classLoader.IClass;
@@ -17,15 +17,14 @@ import com.ibm.wala.ipa.callgraph.ClassTargetSelector;
 import com.ibm.wala.ipa.cha.IClassHierarchy;
 
 /**
- * A {@link ClassTargetSelector} that simply looks up the declared type of a {@link NewSiteReference} in the appropriate class hierarchy.
+ * A {@link ClassTargetSelector} that simply looks up the declared type of a {@link
+ * NewSiteReference} in the appropriate class hierarchy.
  */
 public class ClassHierarchyClassTargetSelector implements ClassTargetSelector {
 
   private final IClassHierarchy cha;
 
-  /**
-   * @param cha governing class hierarchy
-   */
+  /** @param cha governing class hierarchy */
   public ClassHierarchyClassTargetSelector(IClassHierarchy cha) {
     this.cha = cha;
   }

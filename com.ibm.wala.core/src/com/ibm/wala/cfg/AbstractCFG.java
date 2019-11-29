@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2002 - 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,22 +7,17 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.cfg;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
 
 import com.ibm.wala.classLoader.IMethod;
 import com.ibm.wala.shrikeBT.Constants;
-import com.ibm.wala.util.Predicate;
 import com.ibm.wala.util.collections.CompoundIterator;
 import com.ibm.wala.util.collections.EmptyIterator;
+import com.ibm.wala.util.collections.FilterIterator;
 import com.ibm.wala.util.collections.HashSetFactory;
 import com.ibm.wala.util.collections.Iterator2Collection;
+import com.ibm.wala.util.collections.Iterator2Iterable;
 import com.ibm.wala.util.collections.IteratorPlusOne;
 import com.ibm.wala.util.collections.IteratorPlusTwo;
 import com.ibm.wala.util.collections.NonNullSingletonIterator;
@@ -38,63 +33,52 @@ import com.ibm.wala.util.intset.FixedSizeBitVector;
 import com.ibm.wala.util.intset.IntSet;
 import com.ibm.wala.util.intset.MutableSparseIntSet;
 import com.ibm.wala.util.intset.SimpleIntVector;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.stream.Stream;
 
-/**
- * Common functionality for {@link ControlFlowGraph} implementations.
- */
-public abstract class AbstractCFG<I, T extends IBasicBlock<I>> implements ControlFlowGraph<I, T>, MinimalCFG<T>, Constants {
+/** Common functionality for {@link ControlFlowGraph} implementations. */
+public abstract class AbstractCFG<I, T extends IBasicBlock<I>>
+    implements ControlFlowGraph<I, T>, MinimalCFG<T>, Constants {
 
-  /**
-   * The method this AbstractCFG represents
-   */
+  /** The method this AbstractCFG represents */
   private final IMethod method;
 
-  /**
-   * An object to track nodes in this cfg
-   */
-  final private DelegatingNumberedNodeManager<T> nodeManager = new DelegatingNumberedNodeManager<T>();
+  /** An object to track nodes in this cfg */
+  private final DelegatingNumberedNodeManager<T> nodeManager =
+      new DelegatingNumberedNodeManager<>();
+
+  /** An object to track most normal edges in this cfg */
+  private final SparseNumberedEdgeManager<T> normalEdgeManager =
+      new SparseNumberedEdgeManager<>(nodeManager, 2, BasicNaturalRelation.SIMPLE);
+
+  /** An object to track not-to-exit exceptional edges in this cfg */
+  private final SparseNumberedEdgeManager<T> exceptionalEdgeManager =
+      new SparseNumberedEdgeManager<>(nodeManager, 0, BasicNaturalRelation.SIMPLE);
 
   /**
-   * An object to track most normal edges in this cfg
+   * An object to track not-to-exit exceptional edges in this cfg, indexed by block number.
+   * exceptionalEdges[i] is a list of block numbers that are non-exit exceptional successors of
+   * block i, in order of increasing "catch scope".
    */
-  final private SparseNumberedEdgeManager<T> normalEdgeManager = new SparseNumberedEdgeManager<T>(nodeManager, 2,
-      BasicNaturalRelation.SIMPLE);
+  private final SimpleVector<SimpleIntVector> exceptionalSuccessors = new SimpleVector<>();
 
-  /**
-   * An object to track not-to-exit exceptional edges in this cfg
-   */
-  final private SparseNumberedEdgeManager<T> exceptionalEdgeManager = new SparseNumberedEdgeManager<T>(nodeManager, 0,
-      BasicNaturalRelation.SIMPLE);
-
-  /**
-   * An object to track not-to-exit exceptional edges in this cfg, indexed by block number. exceptionalEdges[i] is a list of block
-   * numbers that are non-exit exceptional successors of block i, in order of increasing "catch scope".
-   */
-  final private SimpleVector<SimpleIntVector> exceptionalSuccessors = new SimpleVector<SimpleIntVector>();
-
-  /**
-   * Which basic blocks have a normal edge to exit()?
-   */
+  /** Which basic blocks have a normal edge to exit()? */
   private FixedSizeBitVector normalToExit;
 
-  /**
-   * Which basic blocks have an exceptional edge to exit()?
-   */
+  /** Which basic blocks have an exceptional edge to exit()? */
   private FixedSizeBitVector exceptionalToExit;
 
-  /**
-   * Which basic blocks have a fall-through?
-   */
+  /** Which basic blocks have a fall-through? */
   private FixedSizeBitVector fallThru;
 
-  /**
-   * Which basic blocks are catch blocks?
-   */
-  final private BitVector catchBlocks;
+  /** Which basic blocks are catch blocks? */
+  private final BitVector catchBlocks;
 
-  /**
-   * Cache here for efficiency
-   */
+  /** Cache here for efficiency */
   private T exit;
 
   protected AbstractCFG(IMethod method) {
@@ -102,9 +86,7 @@ public abstract class AbstractCFG<I, T extends IBasicBlock<I>> implements Contro
     this.catchBlocks = new BitVector(10);
   }
 
-  /**
-   * subclasses must call this before calling addEdge, but after creating the nodes
-   */
+  /** subclasses must call this before calling addEdge, but after creating the nodes */
   protected void init() {
     normalToExit = new FixedSizeBitVector(getMaxNumber() + 1);
     exceptionalToExit = new FixedSizeBitVector(getMaxNumber() + 1);
@@ -118,17 +100,13 @@ public abstract class AbstractCFG<I, T extends IBasicBlock<I>> implements Contro
   @Override
   public abstract int hashCode();
 
-  /**
-   * Return the entry basic block for the CFG.
-   */
+  /** Return the entry basic block for the CFG. */
   @Override
   public T entry() {
     return getNode(0);
   }
 
-  /**
-   * Return the exit basic block for the CFG.
-   */
+  /** Return the exit basic block for the CFG. */
   @Override
   public T exit() {
     return exit;
@@ -181,16 +159,14 @@ public abstract class AbstractCFG<I, T extends IBasicBlock<I>> implements Contro
     return exceptionalEdgeManager.getPredNodeCount(N);
   }
 
-  /**
-   * @param number number of a basic block in this cfg
-   */
+  /** @param number number of a basic block in this cfg */
   boolean hasAnyNormalOut(int number) {
-    return (fallThru.get(number) || normalEdgeManager.getSuccNodeCount(number) > 0 || normalToExit.get(number));
+    return (fallThru.get(number)
+        || normalEdgeManager.getSuccNodeCount(number) > 0
+        || normalToExit.get(number));
   }
 
-  /**
-   * @param number number of a basic block in this cfg
-   */
+  /** @param number number of a basic block in this cfg */
   private int getNumberOfNormalOut(int number) {
     int xtra = 0;
     if (fallThru.get(number)) {
@@ -202,9 +178,7 @@ public abstract class AbstractCFG<I, T extends IBasicBlock<I>> implements Contro
     return normalEdgeManager.getSuccNodeCount(number) + xtra;
   }
 
-  /**
-   * @param number number of a basic block in this cfg
-   */
+  /** @param number number of a basic block in this cfg */
   public int getNumberOfExceptionalOut(int number) {
     int xtra = 0;
     if (exceptionalToExit.get(number)) {
@@ -227,20 +201,20 @@ public abstract class AbstractCFG<I, T extends IBasicBlock<I>> implements Contro
       throw new IllegalArgumentException("N is null");
     }
     if (N.equals(exit())) {
-      return Predicate.filter(iterator(), new Predicate<T>() {
-        @Override
-        public boolean test(T o) {
-          int i = getNumber(o);
-          return normalToExit.get(i) || exceptionalToExit.get(i);
-        }
-      }).iterator();
+      return new FilterIterator<>(
+          iterator(),
+          o -> {
+            int i = getNumber(o);
+            return normalToExit.get(i) || exceptionalToExit.get(i);
+          });
     } else {
       int number = getNumber(N);
       boolean normalIn = getNumberOfNormalIn(N) > 0;
       boolean exceptionalIn = getNumberOfExceptionalIn(N) > 0;
       if (normalIn) {
         if (exceptionalIn) {
-          HashSet<T> result = HashSetFactory.make(getNumberOfNormalIn(N) + getNumberOfExceptionalIn(N));
+          HashSet<T> result =
+              HashSetFactory.make(getNumberOfNormalIn(N) + getNumberOfExceptionalIn(N));
           result.addAll(Iterator2Collection.toSet(normalEdgeManager.getPredNodes(N)));
           result.addAll(Iterator2Collection.toSet(exceptionalEdgeManager.getPredNodes(N)));
           if (fallThru.get(number - 1)) {
@@ -308,9 +282,11 @@ public abstract class AbstractCFG<I, T extends IBasicBlock<I>> implements Contro
   public Iterator<T> getSuccNodes(T N) {
     int number = getNumber(N);
     if (normalToExit.get(number) && exceptionalToExit.get(number)) {
-      return new CompoundIterator<T>(iterateNormalSuccessorsWithoutExit(number), iterateExceptionalSuccessors(number));
+      return new CompoundIterator<>(
+          iterateNormalSuccessorsWithoutExit(number), iterateExceptionalSuccessors(number));
     } else {
-      return new CompoundIterator<T>(iterateNormalSuccessors(number), iterateExceptionalSuccessors(number));
+      return new CompoundIterator<>(
+          iterateNormalSuccessors(number), iterateExceptionalSuccessors(number));
     }
   }
 
@@ -320,8 +296,8 @@ public abstract class AbstractCFG<I, T extends IBasicBlock<I>> implements Contro
    */
   private Iterator<T> iterateExceptionalSuccessors(int number) {
     if (exceptionalEdgeManager.hasAnySuccessor(number)) {
-      List<T> result = new ArrayList<T>();
       SimpleIntVector v = exceptionalSuccessors.get(number);
+      List<T> result = new ArrayList<>(v.getMaxIndex() + 1);
       for (int i = 0; i <= v.getMaxIndex(); i++) {
         result.add(getNode(v.get(i)));
       }
@@ -331,7 +307,7 @@ public abstract class AbstractCFG<I, T extends IBasicBlock<I>> implements Contro
       return result.iterator();
     } else {
       if (exceptionalToExit.get(number)) {
-        return new NonNullSingletonIterator<T>(exit());
+        return new NonNullSingletonIterator<>(exit());
       } else {
         return EmptyIterator.instance();
       }
@@ -340,13 +316,12 @@ public abstract class AbstractCFG<I, T extends IBasicBlock<I>> implements Contro
 
   Iterator<T> iterateExceptionalPredecessors(T N) {
     if (N.equals(exit())) {
-      return Predicate.filter(iterator(), new Predicate<T>() {
-        @Override
-        public boolean test(T o) {
-          int i = getNumber(o);
-          return exceptionalToExit.get(i);
-        }
-      }).iterator();
+      return new FilterIterator<>(
+          iterator(),
+          o -> {
+            int i = getNumber(o);
+            return exceptionalToExit.get(i);
+          });
     } else {
       return exceptionalEdgeManager.getPredNodes(N);
     }
@@ -354,13 +329,12 @@ public abstract class AbstractCFG<I, T extends IBasicBlock<I>> implements Contro
 
   Iterator<T> iterateNormalPredecessors(T N) {
     if (N.equals(exit())) {
-      return Predicate.filter(iterator(), new Predicate<T>() {
-        @Override
-        public boolean test(T o) {
-          int i = getNumber(o);
-          return normalToExit.get(i);
-        }
-      }).iterator();
+      return new FilterIterator<>(
+          iterator(),
+          o -> {
+            int i = getNumber(o);
+            return normalToExit.get(i);
+          });
     } else {
       int number = getNumber(N);
       if (number > 0 && fallThru.get(number - 1)) {
@@ -374,7 +348,8 @@ public abstract class AbstractCFG<I, T extends IBasicBlock<I>> implements Contro
   private Iterator<T> iterateNormalSuccessors(int number) {
     if (fallThru.get(number)) {
       if (normalToExit.get(number)) {
-        return new IteratorPlusTwo<T>(normalEdgeManager.getSuccNodes(number), getNode(number + 1), exit());
+        return new IteratorPlusTwo<>(
+            normalEdgeManager.getSuccNodes(number), getNode(number + 1), exit());
       } else {
         return IteratorPlusOne.make(normalEdgeManager.getSuccNodes(number), getNode(number + 1));
       }
@@ -395,9 +370,6 @@ public abstract class AbstractCFG<I, T extends IBasicBlock<I>> implements Contro
     }
   }
 
-  /**
-   * @param n
-   */
   @Override
   public void addNode(T n) {
     nodeManager.addNode(n);
@@ -426,6 +398,11 @@ public abstract class AbstractCFG<I, T extends IBasicBlock<I>> implements Contro
   @Override
   public Iterator<T> iterator() {
     return nodeManager.iterator();
+  }
+
+  @Override
+  public Stream<T> stream() {
+    return nodeManager.stream();
   }
 
   @Override
@@ -476,9 +453,7 @@ public abstract class AbstractCFG<I, T extends IBasicBlock<I>> implements Contro
     return normalEdgeManager.hasEdge(src, dst);
   }
 
-  /**
-   * @throws IllegalArgumentException if src or dst is null
-   */
+  /** @throws IllegalArgumentException if src or dst is null */
   public void addNormalEdge(T src, T dst) {
     if (src == null) {
       throw new IllegalArgumentException("src is null");
@@ -495,9 +470,7 @@ public abstract class AbstractCFG<I, T extends IBasicBlock<I>> implements Contro
     }
   }
 
-  /**
-   * @throws IllegalArgumentException if dst is null
-   */
+  /** @throws IllegalArgumentException if dst is null */
   public void addExceptionalEdge(T src, T dst) {
     if (dst == null) {
       throw new IllegalArgumentException("dst is null");
@@ -545,36 +518,29 @@ public abstract class AbstractCFG<I, T extends IBasicBlock<I>> implements Contro
 
   @Override
   public String toString() {
-    StringBuffer s = new StringBuffer("");
-    for (Iterator<T> it = iterator(); it.hasNext();) {
-      T bb = it.next();
-      s.append("BB").append(getNumber(bb)).append("\n");
+    StringBuilder s = new StringBuilder();
+    for (T bb : this) {
+      s.append("BB").append(getNumber(bb)).append('\n');
 
       Iterator<T> succNodes = getSuccNodes(bb);
       while (succNodes.hasNext()) {
-        s.append("    -> BB").append(getNumber(succNodes.next())).append("\n");
+        s.append("    -> BB").append(getNumber(succNodes.next())).append('\n');
       }
     }
     return s.toString();
   }
 
-  /**
-   * record that basic block i is a catch block
-   */
+  /** record that basic block i is a catch block */
   protected void setCatchBlock(int i) {
     catchBlocks.set(i);
   }
 
-  /**
-   * @return true iff block i is a catch block
-   */
+  /** @return true iff block i is a catch block */
   public boolean isCatchBlock(int i) {
     return catchBlocks.get(i);
   }
 
-  /**
-   * Returns the catchBlocks.
-   */
+  /** Returns the catchBlocks. */
   @Override
   public BitVector getCatchBlocks() {
     return catchBlocks;
@@ -601,9 +567,9 @@ public abstract class AbstractCFG<I, T extends IBasicBlock<I>> implements Contro
     if (b == null) {
       throw new IllegalArgumentException("b is null");
     }
-    List<T> result = new ArrayList<T>();
-    for (Iterator<T> it = iterateExceptionalSuccessors(b.getNumber()); it.hasNext();) {
-      result.add(it.next());
+    List<T> result = new ArrayList<>();
+    for (T s : Iterator2Iterable.make(iterateExceptionalSuccessors(b.getNumber()))) {
+      result.add(s);
     }
     return result;
   }
@@ -624,7 +590,7 @@ public abstract class AbstractCFG<I, T extends IBasicBlock<I>> implements Contro
    */
   @Override
   public Iterator<T> iterateNodes(IntSet s) {
-    return new NumberedNodeIterator<T>(s, this);
+    return new NumberedNodeIterator<>(s, this);
   }
 
   @Override
@@ -680,7 +646,8 @@ public abstract class AbstractCFG<I, T extends IBasicBlock<I>> implements Contro
   public IntSet getSuccNodeNumbers(T node) {
     int number = getNumber(node);
     IntSet s = normalEdgeManager.getSuccNodeNumbers(node);
-    MutableSparseIntSet result = s == null ? MutableSparseIntSet.makeEmpty() : MutableSparseIntSet.make(s);
+    MutableSparseIntSet result =
+        s == null ? MutableSparseIntSet.makeEmpty() : MutableSparseIntSet.make(s);
     s = exceptionalEdgeManager.getSuccNodeNumbers(node);
     if (s != null) {
       result.addAll(s);
@@ -693,5 +660,4 @@ public abstract class AbstractCFG<I, T extends IBasicBlock<I>> implements Contro
     }
     return result;
   }
-      
 }

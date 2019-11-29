@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2002,2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,14 +7,12 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.shrikeBT;
 
-/**
- * This class represents checkcast instructions.
- */
-final public class CheckCastInstruction extends Instruction implements ITypeTestInstruction {
-  final private String type;
+/** This class represents checkcast instructions. */
+public final class CheckCastInstruction extends Instruction implements ITypeTestInstruction {
+  private final String type;
 
   protected CheckCastInstruction(String type) {
     super(OP_checkcast);
@@ -48,12 +46,10 @@ final public class CheckCastInstruction extends Instruction implements ITypeTest
     return 1;
   }
 
-  /**
-   * @return the type to which the operand is cast
-   */
+  /** @return the type to which the operand is cast */
   @Override
   public String[] getTypes() {
-    return new String[]{ type };
+    return new String[] {type};
   }
 
   @Override
@@ -76,7 +72,7 @@ final public class CheckCastInstruction extends Instruction implements ITypeTest
 
   @Override
   public String toString() {
-    return "CheckCast(" + type + ")";
+    return "CheckCast(" + type + ')';
   }
 
   @Override

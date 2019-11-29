@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2002 - 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,17 +7,14 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.util.collections;
 
-import java.util.Iterator;
-
-import com.ibm.wala.util.functions.IntFunction;
 import com.ibm.wala.util.intset.IntIterator;
+import java.util.Iterator;
+import java.util.function.IntFunction;
 
-/**
- * An <code>IntMapIterator</code> maps an <code>Iterator</code> contents to produce a new Iterator
- */
+/** An {@code IntMapIterator} maps an {@code Iterator} contents to produce a new Iterator */
 public class IntMapIterator<T> implements Iterator<T> {
   final IntIterator i;
 
@@ -53,5 +50,4 @@ public class IntMapIterator<T> implements Iterator<T> {
   public String toString() {
     return "map: " + f + " of " + i;
   }
-
 }

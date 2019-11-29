@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2002 - 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,21 +7,19 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.util.collections;
 
 import java.util.Comparator;
 
-/**
- * A comparator based on lexicographical ordering of toString()
- */
+/** A comparator based on lexicographical ordering of toString() */
 public class ToStringComparator<T> implements Comparator<T> {
 
   @SuppressWarnings("rawtypes")
   private static final ToStringComparator INSTANCE = new ToStringComparator();
-  
+
   private ToStringComparator() {}
-  
+
   /*
    * @see java.util.Comparator#compare(java.lang.Object, java.lang.Object)
    */
@@ -35,9 +33,8 @@ public class ToStringComparator<T> implements Comparator<T> {
     }
     return o1.toString().compareTo(o2.toString());
   }
-  
+
   public static <T> ToStringComparator<T> instance() {
     return INSTANCE;
   }
-
 }

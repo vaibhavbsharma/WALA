@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2002 - 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,12 +7,8 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.ide.ui;
-
-import java.io.File;
-import java.util.Collection;
-import java.util.Properties;
 
 import com.ibm.wala.dataflow.IFDS.TabulationResult;
 import com.ibm.wala.properties.WalaProperties;
@@ -22,20 +18,17 @@ import com.ibm.wala.util.graph.Graph;
 import com.ibm.wala.util.graph.InferGraphRoots;
 import com.ibm.wala.viz.DotUtil;
 import com.ibm.wala.viz.NodeDecorator;
+import java.io.File;
+import java.util.Collection;
+import java.util.Properties;
 
-/**
- * Explore the result of an IFDS problem with an SWT viewer and ghostview.
- */
+/** Explore the result of an IFDS problem with an SWT viewer and ghostview. */
 public class IFDSExplorer {
 
-  /**
-   * absolute path name to invoke dot
-   */
+  /** absolute path name to invoke dot */
   protected static String dotExe = null;
 
-  /**
-   * Absolute path name to invoke viewer
-   */
+  /** Absolute path name to invoke viewer */
   protected static String viewerExe = null;
 
   private static final boolean PRINT_DOMAIN = true;
@@ -48,11 +41,13 @@ public class IFDSExplorer {
     viewerExe = newGvExe;
   }
 
-  public static <T, P, F> void viewIFDS(TabulationResult<T, P, F> r, Collection<? extends P> roots) throws WalaException {
+  public static <T, P, F> void viewIFDS(TabulationResult<T, P, F> r, Collection<? extends P> roots)
+      throws WalaException {
     viewIFDS(r, roots, null);
   }
 
-  public static <T, P, F> void viewIFDS(TabulationResult<T, P, F> r, Collection<? extends P> roots, NodeDecorator<T> labels)
+  public static <T, P, F> void viewIFDS(
+      TabulationResult<T, P, F> r, Collection<? extends P> roots, NodeDecorator<T> labels)
       throws WalaException {
     Properties p = null;
     try {
@@ -65,8 +60,12 @@ public class IFDSExplorer {
     viewIFDS(r, roots, labels, scratch);
   }
 
-  public static <T, P, F> void viewIFDS(TabulationResult<T, P, F> r, Collection<? extends P> roots, NodeDecorator<T> labels,
-      String scratchDirectory) throws WalaException {
+  public static <T, P, F> void viewIFDS(
+      TabulationResult<T, P, F> r,
+      Collection<? extends P> roots,
+      NodeDecorator<T> labels,
+      String scratchDirectory)
+      throws WalaException {
     if (r == null) {
       throw new IllegalArgumentException("r is null");
     }
@@ -81,26 +80,29 @@ public class IFDSExplorer {
     String outputFile = scratchDirectory + File.separatorChar + irFileName;
     String dotFile = scratchDirectory + File.separatorChar + "ir.dt";
 
-    final SWTTreeViewer v = new SWTTreeViewer();
-    Graph<? extends P> g = r.getProblem().getSupergraph().getProcedureGraph();
+    final SWTTreeViewer<P> v = new SWTTreeViewer<>();
+    Graph<P> g = r.getProblem().getSupergraph().getProcedureGraph();
     v.setGraphInput(g);
     v.setBlockInput(true);
     v.setRootsInput(roots);
-    ViewIFDSLocalAction<T, P, F> action = (labels == null ? new ViewIFDSLocalAction<>(v, r, outputFile, dotFile, dotExe,
-        viewerExe) : new ViewIFDSLocalAction<>(v, r, outputFile, dotFile, dotExe, viewerExe, labels));
+    ViewIFDSLocalAction<T, P, F> action =
+        (labels == null
+            ? new ViewIFDSLocalAction<>(v, r, outputFile, dotFile, dotExe, viewerExe)
+            : new ViewIFDSLocalAction<>(v, r, outputFile, dotFile, dotExe, viewerExe, labels));
     v.getPopUpActions().add(action);
     v.run();
-
   }
 
   /**
-   * Calls {@link #viewIFDS(TabulationResult)} with roots computed by {@link InferGraphRoots}.
+   * Calls {@link #viewIFDS(TabulationResult, Collection)} with roots computed by {@link
+   * InferGraphRoots}.
    */
   public static <T, P, F> void viewIFDS(TabulationResult<T, P, F> r) throws WalaException {
     if (r == null) {
       throw new IllegalArgumentException("null r");
     }
-    Collection<? extends P> roots = InferGraphRoots.inferRoots(r.getProblem().getSupergraph().getProcedureGraph());
+    Collection<? extends P> roots =
+        InferGraphRoots.inferRoots(r.getProblem().getSupergraph().getProcedureGraph());
     viewIFDS(r, roots);
   }
 
@@ -111,5 +113,4 @@ public class IFDSExplorer {
   public static String getGvExe() {
     return viewerExe;
   }
-
 }

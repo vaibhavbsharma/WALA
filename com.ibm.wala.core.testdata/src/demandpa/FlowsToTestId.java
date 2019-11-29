@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2008 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,22 +7,16 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package demandpa;
 
-/**
- * @author manu
- *
- */
+/** @author manu */
 public class FlowsToTestId {
 
   static Object id(Object o) {
     return o;
   }
 
-  /**
-   * @param args
-   */
   public static void main(String[] args) {
     Object o1 = new FlowsToType();
     Object o2 = new Object();
@@ -31,5 +25,4 @@ public class FlowsToTestId {
     DemandPATestUtil.makeVarUsed(o3);
     DemandPATestUtil.makeVarUsed(o4);
   }
-
 }

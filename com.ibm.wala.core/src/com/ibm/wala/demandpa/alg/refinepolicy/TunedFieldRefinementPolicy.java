@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2007 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,10 +7,8 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.demandpa.alg.refinepolicy;
-
-import java.util.Collection;
 
 import com.ibm.wala.classLoader.IClass;
 import com.ibm.wala.classLoader.IField;
@@ -22,6 +20,7 @@ import com.ibm.wala.ipa.cha.IClassHierarchy;
 import com.ibm.wala.types.ClassLoaderReference;
 import com.ibm.wala.types.TypeReference;
 import com.ibm.wala.util.collections.HashSetFactory;
+import java.util.Collection;
 
 public class TunedFieldRefinementPolicy implements FieldRefinePolicy {
 
@@ -48,7 +47,12 @@ public class TunedFieldRefinementPolicy implements FieldRefinePolicy {
   }
 
   @Override
-  public boolean shouldRefine(IField field, PointerKey basePtr, PointerKey val, IFlowLabel label, StateMachine.State state) {
+  public boolean shouldRefine(
+      IField field,
+      PointerKey basePtr,
+      PointerKey val,
+      IFlowLabel label,
+      StateMachine.State state) {
     if (field == null) {
       throw new IllegalArgumentException("null field");
     }
@@ -76,10 +80,8 @@ public class TunedFieldRefinementPolicy implements FieldRefinePolicy {
   }
 
   /**
-   * 
-   * @param klass
-   * @return the top-level {@link IClass} where klass is declared, or klass itself if klass is top-level or if top-level
-   *         class not loaded
+   * @return the top-level {@link IClass} where klass is declared, or klass itself if klass is
+   *     top-level or if top-level class not loaded
    */
   private IClass removeInner(IClass klass) {
     ClassLoaderReference cl = klass.getClassLoader().getReference();
@@ -97,5 +99,4 @@ public class TunedFieldRefinementPolicy implements FieldRefinePolicy {
   public TunedFieldRefinementPolicy(IClassHierarchy cha) {
     this.cha = cha;
   }
-
 }

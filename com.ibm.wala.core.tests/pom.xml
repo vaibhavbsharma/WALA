@@ -5,7 +5,7 @@
   <parent>
       <groupId>com.ibm.wala</groupId>
       <artifactId>WALA</artifactId>
-      <version>1.4.4-SNAPSHOT</version>
+      <version>1.5.5-SNAPSHOT</version>
   </parent>
   <artifactId>com.ibm.wala.core.tests</artifactId>
   <packaging>eclipse-plugin</packaging>
@@ -20,8 +20,10 @@
             <phase>test</phase>
             <configuration>
               <testClassesDirectory>${project.build.outputDirectory}</testClassesDirectory>
-              <argLine>-Xmx800M -Dcom.ibm.wala.junit.profile=short -Dcom.ibm.wala.junit.analyzingJar=true -ea</argLine>
+              <argLine>-Xmx1500M -Dcom.ibm.wala.junit.profile=short -Dcom.ibm.wala.junit.analyzingJar=true -ea</argLine>
               <redirectTestOutputToFile>true</redirectTestOutputToFile>
+	      <forkCount>2</forkCount>
+	      <reuseForks>false</reuseForks>
             </configuration>
             <goals>
               <goal>test</goal>
@@ -35,7 +37,7 @@
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
-      <version>4.11</version>
+      <version>4.12</version>
       <scope>test</scope>
     </dependency>
   </dependencies> 

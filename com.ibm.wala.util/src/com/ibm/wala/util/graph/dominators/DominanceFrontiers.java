@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2002 - 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,37 +7,33 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.util.graph.dominators;
 
+import com.ibm.wala.util.collections.HashMapFactory;
+import com.ibm.wala.util.collections.HashSetFactory;
+import com.ibm.wala.util.collections.Iterator2Iterable;
+import com.ibm.wala.util.collections.NonNullSingletonIterator;
+import com.ibm.wala.util.graph.Graph;
+import com.ibm.wala.util.graph.traverse.DFS;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
-import com.ibm.wala.util.collections.HashMapFactory;
-import com.ibm.wala.util.collections.HashSetFactory;
-import com.ibm.wala.util.collections.NonNullSingletonIterator;
-import com.ibm.wala.util.graph.Graph;
-import com.ibm.wala.util.graph.traverse.DFS;
-
-/**
- * An object that computes the dominance frontiers of a graph
- */
+/** An object that computes the dominance frontiers of a graph */
 public class DominanceFrontiers<T> {
 
-  final private Map<T, Set<T>> DF = HashMapFactory.make();
+  private final Map<T, Set<T>> DF = HashMapFactory.make();
 
-  final private Dominators<T> dom;
+  private final Dominators<T> dom;
 
-  final private Graph<T> G;
+  private final Graph<T> G;
 
-  final private T root;
+  private final T root;
 
   /**
-   * @param G
-   *          The graph
-   * @param root
-   *          The root from which to compute dominators
+   * @param G The graph
+   * @param root The root from which to compute dominators
    */
   public DominanceFrontiers(Graph<T> G, T root) {
     this.root = root;
@@ -76,20 +72,16 @@ public class DominanceFrontiers<T> {
       DF.put(X, DF_X);
 
       // DF_local
-      for (Iterator<? extends T> YS = G.getSuccNodes(X); YS.hasNext();) {
-        T Y = YS.next();
+      for (T Y : Iterator2Iterable.make(G.getSuccNodes(X))) {
         if (dom.getIdom(Y) != X) {
           DF_X.add(Y);
         }
       }
 
       // DF_up
-      for (Iterator<? extends T> ZS = DT.getSuccNodes(X); ZS.hasNext();) {
-        T Z = ZS.next();
-        for (Iterator<T> YS2 = getDominanceFrontier(Z); YS2.hasNext();) {
-          T Y2 = YS2.next();
-          if (dom.getIdom(Y2) != X)
-            DF_X.add(Y2);
+      for (T Z : Iterator2Iterable.make(DT.getSuccNodes(X))) {
+        for (T Y2 : Iterator2Iterable.make(getDominanceFrontier(Z))) {
+          if (dom.getIdom(Y2) != X) DF_X.add(Y2);
         }
       }
     }

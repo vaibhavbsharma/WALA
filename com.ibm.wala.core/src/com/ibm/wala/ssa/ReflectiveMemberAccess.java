@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2002 - 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,13 +7,10 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.ssa;
 
-
-/**
- * TODO: document me.
- */
+/** TODO: document me. */
 public abstract class ReflectiveMemberAccess extends SSAInstruction {
   protected final int objectRef;
 
@@ -27,7 +24,10 @@ public abstract class ReflectiveMemberAccess extends SSAInstruction {
 
   @Override
   public String toString(SymbolTable symbolTable) {
-    return "fieldref " + getValueString(symbolTable, objectRef) + "." + getValueString(symbolTable, memberRef);
+    return "fieldref "
+        + getValueString(symbolTable, objectRef)
+        + '.'
+        + getValueString(symbolTable, memberRef);
   }
 
   /*
@@ -59,5 +59,4 @@ public abstract class ReflectiveMemberAccess extends SSAInstruction {
   public boolean isFallThrough() {
     return true;
   }
-
 }

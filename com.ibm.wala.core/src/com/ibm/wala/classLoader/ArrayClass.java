@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2002 - 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,17 +7,12 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.classLoader;
 
 import static com.ibm.wala.types.TypeName.ArrayMask;
 import static com.ibm.wala.types.TypeName.ElementBits;
 import static com.ibm.wala.types.TypeName.PrimitiveMask;
-
-import java.io.Reader;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
 
 import com.ibm.wala.ipa.cha.IClassHierarchy;
 import com.ibm.wala.shrikeBT.Constants;
@@ -29,19 +24,24 @@ import com.ibm.wala.util.collections.HashSetFactory;
 import com.ibm.wala.util.debug.Assertions;
 import com.ibm.wala.util.debug.UnimplementedError;
 import com.ibm.wala.util.strings.Atom;
+import java.io.Reader;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
 
 /**
- * Implementation of {@link IClass} for array classes. Such classes would be best called 'broken covariant array types', since that
- * is the semantics that they implement.
+ * Implementation of {@link IClass} for array classes. Such classes would be best called 'broken
+ * covariant array types', since that is the semantics that they implement.
  */
 public class ArrayClass implements IClass, Constants {
 
   private final IClassHierarchy cha;
 
   /**
-   * Package-visible constructor; only for use by ArrayClassLoader class. 'loader' must be the Primordial IClassLoader.
-   * 
-   * [WHY? -- array classes are loaded by the element classloader??]
+   * Package-visible constructor; only for use by ArrayClassLoader class. 'loader' must be the
+   * Primordial IClassLoader.
+   *
+   * <p>[WHY? -- array classes are loaded by the element classloader??]
    */
   ArrayClass(TypeReference type, IClassLoader loader, IClassHierarchy cha) {
     this.type = type;
@@ -78,9 +78,7 @@ public class ArrayClass implements IClass, Constants {
     return getReference().getName();
   }
 
-  /**
-   * Does this class represent an array of primitives?
-   */
+  /** Does this class represent an array of primitives? */
   public boolean isOfPrimitives() {
     return this.type.getInnermostElementType().isPrimitiveType();
   }
@@ -152,7 +150,7 @@ public class ArrayClass implements IClass, Constants {
   @Override
   public IField getField(Atom name, TypeName typeName) {
     return getSuperclass().getField(name, typeName);
-  } 
+  }
 
   /*
    * @see com.ibm.wala.classLoader.IClass#getDeclaredMethods()
@@ -204,7 +202,8 @@ public class ArrayClass implements IClass, Constants {
   }
 
   /**
-   * @return the IClass that represents the array element type, or null if the element type is a primitive
+   * @return the IClass that represents the array element type, or null if the element type is a
+   *     primitive
    */
   public IClass getElementClass() {
     TypeReference elementType = getReference().getArrayElementType();
@@ -272,26 +271,26 @@ public class ArrayClass implements IClass, Constants {
   }
 
   /**
-   * 
    * @param reference a type reference for an array type
    * @return the dimensionality of the array
    */
   public static int getArrayTypeDimensionality(TypeReference reference) {
     int mask = reference.getDerivedMask();
-    if ((mask&PrimitiveMask) == PrimitiveMask) {
+    if ((mask & PrimitiveMask) == PrimitiveMask) {
       mask >>= ElementBits;
     }
     int dims = 0;
-    while ((mask&ArrayMask) == ArrayMask) {
+    while ((mask & ArrayMask) == ArrayMask) {
       mask >>= ElementBits;
       dims++;
     }
-    assert dims>0;
+    assert dims > 0;
     return dims;
   }
 
   /**
-   * @return the IClass that represents the innermost array element type, or null if the element type is a primitive
+   * @return the IClass that represents the innermost array element type, or null if the element
+   *     type is a primitive
    */
   public IClass getInnermostElementClass() {
     TypeReference elementType = getReference().getInnermostElementType();
@@ -343,8 +342,10 @@ public class ArrayClass implements IClass, Constants {
    * @see com.ibm.wala.classLoader.IClass#getAllMethods()
    */
   @Override
-  public Collection<IMethod> getAllMethods() {
-    return loader.lookupClass(getClassLoader().getLanguage().getRootType().getName()).getAllMethods();
+  public Collection<? extends IMethod> getAllMethods() {
+    return loader
+        .lookupClass(getClassLoader().getLanguage().getRootType().getName())
+        .getAllMethods();
   }
 
   /*
@@ -365,9 +366,14 @@ public class ArrayClass implements IClass, Constants {
   public boolean isPublic() {
     return true;
   }
-  
+
   @Override
   public boolean isPrivate() {
+    return false;
+  }
+
+  @Override
+  public boolean isSynthetic() {
     return false;
   }
 
@@ -380,5 +386,4 @@ public class ArrayClass implements IClass, Constants {
   public Collection<Annotation> getAnnotations() {
     return Collections.emptySet();
   }
-
 }

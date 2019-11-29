@@ -1,4 +1,4 @@
-/*******************************************************************************
+/*
  * Copyright (c) 2002 - 2006 IBM Corporation.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -7,24 +7,22 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.wala.util.io;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
-/**
- * utilities for IO streams
- */
+/** utilities for IO streams */
 public class Streams {
 
   /**
-   * @param in
    * @return byte[] holding the contents of the stream
-   * @throws IllegalArgumentException  if in == null
+   * @throws IllegalArgumentException if in == null
    */
-  public static byte[] inputStream2ByteArray(InputStream in) throws IllegalArgumentException, IOException {
+  public static byte[] inputStream2ByteArray(InputStream in)
+      throws IllegalArgumentException, IOException {
     if (in == null) {
       throw new IllegalArgumentException("in == null");
     }
@@ -37,5 +35,4 @@ public class Streams {
     byte[] data = b.toByteArray();
     return data;
   }
-
 }
