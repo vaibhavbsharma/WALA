@@ -14,11 +14,7 @@ import com.ibm.wala.cast.ir.ssa.analysis.LiveAnalysis;
 import com.ibm.wala.cast.loader.AstMethod;
 import com.ibm.wala.cast.loader.AstMethod.DebuggingInformation;
 import com.ibm.wala.cast.loader.AstMethod.LexicalInformation;
-import com.ibm.wala.ssa.SSACFG;
-import com.ibm.wala.ssa.SSAInstruction;
-import com.ibm.wala.ssa.SSAOptions;
-import com.ibm.wala.ssa.SSAPhiInstruction;
-import com.ibm.wala.ssa.SymbolTable;
+import com.ibm.wala.ssa.*;
 import com.ibm.wala.util.collections.HashMapFactory;
 import com.ibm.wala.util.collections.HashSetFactory;
 import com.ibm.wala.util.collections.IteratorUtil;
@@ -316,12 +312,12 @@ public class SSAConversion extends AbstractSSAConversion {
   //
   // SSA2LocalMap implementation for SSAConversion
   //
-  private class SSAInformation implements com.ibm.wala.ssa.IR.SSA2LocalMap {
+  public class SSAInformation implements com.ibm.wala.ssa.IR.SSA2LocalMap {
     private final String[][] computedNames = new String[valueMap.length][];
 
     @Override
     public int[] findLocalsForValueNumber(int index, int vn) {
-      return ((SSA2LocalMap)(this)).findLocalsForValueNumber(index,vn);
+      return ((IR.SSA2LocalMap)(this)).findLocalsForValueNumber(index,vn);
     }
     
     @Override
