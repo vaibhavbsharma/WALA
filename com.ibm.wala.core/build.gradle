@@ -16,7 +16,7 @@ sourceSets.main {
 }
 
 dependencies {
-	implementation ('org.ow2.asm:asm-commons:7.2-beta')
+	implementation ('org.ow2.asm:asm-commons:7.2-beta', 'org.ow2.asm:asm:7.2-beta')
 
 	api(project(':com.ibm.wala.shrike')) {
 		because 'public class Entrypoint implements interface BytecodeConstraints'
