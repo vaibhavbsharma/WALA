@@ -74,7 +74,13 @@ public class ShrikeClassReaderHandle {
 
                 try {
                     if (GoToTransformer.active) {
-                        Boolean wasRewritten = GoToTransformer.execute(entry.toString(), S.toByteArray());
+                        System.out.println("starting rewriting of gotos to : " + entry.getClassName());
+                        Boolean wasRewritten = GoToTransformer.execute(entry.getClassName(), S.toByteArray());
+                        if(wasRewritten)
+                            System.out.println("rewriting for : " + entry.getClassName() + "is finished with true");
+                        else
+                            System.out.println("rewriting for : " + entry.getClassName() + "is finished with false");
+
                         if (wasRewritten) {
                             byte[] rewrittenClassBytes = GoToTransformer.reWrittenBytes;
                             S = new ByteArrayOutputStream(rewrittenClassBytes.length);
