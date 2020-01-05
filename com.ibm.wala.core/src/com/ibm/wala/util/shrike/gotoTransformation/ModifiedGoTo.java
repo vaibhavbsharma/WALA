@@ -1,6 +1,5 @@
 package com.ibm.wala.util.shrike.gotoTransformation;
 
-import javafx.util.Pair;
 import org.objectweb.asm.Label;
 
 import java.util.ArrayList;
